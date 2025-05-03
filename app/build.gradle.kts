@@ -67,7 +67,9 @@ dependencies {
 
     // Coil
     implementation(libs.coil)
-    implementation(libs.coil.network)
+
+    // Datastore
+    implementation(libs.datastore)
 
     // Junit
     testImplementation(libs.junit)
@@ -79,4 +81,9 @@ dependencies {
     implementation(libs.kotlin.immutable)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.serialization)
+
+    // Room
+    ksp(libs.room.compiler)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
 }
