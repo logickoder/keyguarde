@@ -27,10 +27,14 @@ import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
 import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
 import dev.logickoder.keyguarde.onboarding.pages.KeywordSetupPage
 import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
+import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
 import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
 
 @Composable
-fun OnboardingScreen(modifier: Modifier = Modifier) {
+fun OnboardingScreen(
+    modifier: Modifier = Modifier,
+    onDone: () -> Unit,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = remember(backStackEntry) {
@@ -124,11 +128,9 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         route = OnboardingPage.ReadyScreen.name,
                         enterTransition = enterTransition
                     ) {
-//                ReadyScreen(
-//                    onFinish = {
-//                        // TODO: Navigate to the main app dashboard
-//                    }
-//                )
+                        ReadyPage(
+                            onFinish = onDone
+                        )
                     }
                 }
             )

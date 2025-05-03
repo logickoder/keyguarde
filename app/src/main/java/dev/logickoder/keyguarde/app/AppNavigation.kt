@@ -1,6 +1,7 @@
 package dev.logickoder.keyguarde.app
 
 import android.os.Parcelable
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
@@ -22,7 +23,18 @@ fun AppNavigation(
         startDestination = AppRoute.Onboarding,
         builder = {
             composable<AppRoute.Onboarding> { _ ->
-                OnboardingScreen()
+                OnboardingScreen(
+                    onDone = {
+                        navController.navigate(AppRoute.Main) {
+                            popUpTo(AppRoute.Onboarding) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+            }
+            composable<AppRoute.Main> { _ ->
+                Text("This is the main screen")
             }
         }
     )
@@ -32,4 +44,8 @@ sealed interface AppRoute : Parcelable {
     @Serializable
     @Parcelize
     data object Onboarding : AppRoute
+
+    @Serializable
+    @Parcelize
+    data object Main : AppRoute
 }
