@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.app.theme
 
+import dev.logickoder.keyguarde.R
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.googlefonts.GoogleFont

@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Keyguarde</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="welcome_to_app">Welcome to Keyguarde</string>
+    <string name="never_miss_important_messages_again">Never miss important messages again</string>
+    <string name="what_app_does">Keyguarde watches for keywords in your notifications so you\'ll know when something important arrives.</string>
 </resources>
