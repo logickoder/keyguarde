@@ -5,12 +5,12 @@ composeBom = "2025.04.01"
 
 [libraries]
 androidx-core-ktx = "androidx.core:core-ktx:1.16.0"
-junit = "junit:junit:4.13.2"
-androidx-junit = "androidx.test.ext:junit:1.2.1"
-androidx-espresso-core = "androidx.test.espresso:espresso-core:3.6.1"
-androidx-lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
 androidx-activity-compose = "androidx.activity:activity-compose:1.10.1"
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-espresso-core = "androidx.test.espresso:espresso-core:3.6.1"
+androidx-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
+androidx-junit = "androidx.test.ext:junit:1.2.1"
+androidx-lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
@@ -18,6 +18,7 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+junit = "junit:junit:4.13.2"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
