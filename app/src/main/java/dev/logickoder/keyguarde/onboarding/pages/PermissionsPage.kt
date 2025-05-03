@@ -27,8 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.domain.isListenerServiceEnabled
 import dev.logickoder.keyguarde.onboarding.domain.launchListenerSettings
 import kotlinx.coroutines.delay
@@ -144,4 +146,10 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
             )
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PermissionsPagePreview() = AppTheme {
+    PermissionsPage()
 }

@@ -29,8 +29,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.theme.AppTheme
 
 @Composable
 fun HowItWorksPage(modifier: Modifier = Modifier) {
@@ -125,4 +127,10 @@ private fun FeatureItem(
             )
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun HowItWorksPagePreview() = AppTheme {
+    HowItWorksPage()
 }
