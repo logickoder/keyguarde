@@ -12,6 +12,7 @@ androidx-activity-compose = "androidx.activity:activity-compose:1.10.1"
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-espresso-core = "androidx.test.espresso:espresso-core:3.6.1"
 androidx-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
+androidx-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-junit = "androidx.test.ext:junit:1.2.1"
 androidx-lifecycle-runtime-ktx = "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }

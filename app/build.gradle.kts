@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.fonts)
+    implementation(libs.androidx.icons)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -74,5 +75,4 @@ dependencies {
     implementation(libs.kotlin.immutable)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.serialization)
-
 }

@@ -23,6 +23,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
+import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
 import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
 import io.github.aakira.napier.Napier
 
@@ -94,7 +95,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         enterTransition = enterTransition,
                         exitTransition = exitTransition
                     ) {
-//                HowItWorksScreen()
+                        HowItWorksPage()
                     }
 
                     composable(

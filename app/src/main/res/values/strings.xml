@@ -5,4 +5,13 @@
     <string name="welcome_to_app">Welcome to Keyguarde</string>
     <string name="never_miss_important_messages_again">Never miss important messages again</string>
     <string name="what_app_does">Keyguarde watches for keywords in your notifications so you\'ll know when something important arrives.</string>
+    <string name="how_app_works_title">How Keyguarde Works</string>
+    <string name="notification_listening">Notification Listening</string>
+    <string name="notification_listening_desc">Keyguarde monitors notifications from your selected apps</string>
+    <string name="keyword_filtering">Keyword Filtering</string>
+    <string name="keyword_filtering_desc">When keywords you care about appear, Keyguarde keeps track</string>
+    <string name="privacy_focused">Privacy Focused</string>
+    <string name="privacy_focused_desc">Everything happens locally on your device, no data is sent anywhere</string>
+    <string name="battery_efficient">Battery Efficient</string>
+    <string name="battery_efficient_desc">Designed to use minimal resources while protecting your privacy</string>
 </resources>
