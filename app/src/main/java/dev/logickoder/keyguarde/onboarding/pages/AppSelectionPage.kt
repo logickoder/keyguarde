@@ -28,9 +28,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.onboarding.domain.TelegramPackageName
 import dev.logickoder.keyguarde.onboarding.domain.WhatsappPackageName
@@ -69,7 +71,7 @@ fun AppSelectionPage(
         horizontalAlignment = Alignment.CenterHorizontally,
         content = {
             Text(
-                text = "Select Apps to Monitor",
+                text = stringResource(R.string.select_apps_to_monitor),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -77,7 +79,7 @@ fun AppSelectionPage(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Choose which apps Keyguarde should watch for your keywords",
+                text = stringResource(R.string.select_apps_to_monitor_desc),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
@@ -137,7 +139,7 @@ fun AppSelectionPage(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "You can change these selections later in Settings",
+                text = stringResource(R.string.you_can_change_selections_later),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)

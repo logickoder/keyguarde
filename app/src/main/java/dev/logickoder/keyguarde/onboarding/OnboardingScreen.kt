@@ -1,6 +1,5 @@
 package dev.logickoder.keyguarde.onboarding
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
@@ -26,9 +25,9 @@ import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
 import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
+import dev.logickoder.keyguarde.onboarding.pages.KeywordSetupPage
 import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
 import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
-import io.github.aakira.napier.Napier
 
 @Composable
 fun OnboardingScreen(modifier: Modifier = Modifier) {
@@ -40,12 +39,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             ?: OnboardingPage.Welcome
     }
     val selectedApps = remember { mutableStateListOf<String>() }
-
-    // Block back navigation on ReadyScreen
-    BackHandler(enabled = currentScreen == OnboardingPage.ReadyScreen) {
-        // Do nothing to block back navigation
-        Napier.e("Back navigation is blocked on ReadyScreen")
-    }
+    val keywords = remember { mutableStateListOf<String>() }
 
     val welcomeEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
         remember {
@@ -115,7 +109,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         enterTransition = enterTransition,
                         exitTransition = exitTransition
                     ) {
-                        AppSelectionPage(selected = selectedApps)
+                        AppSelectionPage(selectedApps)
                     }
 
                     composable(
@@ -123,7 +117,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         enterTransition = enterTransition,
                         exitTransition = exitTransition
                     ) {
-//                KeywordSetupScreen()
+                        KeywordSetupPage(keywords)
                     }
 
                     composable(
@@ -150,7 +144,11 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                                 navController.popBackStack()
                             }
                         },
-                        nextEnabled = !(currentScreen == OnboardingPage.AppSelection && selectedApps.isEmpty()),
+                        nextEnabled = when (currentScreen) {
+                            OnboardingPage.AppSelection -> selectedApps.isNotEmpty()
+                            OnboardingPage.KeywordSetup -> keywords.isNotEmpty()
+                            else -> true
+                        },
                         onNext = {
                             navController.navigate(
                                 OnboardingPage.entries[currentScreen.ordinal + 1].name

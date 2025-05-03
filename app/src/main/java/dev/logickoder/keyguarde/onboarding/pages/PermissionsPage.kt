@@ -25,8 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.onboarding.domain.isListenerServiceEnabled
 import dev.logickoder.keyguarde.onboarding.domain.launchListenerSettings
 import kotlinx.coroutines.delay
@@ -51,7 +53,7 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         content = {
             Text(
-                text = "Notification Access",
+                text = stringResource(R.string.notification_access),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -71,7 +73,7 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
                         content = {
                             Icon(
                                 imageVector = Icons.Outlined.Notifications,
-                                contentDescription = "Notification Access",
+                                contentDescription = stringResource(R.string.notification_access),
                                 modifier = Modifier.size(64.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -79,7 +81,7 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
-                                text = "Keyguarde needs permission to read your notifications",
+                                text = stringResource(R.string.notifications_access_title),
                                 style = MaterialTheme.typography.titleLarge,
                                 textAlign = TextAlign.Center
                             )
@@ -87,7 +89,7 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "This is necessary to scan for your keywords. Your privacy is our priority - all processing happens on your device and no data leaves it.",
+                                text = stringResource(R.string.notifications_access_desc),
                                 style = MaterialTheme.typography.bodyLarge,
                                 textAlign = TextAlign.Center,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
@@ -103,7 +105,12 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
                                 contentPadding = PaddingValues(vertical = 16.dp),
                                 content = {
                                     Text(
-                                        text = if (permissionGranted) "Permission Granted" else "Grant Permission",
+                                        text = stringResource(
+                                            when (permissionGranted) {
+                                                true -> R.string.permission_granted
+                                                else -> R.string.grant_permission
+                                            }
+                                        ),
                                         style = MaterialTheme.typography.labelLarge
                                     )
                                 }
@@ -116,14 +123,14 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Why is this needed?",
+                text = stringResource(R.string.why_is_this_needed),
                 style = MaterialTheme.typography.titleLarge
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Keyguarde works by looking at notification content to match your keywords. This permission is essential for the app to work correctly.",
+                text = stringResource(R.string.notifications_access_desc_1),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
@@ -131,7 +138,7 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "We take your privacy seriously. All processing happens locally on your device and no data is stored or transmitted elsewhere.",
+                text = stringResource(R.string.notifications_access_desc_2),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
