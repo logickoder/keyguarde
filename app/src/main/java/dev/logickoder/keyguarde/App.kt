@@ -4,7 +4,7 @@ import android.app.Application
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 
-class KeyguardeApplication : Application() {
+class App : Application() {
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
