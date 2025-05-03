@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
@@ -23,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
+import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
 import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
 import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
 import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
@@ -37,6 +39,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             .firstOrNull { it.name == backStackEntry?.destination?.route }
             ?: OnboardingPage.Welcome
     }
+    val selectedApps = remember { mutableStateListOf<String>() }
 
     // Block back navigation on ReadyScreen
     BackHandler(enabled = currentScreen == OnboardingPage.ReadyScreen) {
@@ -112,7 +115,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         enterTransition = enterTransition,
                         exitTransition = exitTransition
                     ) {
-//                AppSelectionScreen()
+                        AppSelectionPage(selected = selectedApps)
                     }
 
                     composable(
@@ -147,12 +150,11 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                                 navController.popBackStack()
                             }
                         },
+                        nextEnabled = !(currentScreen == OnboardingPage.AppSelection && selectedApps.isEmpty()),
                         onNext = {
-                            if (currentScreen != OnboardingPage.ReadyScreen) {
-                                navController.navigate(
-                                    OnboardingPage.entries[currentScreen.ordinal + 1].name
-                                )
-                            }
+                            navController.navigate(
+                                OnboardingPage.entries[currentScreen.ordinal + 1].name
+                            )
                         }
                     )
                 }

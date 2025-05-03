@@ -30,6 +30,7 @@ import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 @Composable
 fun OnboardingBottomBar(
     currentPage: OnboardingPage,
+    nextEnabled: Boolean,
     modifier: Modifier = Modifier,
     onPrevious: () -> Unit,
     onNext: () -> Unit
@@ -100,6 +101,7 @@ fun OnboardingBottomBar(
 
                     Button(
                         onClick = onNext,
+                        enabled = nextEnabled,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
