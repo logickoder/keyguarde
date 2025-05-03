@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,12 +24,14 @@ import androidx.navigation.compose.rememberNavController
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
+import dev.logickoder.keyguarde.onboarding.domain.rememberOnboardingState
 import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
 import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
 import dev.logickoder.keyguarde.onboarding.pages.KeywordSetupPage
 import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
 import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
 import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
+import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun OnboardingScreen(
@@ -44,8 +45,7 @@ fun OnboardingScreen(
             .firstOrNull { it.name == backStackEntry?.destination?.route }
             ?: OnboardingPage.Welcome
     }
-    val selectedApps = remember { mutableStateListOf<String>() }
-    val keywords = remember { mutableStateListOf<String>() }
+    val state = rememberOnboardingState(onDone)
 
     val welcomeEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
         remember {
@@ -115,7 +115,12 @@ fun OnboardingScreen(
                         enterTransition = enterTransition,
                         exitTransition = exitTransition
                     ) {
-                        AppSelectionPage(selectedApps)
+                        AppSelectionPage(
+                            apps = remember(state.apps) {
+                                state.apps.toImmutableList()
+                            },
+                            state.selectedApps
+                        )
                     }
 
                     composable(
@@ -123,7 +128,7 @@ fun OnboardingScreen(
                         enterTransition = enterTransition,
                         exitTransition = exitTransition
                     ) {
-                        KeywordSetupPage(keywords)
+                        KeywordSetupPage(state.keywords)
                     }
 
                     composable(
@@ -131,7 +136,8 @@ fun OnboardingScreen(
                         enterTransition = enterTransition
                     ) {
                         ReadyPage(
-                            onFinish = onDone
+                            isSaving = state.isSaving,
+                            onFinish = state::save
                         )
                     }
                 }
@@ -149,8 +155,8 @@ fun OnboardingScreen(
                             }
                         },
                         nextEnabled = when (currentScreen) {
-                            OnboardingPage.AppSelection -> selectedApps.isNotEmpty()
-                            OnboardingPage.KeywordSetup -> keywords.isNotEmpty()
+                            OnboardingPage.AppSelection -> state.selectedApps.isNotEmpty()
+                            OnboardingPage.KeywordSetup -> state.keywords.isNotEmpty()
                             else -> true
                         },
                         onNext = {

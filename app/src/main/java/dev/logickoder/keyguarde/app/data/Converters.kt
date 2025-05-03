@@ -1,4 +1,4 @@
-package dev.logickoder.keyguarde.app.data.local
+package dev.logickoder.keyguarde.app.data
 
 import androidx.room.TypeConverter
 import java.time.LocalDate

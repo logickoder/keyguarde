@@ -1,4 +1,4 @@
-package dev.logickoder.keyguarde.app.data.local
+package dev.logickoder.keyguarde.app.data
 
 import android.content.Context
 import androidx.room.Database
@@ -6,13 +6,24 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import dev.logickoder.keyguarde.BuildConfig
+import dev.logickoder.keyguarde.app.data.dao.KeywordDao
+import dev.logickoder.keyguarde.app.data.dao.SelectedAppDao
+import dev.logickoder.keyguarde.app.data.model.Keyword
+import dev.logickoder.keyguarde.app.data.model.SelectedApp
 
 @TypeConverters(Converters::class)
 @Database(
-    entities = [],
+    entities = [
+        Keyword::class,
+        SelectedApp::class,
+    ],
     version = 1
 )
 abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun keywordDao(): KeywordDao
+
+    abstract fun selectedAppDao(): SelectedAppDao
 
     companion object {
         @Volatile

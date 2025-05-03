@@ -25,6 +25,7 @@ import dev.logickoder.keyguarde.app.theme.AppTheme
 
 @Composable
 fun ReadyPage(
+    isSaving: Boolean,
     modifier: Modifier = Modifier,
     onFinish: () -> Unit
 ) {
@@ -72,6 +73,7 @@ fun ReadyPage(
 
             Button(
                 onClick = onFinish,
+                enabled = !isSaving,
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 16.dp),
                 content = {
@@ -88,5 +90,5 @@ fun ReadyPage(
 @Preview(showBackground = true)
 @Composable
 private fun ReadyPagePreview() = AppTheme {
-    ReadyPage(onFinish = {})
+    ReadyPage(isSaving = false, onFinish = {})
 }

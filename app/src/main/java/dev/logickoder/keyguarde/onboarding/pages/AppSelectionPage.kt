@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.onboarding.pages
 
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
@@ -21,53 +22,31 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toDrawable
 import coil3.compose.AsyncImage
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
-import dev.logickoder.keyguarde.onboarding.domain.TelegramPackageName
-import dev.logickoder.keyguarde.onboarding.domain.WhatsappPackageName
-import dev.logickoder.keyguarde.onboarding.domain.getInstalledApps
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import dev.logickoder.keyguarde.onboarding.domain.StoreSavedAppsInDatabaseUsecase.Companion.TELEGRAM_PACKAGE_NAME
+import dev.logickoder.keyguarde.onboarding.domain.StoreSavedAppsInDatabaseUsecase.Companion.WHATSAPP_PACKAGE_NAME
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun AppSelectionPage(
+    apps: ImmutableList<AppInfo>,
     selected: SnapshotStateList<String>,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val apps = remember { mutableStateListOf<AppInfo>() }
-
-    LaunchedEffect(Unit) {
-        launch(Dispatchers.Default) {
-            val installedApps = context.getInstalledApps()
-            withContext(Dispatchers.Main) {
-                apps.addAll(installedApps)
-                // automatically select whatsapp and telegram if available
-                selected.clear()
-                apps.find { it.packageName == WhatsappPackageName }?.let {
-                    selected.add(it.packageName)
-                }
-                apps.find { it.packageName == TelegramPackageName }?.let {
-                    selected.add(it.packageName)
-                }
-            }
-        }
-    }
-
     Column(
         modifier = modifier.padding(24.dp).fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -204,10 +183,22 @@ private fun AppSelectionItem(
 @Composable
 private fun AppSelectionPagePreview() = AppTheme {
     AppSelectionPage(
+        apps = persistentListOf(
+            AppInfo(
+                name = "WhatsApp",
+                packageName = WHATSAPP_PACKAGE_NAME,
+                icon = Color.TRANSPARENT.toDrawable()
+            ),
+            AppInfo(
+                name = "Telegram",
+                packageName = TELEGRAM_PACKAGE_NAME,
+                icon = Color.TRANSPARENT.toDrawable()
+            )
+        ),
         selected = remember {
             mutableStateListOf(
-                WhatsappPackageName,
-                TelegramPackageName
+                WHATSAPP_PACKAGE_NAME,
+                TELEGRAM_PACKAGE_NAME
             )
         }
     )

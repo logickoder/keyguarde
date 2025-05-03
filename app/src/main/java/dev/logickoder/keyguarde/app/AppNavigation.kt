@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 
 @Composable
 fun AppNavigation(
+    start: AppRoute,
     modifier: Modifier = Modifier,
 ) {
     val navController = rememberNavController()
@@ -20,7 +21,7 @@ fun AppNavigation(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = AppRoute.Onboarding,
+        startDestination = start,
         builder = {
             composable<AppRoute.Onboarding> { _ ->
                 OnboardingScreen(
