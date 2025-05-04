@@ -2,6 +2,7 @@ package dev.logickoder.keyguarde.app.data.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.LocalDateTime
 
@@ -11,6 +12,10 @@ import java.time.LocalDateTime
  */
 @Entity(
     tableName = "keyword_matches",
+    indices = [
+        Index(value = ["keyword"]),
+        Index(value = ["app"])
+    ],
     foreignKeys = [
         ForeignKey(
             entity = Keyword::class,

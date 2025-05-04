@@ -12,6 +12,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.logickoder.keyguarde.settings.KeywordsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -114,7 +115,9 @@ fun SettingsNavigation(
                 popEnterTransition = popEnterTransition,
                 popExitTransition = popExitTransition
             ) {
-                Text("This is the keywords screen")
+                KeywordsScreen(
+                    onBack = goBack,
+                )
             }
 
             composable<SettingsRoute.Apps>(

@@ -95,7 +95,7 @@ fun HomeScreen(
                         FilterChips(
                             selected = state.filter,
                             apps = watchedApps,
-                            onSelected = state::onFilterChange
+                            onSelected = state::changeFilter
                         )
                     }
 
@@ -131,7 +131,7 @@ fun HomeScreen(
             if (state.isKeywordDialogVisible) {
                 KeywordDialog(
                     onDismiss = state::toggleKeywordDialog,
-                    onSave = state::onSaveKeyword
+                    onSave = state::saveKeyword
                 )
             }
         },

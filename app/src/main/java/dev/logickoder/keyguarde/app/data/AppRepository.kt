@@ -87,6 +87,16 @@ class AppRepository(private val context: Context) {
     }
 
     /**
+     * Update an existing keyword in the database.
+     *
+     * @param oldKeyword The [Keyword] object to be updated.
+     * @param newKeyword The new [Keyword] object with updated values.
+     */
+    suspend fun updateKeyword(oldKeyword: Keyword, newKeyword: Keyword) {
+        database.keywordDao().update(oldKeyword, newKeyword)
+    }
+
+    /**
      * Delete a keyword from the database.
      *
      * @param keyword The [Keyword] object to be deleted.

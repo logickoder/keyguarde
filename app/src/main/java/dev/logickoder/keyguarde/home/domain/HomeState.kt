@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class HomeState(
-    private val context: Context,
+    context: Context,
     private val scope: CoroutineScope,
 ) {
     private val repository = AppRepository.getInstance(context)
@@ -44,7 +44,7 @@ class HomeState(
         initialValue = persistentListOf(),
     )
 
-    fun onFilterChange(app: WatchedApp?) {
+    fun changeFilter(app: WatchedApp?) {
         filter = app
     }
 
@@ -52,13 +52,14 @@ class HomeState(
         isKeywordDialogVisible = !isKeywordDialogVisible
     }
 
-    fun onSaveKeyword(word: String, isCaseSensitive: Boolean) {
+    fun saveKeyword(word: String, isCaseSensitive: Boolean) {
         if (word.isNotBlank()) {
             scope.launch {
-                repository.addKeyword(Keyword(word, isCaseSensitive = isCaseSensitive))
+                repository.addKeyword(Keyword(word = word, isCaseSensitive = isCaseSensitive))
+            }.invokeOnCompletion {
+                toggleKeywordDialog()
             }
         }
-        isKeywordDialogVisible = false
     }
 }
 

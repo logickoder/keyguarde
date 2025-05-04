@@ -59,7 +59,7 @@ class HomeStateTest {
     @Test
     fun `onFilterChange should update filter`() = runTest {
         val app = WatchedApp("com.example.app1", "App 1")
-        homeState.onFilterChange(app)
+        homeState.changeFilter(app)
         assertEquals(app, homeState.filter)
     }
 
@@ -70,7 +70,7 @@ class HomeStateTest {
             listOf()
         )
 
-        homeState.onFilterChange(app)
+        homeState.changeFilter(app)
         val matches = homeState.matches.value
         assertEquals(0, matches.size)
     }

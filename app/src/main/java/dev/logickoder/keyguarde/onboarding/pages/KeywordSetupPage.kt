@@ -117,6 +117,7 @@ fun KeywordSetupPage(
             onDismiss = { showAddDialog = false },
             onSave = { word, sensitive ->
                 keywords.add(Keyword(word = word, isCaseSensitive = sensitive))
+                showAddDialog = false
             }
         )
     }

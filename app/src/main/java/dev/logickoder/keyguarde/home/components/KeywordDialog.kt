@@ -7,6 +7,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -19,7 +21,14 @@ fun KeywordDialog(
     onDismiss: () -> Unit,
     onSave: (String, Boolean) -> Unit
 ) {
-    var word by remember(initialKeyword) { mutableStateOf(initialKeyword?.word ?: "") }
+    var word by remember(initialKeyword) {
+        mutableStateOf(
+            TextFieldValue(
+                text = initialKeyword?.word.orEmpty(),
+                selection = TextRange(initialKeyword?.word?.length ?: 0)
+            )
+        )
+    }
     var isCaseSensitive by remember(initialKeyword) { mutableStateOf(initialKeyword?.isCaseSensitive ?: false) }
     var isValid by remember { mutableStateOf(true) }
 
@@ -93,7 +102,7 @@ fun KeywordDialog(
 
                                     Spacer(modifier = Modifier.width(8.dp))
 
-                                    val trimmedWord = word.trim()
+                                    val trimmedWord = word.text.trim()
                                     Button(
                                         onClick = {
                                             isValid = trimmedWord.length >= 2
@@ -105,7 +114,6 @@ fun KeywordDialog(
                                                     },
                                                     isCaseSensitive
                                                 )
-                                                onDismiss()
                                             }
                                         },
                                         enabled = trimmedWord.isNotEmpty(),
