@@ -17,11 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,22 +26,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
-import dev.logickoder.keyguarde.onboarding.domain.isListenerServiceEnabled
 import dev.logickoder.keyguarde.onboarding.domain.launchListenerSettings
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 
 @Composable
-fun PermissionsPage(modifier: Modifier = Modifier) {
+fun PermissionsPage(
+    permissionGranted: Boolean,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
-    var permissionGranted by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            permissionGranted = context.isListenerServiceEnabled()
-            delay(1_000)
-        }
-    }
 
     Column(
         modifier = modifier
@@ -151,5 +138,5 @@ fun PermissionsPage(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 private fun PermissionsPagePreview() = AppTheme {
-    PermissionsPage()
+    PermissionsPage(false)
 }

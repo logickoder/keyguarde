@@ -16,11 +16,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
@@ -38,14 +37,8 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier,
     onDone: () -> Unit,
 ) {
-    val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = remember(backStackEntry) {
-        OnboardingPage.entries
-            .firstOrNull { it.name == backStackEntry?.destination?.route }
-            ?: OnboardingPage.Welcome
-    }
     val state = rememberOnboardingState(onDone)
+    val currentScreen by state.currentScreen.collectAsStateWithLifecycle()
 
     val welcomeEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
         remember {
@@ -82,7 +75,7 @@ fun OnboardingScreen(
         modifier = modifier,
         content = { innerPadding ->
             NavHost(
-                navController = navController,
+                state.controller,
                 startDestination = OnboardingPage.Welcome.name,
                 modifier = Modifier.padding(innerPadding),
                 builder = {
@@ -107,7 +100,7 @@ fun OnboardingScreen(
                         enterTransition = enterTransition,
                         exitTransition = exitTransition
                     ) {
-                        PermissionsPage()
+                        PermissionsPage(state.permissionGranted)
                     }
 
                     composable(
@@ -150,17 +143,18 @@ fun OnboardingScreen(
                     OnboardingBottomBar(
                         currentPage = currentScreen,
                         onPrevious = {
-                            if (navController.previousBackStackEntry != null) {
-                                navController.popBackStack()
+                            if (state.controller.previousBackStackEntry != null) {
+                                state.controller.popBackStack()
                             }
                         },
                         nextEnabled = when (currentScreen) {
+                            OnboardingPage.Permissions -> state.permissionGranted
                             OnboardingPage.AppSelection -> state.selectedApps.isNotEmpty()
                             OnboardingPage.KeywordSetup -> state.keywords.isNotEmpty()
                             else -> true
                         },
                         onNext = {
-                            navController.navigate(
+                            state.controller.navigate(
                                 OnboardingPage.entries[currentScreen.ordinal + 1].name
                             )
                         }

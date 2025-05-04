@@ -1,7 +1,6 @@
-package dev.logickoder.keyguarde.app
+package dev.logickoder.keyguarde.app.navigation
 
 import android.os.Parcelable
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
@@ -35,7 +34,7 @@ fun AppNavigation(
                 )
             }
             composable<AppRoute.Main> { _ ->
-                Text("This is the main screen")
+                MainNavigation()
             }
         }
     )

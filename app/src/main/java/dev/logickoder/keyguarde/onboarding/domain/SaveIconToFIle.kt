@@ -50,7 +50,7 @@ fun saveIconToFile(icon: Drawable, packageName: String, context: Context): Strin
     }
     return FileProvider.getUriForFile(
         context,
-        "${packageName}.provider",
+        context.provider,
         file
     ).toString()
 }
@@ -58,7 +58,7 @@ fun saveIconToFile(icon: Drawable, packageName: String, context: Context): Strin
 
 fun Context.getCachedAppIcon(packageName: String): Uri = FileProvider.getUriForFile(
     this,
-    "${this.packageName}.provider",
+    provider,
     getIconFile(this, packageName)
 )
 
@@ -69,3 +69,6 @@ private fun getIconFile(context: Context, packageName: String) = File(
     context.externalCacheDir,
     "icons/apps/$packageName.png"
 )
+
+private val Context.provider: String
+    get() = "${packageName}.provider"
