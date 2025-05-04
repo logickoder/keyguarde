@@ -1,0 +1,124 @@
+package dev.logickoder.keyguarde.home.components
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import dev.logickoder.keyguarde.app.data.model.Keyword
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun KeywordDialog(
+    initialKeyword: Keyword? = null,
+    onDismiss: () -> Unit,
+    onSave: (String, Boolean) -> Unit
+) {
+    var word by remember(initialKeyword) { mutableStateOf(initialKeyword?.word ?: "") }
+    var isCaseSensitive by remember(initialKeyword) { mutableStateOf(initialKeyword?.isCaseSensitive ?: false) }
+    var isValid by remember { mutableStateOf(true) }
+
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        content = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 6.dp,
+                content = {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        content = {
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = if (initialKeyword == null) "Add New Keyword" else "Edit Keyword",
+                                style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center,
+                            )
+
+                            OutlinedTextField(
+                                modifier = Modifier.fillMaxWidth()
+                                    .focusRequester(focusRequester),
+                                value = word,
+                                onValueChange = { word = it },
+                                label = { Text("Keyword") },
+                                singleLine = true,
+                                isError = !isValid,
+                                supportingText = if (!isValid) {
+                                    { Text("Keyword must be at least 2 characters") }
+                                } else null,
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                content = {
+                                    Text(
+                                        text = "Case sensitive",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    Switch(
+                                        checked = isCaseSensitive,
+                                        onCheckedChange = { isCaseSensitive = it }
+                                    )
+                                }
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically,
+                                content = {
+                                    TextButton(
+                                        onClick = onDismiss,
+                                        content = {
+                                            Text("Cancel")
+                                        }
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    val trimmedWord = word.trim()
+                                    Button(
+                                        onClick = {
+                                            isValid = trimmedWord.length >= 2
+                                            if (isValid) {
+                                                onSave(
+                                                    when (isCaseSensitive) {
+                                                        true -> trimmedWord
+                                                        else -> trimmedWord.lowercase()
+                                                    },
+                                                    isCaseSensitive
+                                                )
+                                                onDismiss()
+                                            }
+                                        },
+                                        enabled = trimmedWord.isNotEmpty(),
+                                        content = {
+                                            Text("Save")
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+        }
+    )
+}

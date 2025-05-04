@@ -1,13 +1,7 @@
 package dev.logickoder.keyguarde.onboarding.domain
 
 import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -17,15 +11,11 @@ import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAG
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 
 class OnboardingState(
     private val context: Context,
@@ -46,7 +36,7 @@ class OnboardingState(
 
     val selectedApps = mutableStateListOf<String>()
 
-    val keywords = mutableStateListOf<String>()
+    val keywords = mutableStateListOf<Keyword>()
 
     val apps = mutableStateListOf<AppInfo>()
 
@@ -91,7 +81,7 @@ class OnboardingState(
         scope.launch {
             repository.onboardingCompleted()
 
-            repository.addKeyword(*keywords.map { Keyword(word = it) }.toTypedArray())
+            repository.addKeyword(*keywords.toTypedArray())
 
             val watchedApps = apps.filter { selectedApps.contains(it.packageName) }.map { app ->
                 WatchedApp(
