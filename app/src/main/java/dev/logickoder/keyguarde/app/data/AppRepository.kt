@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import dev.logickoder.keyguarde.app.data.model.Keyword
+import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.SingletonCompanion
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
@@ -34,6 +35,11 @@ class AppRepository(private val context: Context) {
      * Get all watched apps stored in the database.
      */
     val watchedApps = database.watchedAppDao().getAll()
+
+    /**
+     * Get all keyword matches stored in the database.
+     */
+    val matches = database.keywordMatchDao().getAll()
 
     /**
      * Get all installed apps that can post notifications on the device.
@@ -106,6 +112,34 @@ class AppRepository(private val context: Context) {
     suspend fun deleteWatchedApp(app: WatchedApp) {
         database.watchedAppDao().delete(app.packageName)
     }
+
+    /**
+     * Get all keyword matches for a specific app.
+     *
+     * @param packageName The package name of the app for which to retrieve keyword matches.
+     */
+    fun getKeywordMatchesForApp(packageName: String) = database.keywordMatchDao().getByApp(
+        packageName
+    )
+
+    /**
+     * Add one or more matched keywords to the database.
+     *
+     * @param match Vararg of [KeywordMatch] objects to be added.
+     */
+    suspend fun addKeywordMatch(vararg match: KeywordMatch) {
+        database.keywordMatchDao().insert(*match)
+    }
+
+    /**
+     * Delete a matched keyword from the database.
+     *
+     * @param match The [KeywordMatch] object to be deleted.
+     */
+    suspend fun deleteKeywordMatch(match: KeywordMatch) {
+        database.keywordMatchDao().delete(match)
+    }
+
 
     /**
      * Mark the onboarding process as completed

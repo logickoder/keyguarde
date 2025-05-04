@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.logickoder.keyguarde.home.HomeScreen
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -20,7 +21,7 @@ fun MainNavigation(modifier: Modifier = Modifier) {
         startDestination = MainRoute.Home,
         builder = {
             composable<MainRoute.Home> { _ ->
-                Text("This is the home screen")
+                HomeScreen()
             }
             composable<MainRoute.Settings> { _ ->
                 Text("This is the settings screen")
