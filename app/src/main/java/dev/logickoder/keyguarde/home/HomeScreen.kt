@@ -27,6 +27,7 @@ import dev.logickoder.keyguarde.home.domain.rememberHomeState
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    onSettings: () -> Unit,
 ) {
     val state = rememberHomeState()
     val watchedApps by state.watchedApps.collectAsStateWithLifecycle()
@@ -62,9 +63,7 @@ fun HomeScreen(
                 },
                 actions = {
                     IconButton(
-                        {
-
-                        },
+                        onSettings,
                         content = {
                             Icon(
                                 imageVector = Icons.Default.Settings,
@@ -155,5 +154,5 @@ fun HomeScreen(
 @Preview(showBackground = true)
 @Composable
 private fun HomeScreenPreview() = AppTheme {
-    HomeScreen()
+    HomeScreen {}
 }
