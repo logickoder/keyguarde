@@ -9,11 +9,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import dev.logickoder.keyguarde.app.data.AppDatabase
-import dev.logickoder.keyguarde.app.data.AppStore
+import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
+import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.Keyword
-import dev.logickoder.keyguarde.onboarding.domain.StoreSavedAppsInDatabaseUsecase.Companion.TELEGRAM_PACKAGE_NAME
-import dev.logickoder.keyguarde.onboarding.domain.StoreSavedAppsInDatabaseUsecase.Companion.WHATSAPP_PACKAGE_NAME
+import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ class OnboardingState(
     private val scope: CoroutineScope,
     private val onDone: () -> Unit,
 ) {
-    private val usecase = StoreSavedAppsInDatabaseUsecase(context)
+    private val repository = AppRepository.getInstance(context)
 
     val selectedApps = mutableStateListOf<String>()
     val keywords = mutableStateListOf<String>()
@@ -34,7 +34,7 @@ class OnboardingState(
 
     init {
         scope.launch(Dispatchers.Default) {
-            apps.addAll(usecase.getInstalledApps())
+            apps.addAll(repository.getInstalledApps())
             // automatically select whatsapp and telegram if available
             apps.find { it.packageName == WHATSAPP_PACKAGE_NAME }?.let {
                 selectedApps.add(it.packageName)
@@ -51,16 +51,22 @@ class OnboardingState(
         }
 
         scope.launch {
-            AppStore.getInstance(context).save(
-                AppStore.onboardingComplete,
-                true
-            )
+            repository.onboardingCompleted()
 
-            AppDatabase.getInstance(context).keywordDao().insert(
-                *keywords.map { Keyword(word = it) }.toTypedArray()
-            )
+            repository.addKeyword(*keywords.map { Keyword(word = it) }.toTypedArray())
 
-            usecase(apps = apps.filter { selectedApps.contains(it.packageName) })
+            val watchedApps = apps.filter { selectedApps.contains(it.packageName) }.map { app ->
+                WatchedApp(
+                    packageName = app.packageName,
+                    name = app.name,
+                    icon = saveIconToFile(
+                        app.icon,
+                        app.packageName,
+                        context
+                    )
+                )
+            }
+            repository.addWatchedApp(*watchedApps.toTypedArray())
 
             onDone()
         }.invokeOnCompletion {

@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import dev.logickoder.keyguarde.app.data.model.Keyword
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface KeywordDao {
@@ -15,5 +16,5 @@ interface KeywordDao {
     suspend fun delete(keyword: String)
 
     @Query("SELECT * FROM keywords ORDER BY createdAt DESC")
-    suspend fun getAll(): List<Keyword>
+    fun getAll(): Flow<List<Keyword>>
 }

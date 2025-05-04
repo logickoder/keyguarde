@@ -36,8 +36,8 @@ import coil3.compose.AsyncImage
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
-import dev.logickoder.keyguarde.onboarding.domain.StoreSavedAppsInDatabaseUsecase.Companion.TELEGRAM_PACKAGE_NAME
-import dev.logickoder.keyguarde.onboarding.domain.StoreSavedAppsInDatabaseUsecase.Companion.WHATSAPP_PACKAGE_NAME
+import dev.logickoder.keyguarde.onboarding.domain.StoreWatchedAppsInDatabaseUsecase.Companion.TELEGRAM_PACKAGE_NAME
+import dev.logickoder.keyguarde.onboarding.domain.StoreWatchedAppsInDatabaseUsecase.Companion.WHATSAPP_PACKAGE_NAME
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 

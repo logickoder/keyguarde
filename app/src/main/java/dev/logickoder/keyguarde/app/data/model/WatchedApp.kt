@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "selected_apps")
-data class SelectedApp(
+data class WatchedApp(
     @PrimaryKey val packageName: String,
     val name: String,
     val icon: String,
