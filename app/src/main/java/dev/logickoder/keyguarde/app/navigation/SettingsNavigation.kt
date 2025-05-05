@@ -15,6 +15,7 @@ import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsEnte
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsExitTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopEnterTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopExitTransition
+import dev.logickoder.keyguarde.settings.BatterySettingsScreen
 import dev.logickoder.keyguarde.settings.KeywordsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
 import dev.logickoder.keyguarde.settings.WatchedAppsScreen
@@ -77,7 +78,9 @@ fun SettingsNavigation(
             }
 
             screen<SettingsRoute.Battery> {
-                Text("This is the battery screen")
+                BatterySettingsScreen(
+                    onBack = goBack,
+                )
             }
 
             screen<SettingsRoute.Privacy> {
