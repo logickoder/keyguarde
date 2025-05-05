@@ -17,6 +17,7 @@ import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopE
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopExitTransition
 import dev.logickoder.keyguarde.settings.KeywordsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
+import dev.logickoder.keyguarde.settings.WatchedAppsScreen
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -66,7 +67,9 @@ fun SettingsNavigation(
             }
 
             screen<SettingsRoute.Apps> {
-                Text("This is the apps screen")
+                WatchedAppsScreen(
+                    onBack = goBack,
+                )
             }
 
             screen<SettingsRoute.Notifications> {

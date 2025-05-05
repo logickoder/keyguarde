@@ -117,10 +117,10 @@ class AppRepository(private val context: Context) {
     /**
      * Delete a watched app from the database.
      *
-     * @param app The [WatchedApp] object to be deleted.
+     * @param packageName The packageName of the [WatchedApp] object to be deleted.
      */
-    suspend fun deleteWatchedApp(app: WatchedApp) {
-        database.watchedAppDao().delete(app.packageName)
+    suspend fun deleteWatchedApp(packageName: String) {
+        database.watchedAppDao().delete(packageName)
     }
 
     /**
