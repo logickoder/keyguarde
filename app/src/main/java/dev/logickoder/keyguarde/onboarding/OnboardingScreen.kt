@@ -1,14 +1,7 @@
 package dev.logickoder.keyguarde.onboarding
 
-import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -18,18 +11,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingEnterTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingExitTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingWelcomeEnterTransition
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.rememberOnboardingState
-import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
-import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
-import dev.logickoder.keyguarde.onboarding.pages.KeywordSetupPage
-import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
-import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
-import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
+import dev.logickoder.keyguarde.onboarding.pages.*
 import kotlinx.collections.immutable.toImmutableList
 
 @Composable
@@ -40,37 +32,6 @@ fun OnboardingScreen(
     val state = rememberOnboardingState(onDone)
     val currentScreen by state.currentScreen.collectAsStateWithLifecycle()
 
-    val welcomeEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
-        remember {
-            {
-                slideInHorizontally(
-                    initialOffsetX = { -it },
-                    animationSpec = tween(300)
-                ) + fadeIn(animationSpec = tween(300))
-            }
-        }
-
-    val enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
-        remember {
-            {
-                slideInHorizontally(
-                    initialOffsetX = { it },
-                    animationSpec = tween(300)
-                ) + fadeIn(animationSpec = tween(300))
-            }
-        }
-
-    val exitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition =
-        remember {
-            {
-                slideOutHorizontally(
-                    targetOffsetX = { -it },
-                    animationSpec = tween(300)
-                ) + fadeOut(animationSpec = tween(300))
-            }
-        }
-
-
     Scaffold(
         modifier = modifier,
         content = { innerPadding ->
@@ -79,35 +40,19 @@ fun OnboardingScreen(
                 startDestination = OnboardingPage.Welcome.name,
                 modifier = Modifier.padding(innerPadding),
                 builder = {
-                    composable(
-                        route = OnboardingPage.Welcome.name,
-                        enterTransition = welcomeEnterTransition,
-                        exitTransition = exitTransition
-                    ) {
+                    screen(OnboardingPage.Welcome) {
                         WelcomePage()
                     }
 
-                    composable(
-                        route = OnboardingPage.HowItWorks.name,
-                        enterTransition = enterTransition,
-                        exitTransition = exitTransition
-                    ) {
+                    screen(OnboardingPage.HowItWorks) {
                         HowItWorksPage()
                     }
 
-                    composable(
-                        route = OnboardingPage.Permissions.name,
-                        enterTransition = enterTransition,
-                        exitTransition = exitTransition
-                    ) {
+                    screen(OnboardingPage.Permissions) {
                         PermissionsPage(state.permissionGranted)
                     }
 
-                    composable(
-                        route = OnboardingPage.AppSelection.name,
-                        enterTransition = enterTransition,
-                        exitTransition = exitTransition
-                    ) {
+                    screen(OnboardingPage.AppSelection) {
                         AppSelectionPage(
                             apps = remember(state.apps) {
                                 state.apps.toImmutableList()
@@ -116,18 +61,11 @@ fun OnboardingScreen(
                         )
                     }
 
-                    composable(
-                        route = OnboardingPage.KeywordSetup.name,
-                        enterTransition = enterTransition,
-                        exitTransition = exitTransition
-                    ) {
+                    screen(OnboardingPage.KeywordSetup) {
                         KeywordSetupPage(state.keywords)
                     }
 
-                    composable(
-                        route = OnboardingPage.ReadyScreen.name,
-                        enterTransition = enterTransition
-                    ) {
+                    screen(OnboardingPage.ReadyScreen) {
                         ReadyPage(
                             isSaving = state.isSaving,
                             onFinish = state::save
@@ -164,6 +102,23 @@ fun OnboardingScreen(
         },
     )
 }
+
+private fun NavGraphBuilder.screen(
+    page: OnboardingPage,
+    content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit)
+) = composable(
+    route = page.name,
+    enterTransition = when (page) {
+        OnboardingPage.Welcome -> onboardingWelcomeEnterTransition
+        else -> onboardingEnterTransition
+    },
+    exitTransition = when (page) {
+        OnboardingPage.ReadyScreen -> null
+        else -> onboardingExitTransition
+    },
+    content = content
+)
+
 
 @Preview(showBackground = true)
 @Composable

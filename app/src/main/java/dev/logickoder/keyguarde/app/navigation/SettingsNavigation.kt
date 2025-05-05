@@ -1,17 +1,20 @@
 package dev.logickoder.keyguarde.app.navigation
 
 import android.os.Parcelable
-import androidx.compose.animation.*
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsEnterTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsExitTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopEnterTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopExitTransition
 import dev.logickoder.keyguarde.settings.KeywordsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
 import kotlinx.parcelize.Parcelize
@@ -30,65 +33,12 @@ fun SettingsNavigation(
         }
     }
 
-    val enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = remember {
-        {
-            fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                    scaleIn(
-                        initialScale = 0.95f,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    ) +
-                    slideIntoContainer(
-                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    )
-        }
-    }
-
-    val exitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = remember {
-        {
-            fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                    slideOutOfContainer(
-                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    )
-        }
-    }
-
-    val popEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = remember {
-        {
-            fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                    slideIntoContainer(
-                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    )
-        }
-    }
-
-    val popExitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = remember {
-        {
-            fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                    scaleOut(
-                        targetScale = 0.95f,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    ) +
-                    slideOutOfContainer(
-                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    )
-        }
-    }
-
     NavHost(
         modifier = modifier,
         navController = navController,
         startDestination = SettingsRoute.Main,
         builder = {
-            composable<SettingsRoute.Main>(
-                enterTransition = popEnterTransition,
-                exitTransition = exitTransition,
-                popEnterTransition = popEnterTransition,
-                popExitTransition = popExitTransition
-            ) {
+            screen<SettingsRoute.Main> {
                 SettingsScreen(
                     onBack = onBack,
                     onKeywords = {
@@ -109,55 +59,40 @@ fun SettingsNavigation(
                 )
             }
 
-            composable<SettingsRoute.Keywords>(
-                enterTransition = enterTransition,
-                exitTransition = popExitTransition,
-                popEnterTransition = popEnterTransition,
-                popExitTransition = popExitTransition
-            ) {
+            screen<SettingsRoute.Keywords> {
                 KeywordsScreen(
                     onBack = goBack,
                 )
             }
 
-            composable<SettingsRoute.Apps>(
-                enterTransition = enterTransition,
-                exitTransition = popExitTransition,
-                popEnterTransition = popEnterTransition,
-                popExitTransition = popExitTransition
-            ) {
+            screen<SettingsRoute.Apps> {
                 Text("This is the apps screen")
             }
 
-            composable<SettingsRoute.Notifications>(
-                enterTransition = enterTransition,
-                exitTransition = popExitTransition,
-                popEnterTransition = popEnterTransition,
-                popExitTransition = popExitTransition
-            ) {
+            screen<SettingsRoute.Notifications> {
                 Text("This is the notifications screen")
             }
 
-            composable<SettingsRoute.Battery>(
-                enterTransition = enterTransition,
-                exitTransition = popExitTransition,
-                popEnterTransition = popEnterTransition,
-                popExitTransition = popExitTransition
-            ) {
+            screen<SettingsRoute.Battery> {
                 Text("This is the battery screen")
             }
 
-            composable<SettingsRoute.Privacy>(
-                enterTransition = enterTransition,
-                exitTransition = popExitTransition,
-                popEnterTransition = popEnterTransition,
-                popExitTransition = popExitTransition
-            ) {
+            screen<SettingsRoute.Privacy> {
                 Text("This is the privacy screen")
             }
         }
     )
 }
+
+private inline fun <reified T : SettingsRoute> NavGraphBuilder.screen(
+    noinline content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit)
+) = composable<T>(
+    enterTransition = settingsEnterTransition,
+    exitTransition = settingsExitTransition,
+    popEnterTransition = settingsPopEnterTransition,
+    popExitTransition = settingsPopExitTransition,
+    content = content
+)
 
 sealed interface SettingsRoute : Parcelable {
     @Serializable
