@@ -15,10 +15,7 @@ import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsEnte
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsExitTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopEnterTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopExitTransition
-import dev.logickoder.keyguarde.settings.BatterySettingsScreen
-import dev.logickoder.keyguarde.settings.KeywordsScreen
-import dev.logickoder.keyguarde.settings.SettingsScreen
-import dev.logickoder.keyguarde.settings.WatchedAppsScreen
+import dev.logickoder.keyguarde.settings.*
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -84,7 +81,9 @@ fun SettingsNavigation(
             }
 
             screen<SettingsRoute.Privacy> {
-                Text("This is the privacy screen")
+                PrivacySettingsScreen(
+                    onBack = goBack,
+                )
             }
         }
     )
