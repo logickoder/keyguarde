@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
+import dev.logickoder.keyguarde.app.domain.resetMatchCount
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class HomeState(
-    context: Context,
+    private val context: Context,
     private val scope: CoroutineScope,
 ) {
     private val repository = AppRepository.getInstance(context)
@@ -44,6 +45,12 @@ class HomeState(
         initialValue = persistentListOf(),
     )
 
+    val recentCount = repository.recentMatchCount.stateIn(
+        scope = scope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = 0,
+    )
+
     fun changeFilter(app: WatchedApp?) {
         filter = app
     }
@@ -61,6 +68,8 @@ class HomeState(
             }
         }
     }
+
+    fun resetCount() = resetMatchCount(context)
 }
 
 @Composable

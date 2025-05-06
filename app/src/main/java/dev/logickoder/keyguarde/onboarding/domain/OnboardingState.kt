@@ -10,7 +10,7 @@ import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAG
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
-import io.github.aakira.napier.Napier
+import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
@@ -52,10 +52,7 @@ class OnboardingState(
                 currentScreen.collectLatest { screen ->
                     if (screen == OnboardingPage.Permissions) {
                         while (isActive) {
-                            Napier.e {
-                                "Checking permission in OnboardingState: $screen"
-                            }
-                            permissionGranted = context.isListenerServiceEnabled()
+                            permissionGranted = isListenerServiceEnabled(context)
                             delay(1_000)
                         }
                     }

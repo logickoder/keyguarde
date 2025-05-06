@@ -4,11 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.SingletonCompanion
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
+import kotlinx.coroutines.flow.map
 
 /**
  * Repository for managing Keyguarde data.
@@ -40,6 +43,16 @@ class AppRepository(private val context: Context) {
      * Get all keyword matches stored in the database.
      */
     val matches = database.keywordMatchDao().getAll()
+
+    /**
+     * Get the count of recent matches from the local store.
+     */
+    val recentMatchCount = localStore.get(RECENT_MATCH_COUNT).map { it ?: 0 }
+
+    /**
+     * Get the recent chats from the local store.
+     */
+    val recentChats = localStore.get(RECENT_CHATS).map { it ?: emptySet() }
 
     /**
      * Get all installed apps that can post notifications on the device.
@@ -150,7 +163,6 @@ class AppRepository(private val context: Context) {
         database.keywordMatchDao().delete(match)
     }
 
-
     /**
      * Mark the onboarding process as completed
      */
@@ -158,11 +170,29 @@ class AppRepository(private val context: Context) {
         localStore.save(ONBOARDING_COMPLETE, true)
     }
 
+    /**
+     * Update the count of recent matches in the DataStore.
+     */
+    suspend fun updateRecentMatchCount(count: Int) {
+        localStore.save(RECENT_MATCH_COUNT, count)
+    }
+
+    /**
+     * Update the recent chats in the DataStore.
+     */
+    suspend fun updateRecentChats(chats: Set<String>) {
+        localStore.save(RECENT_CHATS, chats)
+    }
+
     companion object : SingletonCompanion<AppRepository, Context>() {
         override fun createInstance(dependency: Context) = AppRepository(dependency)
 
         // Key for storing onboarding completion status in DataStore
         private val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
+
+        private val RECENT_MATCH_COUNT = intPreferencesKey("recent_match_count")
+
+        private val RECENT_CHATS = stringSetPreferencesKey("recent_chats")
 
         // Package names of priority apps
         const val WHATSAPP_PACKAGE_NAME = "com.whatsapp"

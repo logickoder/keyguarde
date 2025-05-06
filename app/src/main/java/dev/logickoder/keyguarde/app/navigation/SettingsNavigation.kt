@@ -2,7 +2,6 @@ package dev.logickoder.keyguarde.app.navigation
 
 import android.os.Parcelable
 import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -71,7 +70,9 @@ fun SettingsNavigation(
             }
 
             screen<SettingsRoute.Notifications> {
-                Text("This is the notifications screen")
+                NotificationSettingsScreen(
+                    onBack = goBack,
+                )
             }
 
             screen<SettingsRoute.Battery> {

@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.*
 import dev.logickoder.keyguarde.home.domain.rememberHomeState
@@ -32,6 +33,7 @@ fun HomeScreen(
     val state = rememberHomeState()
     val watchedApps by state.watchedApps.collectAsStateWithLifecycle()
     val matches by state.matches.collectAsStateWithLifecycle()
+    val recentCount by state.recentCount.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier,
@@ -85,9 +87,13 @@ fun HomeScreen(
                 contentPadding = PaddingValues(bottom = 80.dp),
                 content = {
                     item {
+                        NotificationPermissionBanner()
+                    }
+
+                    item {
                         MatchSummaryCard(
-                            matchCount = 3,
-                            onResetClick = {}
+                            matchCount = recentCount,
+                            onResetClick = state::resetCount
                         )
                     }
 

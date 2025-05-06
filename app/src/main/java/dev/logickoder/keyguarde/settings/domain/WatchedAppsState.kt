@@ -7,6 +7,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
+import dev.logickoder.keyguarde.app.service.AppListenerService
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.onboarding.domain.saveIconToFile
 import kotlinx.collections.immutable.persistentListOf
@@ -38,6 +39,7 @@ class WatchedAppsState(
 
     fun addApp(app: AppInfo) {
         scope.launch {
+            AppListenerService.fetch = true
             repository.addWatchedApp(
                 WatchedApp(
                     packageName = app.packageName,
@@ -54,6 +56,7 @@ class WatchedAppsState(
 
     fun removeApp(packageName: String) {
         scope.launch {
+            AppListenerService.fetch = true
             repository.deleteWatchedApp(packageName)
         }
     }

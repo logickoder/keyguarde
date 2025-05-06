@@ -25,4 +25,35 @@
     <string name="select_apps_to_monitor">Select Apps to Monitor</string>
     <string name="select_apps_to_monitor_desc">Choose which apps Keyguarde should watch for your keywords</string>
     <string name="you_can_change_selections_later">You can change these selections later in Settings</string>
+    <string name="permissions_needed">Required Permissions</string>
+    <string name="post_notifications">Post Notifications</string>
+    <string name="post_notifications_desc">Allow Keyguarde to show you alerts when keywords are detected</string>
+    <string name="why_are_these_needed">Why are these needed?</string>
+    <string name="post_notification_desc_details">The persistent notification lets Keyguarde run reliably in the
+        background and show you alerts when your keywords are detected.
+    </string>
+    <string name="notification_permission_banner_message">Notifications are currently disabled. Tap here to enable.
+    </string>
+    <string name="dismiss">Dismiss</string>
+
+    <!-- Notification Channel Names -->
+    <string name="service_channel_name">Keyguarde Service</string>
+    <string name="service_channel_description">Silent notifications showing Keyguarde is active</string>
+    <string name="matches_channel_name">Keyword Matches</string>
+    <string name="matches_channel_description">Alerts when your keywords are detected</string>
+    <string name="channel_background_name">Background Notifications</string>
+    <string name="channel_background_description">Silent notifications showing Keyguarde status and match counts
+    </string>
+    <string name="channel_match_alerts_name">Match Alerts</string>
+    <string name="channel_match_alerts_description">Alerts when your important keywords are detected</string>
+
+    <!-- Persistent Notification Content -->
+    <string name="persistent_notification_title">Keyword Matches</string>
+    <string name="persistent_notification_content_no_matches">Monitoring for keyword matches</string>
+    <string name="persistent_notification_content_with_matches">%1$d new matches found in %2$d chats</string>
+    <string name="action_reset">Reset</string>
+
+    <!-- Keyword Match Notification Content -->
+    <string name="keyword_match_notification_title">Keyword \"%1$s\" found!</string>
+    <string name="keyword_match_notification_content">From: %1$s</string>
 </resources>
