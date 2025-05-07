@@ -146,12 +146,12 @@ class AppRepository(private val context: Context) {
     )
 
     /**
-     * Add one or more matched keywords to the database.
+     * Add matched keywords to the database.
      *
-     * @param match Vararg of [KeywordMatch] objects to be added.
+     * @param match [KeywordMatch] object to be added.
      */
-    suspend fun addKeywordMatch(vararg match: KeywordMatch): List<Long> {
-        return database.keywordMatchDao().insert(*match)
+    suspend fun addKeywordMatch(match: KeywordMatch): Long {
+        return database.keywordMatchDao().insert(match)
     }
 
     /**

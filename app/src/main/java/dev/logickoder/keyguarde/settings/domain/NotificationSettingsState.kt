@@ -62,7 +62,7 @@ class NotificationSettingState(
                 NotificationHelper.showPersistentNotification(context, 5, 1)
             }
             if (showHeadsUpAlert.first()) {
-                NotificationHelper.showKeywordMatchNotification(context, "test", "test app")
+                NotificationHelper.showKeywordMatchNotification(context, setOf("test 1", "test 2"), "test app")
             }
         }
     }

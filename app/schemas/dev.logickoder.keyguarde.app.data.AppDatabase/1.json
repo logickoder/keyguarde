@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "716c46cd249f0bede1bdf8d402c43134",
+    "identityHash": "f0bc2e14581b213f9b36402a0f0d7686",
     "entities": [
       {
         "tableName": "keywords",
@@ -66,7 +66,7 @@
       },
       {
         "tableName": "keyword_matches",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `keyword` TEXT NOT NULL, `message` TEXT NOT NULL, `chat` TEXT NOT NULL, `app` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, FOREIGN KEY(`keyword`) REFERENCES `keywords`(`word`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`app`) REFERENCES `selected_apps`(`packageName`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `keywords` TEXT NOT NULL, `message` TEXT NOT NULL, `chat` TEXT NOT NULL, `app` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, FOREIGN KEY(`app`) REFERENCES `selected_apps`(`packageName`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -75,8 +75,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "keyword",
-            "columnName": "keyword",
+            "fieldPath": "keywords",
+            "columnName": "keywords",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -113,15 +113,6 @@
         },
         "indices": [
           {
-            "name": "index_keyword_matches_keyword",
-            "unique": false,
-            "columnNames": [
-              "keyword"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_keyword_matches_keyword` ON `${TABLE_NAME}` (`keyword`)"
-          },
-          {
             "name": "index_keyword_matches_app",
             "unique": false,
             "columnNames": [
@@ -131,30 +122,18 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_keyword_matches_app` ON `${TABLE_NAME}` (`app`)"
           },
           {
-            "name": "index_keyword_matches_keyword_message_chat_app",
+            "name": "index_keyword_matches_message_chat_app",
             "unique": true,
             "columnNames": [
-              "keyword",
               "message",
               "chat",
               "app"
             ],
             "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_keyword_matches_keyword_message_chat_app` ON `${TABLE_NAME}` (`keyword`, `message`, `chat`, `app`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_keyword_matches_message_chat_app` ON `${TABLE_NAME}` (`message`, `chat`, `app`)"
           }
         ],
         "foreignKeys": [
-          {
-            "table": "keywords",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "keyword"
-            ],
-            "referencedColumns": [
-              "word"
-            ]
-          },
           {
             "table": "selected_apps",
             "onDelete": "CASCADE",
@@ -171,7 +150,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '716c46cd249f0bede1bdf8d402c43134')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f0bc2e14581b213f9b36402a0f0d7686')"
     ]
   }
 }

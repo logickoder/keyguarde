@@ -157,14 +157,14 @@ object NotificationHelper {
      * Show a heads-up notification when a keyword match is detected
      *
      * @param context Application context
-     * @param keyword The matched keyword
+     * @param keywords The matched keywords
      * @param sourceName Chat/group/app where the match was found
      * @param showHeadsUp Whether to show as heads-up (user toggleable)
      */
     @SuppressLint("MissingPermission")
     fun showKeywordMatchNotification(
         context: Context,
-        keyword: String,
+        keywords: Set<String>,
         sourceName: String,
         showHeadsUp: Boolean = true
     ) {
@@ -177,12 +177,21 @@ object NotificationHelper {
             0,
             Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                putExtra("KEYWORD_MATCH", keyword)
+                putExtra("KEYWORD_MATCHES", keywords.joinToString(", "))
             },
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = context.getString(R.string.keyword_match_notification_title, keyword)
+        val title = context.getString(
+            when {
+                keywords.size > 3 -> R.string.keyword_match_notification_title_alt
+                else -> R.string.keyword_match_notification_title
+            },
+            when {
+                keywords.size > 3 -> keywords.size
+                else -> keywords.joinToString(", ")
+            }
+        )
         val content = context.getString(R.string.keyword_match_notification_content, sourceName)
 
         // Build the notification with or without heads-up based on user preference

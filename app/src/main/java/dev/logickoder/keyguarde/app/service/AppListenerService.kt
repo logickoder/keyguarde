@@ -113,7 +113,9 @@ class AppListenerService : NotificationListenerService() {
     private fun checkForKeywords(title: String, text: String, notification: StatusBarNotification) {
         val matchedKeywords = keywords.filter { (word, _, isCaseSensitive) ->
             text.contains(word, ignoreCase = !isCaseSensitive) || title.contains(word, ignoreCase = !isCaseSensitive)
-        }
+        }.map {
+            it.word
+        }.toSet()
 
         if (matchedKeywords.isEmpty()) return
 
@@ -128,26 +130,23 @@ class AppListenerService : NotificationListenerService() {
         scope.launch {
             // save matches to db
             val result = repository.addKeywordMatch(
-                *matchedKeywords.map {
-                    KeywordMatch(
-                        keyword = it.word,
-                        app = notification.packageName,
-                        chat = title,
-                        message = text,
-                        timestamp = LocalDateTime.ofEpochSecond(
-                            notification.notification.`when` / 1000,
-                            0,
-                            ZoneId.systemDefault().rules.getOffset(Instant.now())
-                        ),
-                    )
-                }.toTypedArray()
+                KeywordMatch(
+                    keywords = matchedKeywords,
+                    app = notification.packageName,
+                    chat = title,
+                    message = text,
+                    timestamp = LocalDateTime.ofEpochSecond(
+                        notification.notification.`when` / 1000,
+                        0,
+                        ZoneId.systemDefault().rules.getOffset(Instant.now())
+                    ),
+                )
             )
 
             // Update match counters
-            updateMatchCounters(
-                appName,
-                result.filter { it != -1L }.size
-            )
+            if (result != -1L) {
+                updateMatchCounters(appName)
+            }
         }
 
         // Show heads-up notification for each matched keyword (if enabled)
@@ -155,7 +154,7 @@ class AppListenerService : NotificationListenerService() {
             matchedKeywords.forEach { keyword ->
                 NotificationHelper.showKeywordMatchNotification(
                     context = this,
-                    keyword = keyword.word,
+                    keywords = matchedKeywords,
                     sourceName = title.ifBlank { appName },
                     showHeadsUp = true
                 )
@@ -163,7 +162,7 @@ class AppListenerService : NotificationListenerService() {
         }
     }
 
-    private fun updateMatchCounters(sourceName: String, matchedSize: Int) {
+    private fun updateMatchCounters(sourceName: String) {
         scope.launch {
             // Get current values
             val recentMatchCount = repository.recentMatchCount.first()
@@ -173,14 +172,14 @@ class AppListenerService : NotificationListenerService() {
             sources.add(sourceName)
 
             // Save updated values
-            repository.updateRecentMatchCount(recentMatchCount + matchedSize)
+            repository.updateRecentMatchCount(recentMatchCount + 1)
             repository.updateRecentChats(sources)
 
             // Update the persistent notification
             if (usePersistentSilentNotification) {
                 NotificationHelper.showPersistentNotification(
                     this@AppListenerService,
-                    recentMatchCount + matchedSize,
+                    recentMatchCount + 1,
                     sources.size
                 )
             }

@@ -13,17 +13,10 @@ import java.time.LocalDateTime
 @Entity(
     tableName = "keyword_matches",
     indices = [
-        Index(value = ["keyword"]),
         Index(value = ["app"]),
-        Index(value = ["keyword", "message", "chat", "app"], unique = true)
+        Index(value = ["message", "chat", "app"], unique = true)
     ],
     foreignKeys = [
-        ForeignKey(
-            entity = Keyword::class,
-            parentColumns = ["word"],
-            childColumns = ["keyword"],
-            onDelete = ForeignKey.CASCADE
-        ),
         ForeignKey(
             entity = WatchedApp::class,
             parentColumns = ["packageName"],
@@ -34,7 +27,7 @@ import java.time.LocalDateTime
 )
 data class KeywordMatch(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val keyword: String,
+    val keywords: Set<String>,
     val message: String,
     val chat: String,
     val app: String,

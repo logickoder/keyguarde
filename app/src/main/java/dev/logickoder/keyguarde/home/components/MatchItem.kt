@@ -3,15 +3,14 @@ package dev.logickoder.keyguarde.home.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
@@ -67,36 +66,14 @@ fun MatchItem(
                         }
                     )
 
-                    Text(
-                        text = buildAnnotatedString {
-                            val message = match.message
-                            val keywordIndex = message.indexOf(match.keyword, ignoreCase = true)
-
-                            if (keywordIndex != -1) {
-                                append(message.substring(0, keywordIndex))
-                                withStyle(
-                                    SpanStyle(
-                                        fontWeight = FontWeight.Companion.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    ),
-                                    block = {
-                                        append(
-                                            message.substring(
-                                                keywordIndex,
-                                                keywordIndex + match.keyword.length
-                                            )
-                                        )
-                                    }
-                                )
-                                append(message.substring(keywordIndex + match.keyword.length))
-                            } else {
-                                append(message)
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = if (expanded) Int.MAX_VALUE else 3,
-                        overflow = TextOverflow.Companion.Ellipsis
-                    )
+                    SelectionContainer {
+                        Text(
+                            text = buildText(match),
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = if (expanded) Int.MAX_VALUE else 3,
+                            overflow = TextOverflow.Companion.Ellipsis
+                        )
+                    }
 
                     Text(
                         text = remember(match.timestamp) {
@@ -143,5 +120,83 @@ private fun formatTime(timestamp: LocalDateTime): String {
         minutes < 60 -> "$minutes min ago"
         minutes < 24 * 60 -> "${minutes / 60} hr ago"
         else -> timestamp.format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))
+    }
+}
+
+@Composable
+private fun buildText(match: KeywordMatch): AnnotatedString {
+    val keywordRegex = remember {
+        match.keywords
+            .filter { it.isNotBlank() }
+            .joinToString("|") { Regex.escape(it) }
+            .toRegex(RegexOption.IGNORE_CASE)
+    }
+
+    val linkRegex = remember {
+        "(https?://[\\w./?=&%-]+)|(www\\.[\\w.-]+\\.[a-zA-Z]{2,})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})|(\\+?\\d{10,15}|0\\d{9,10})".toRegex()
+    }
+
+    val message = match.message
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+
+    return remember {
+        buildAnnotatedString {
+            var currentIndex = 0
+
+            // Merge matches from both keywords and links
+            val keywordMatches = keywordRegex.findAll(message).map { "keyword" to it }.toList()
+            val linkMatches = linkRegex.findAll(message).map { "link" to it }.toList()
+
+            val allMatches = (keywordMatches + linkMatches)
+                .sortedBy { it.second.range.first }
+
+            for ((type, matchResult) in allMatches) {
+                val range = matchResult.range
+                if (currentIndex < range.first) {
+                    append(message.substring(currentIndex, range.first))
+                }
+
+                val matchedText = matchResult.value
+                when (type) {
+                    "keyword" -> {
+                        withStyle(
+                            SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                                color = primaryColor
+                            )
+                        ) {
+                            append(matchedText)
+                        }
+                    }
+
+                    "link" -> {
+                        val normalizedLink = when {
+                            matchedText.startsWith("http", ignoreCase = true) -> matchedText
+                            matchedText.startsWith("www.", ignoreCase = true) -> "https://$matchedText"
+                            matchedText.contains("@") -> "mailto:$matchedText"
+                            matchedText.any { it.isDigit() } -> "tel:$matchedText"
+                            else -> matchedText
+                        }
+
+                        withLink(
+                            LinkAnnotation.Url(
+                                normalizedLink,
+                                TextLinkStyles(style = SpanStyle(fontWeight = FontWeight.Bold, color = secondaryColor))
+                            )
+                        ) {
+                            append(matchedText)
+                        }
+                    }
+                }
+
+                currentIndex = range.last + 1
+            }
+
+            if (currentIndex < message.length) {
+                append(message.substring(currentIndex))
+            }
+        }
     }
 }
