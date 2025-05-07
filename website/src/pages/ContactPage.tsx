@@ -3,11 +3,9 @@ import {
     Mail,
     MessageSquare,
     ArrowRight,
-    Shield,
     ExternalLink,
     Twitter,
     Linkedin,
-    Users,
     Code,
     Check
 } from 'lucide-react';

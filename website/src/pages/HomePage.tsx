@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Shield, Zap, Lock, Battery, CheckCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Bell, Shield, Zap, Lock, CheckCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 
 export default function HomePage() {
     const [activeAccordion, setActiveAccordion] = useState(0);
