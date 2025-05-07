@@ -1,10 +1,6 @@
 package dev.logickoder.keyguarde.app.data.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import kotlinx.coroutines.flow.Flow
 
@@ -12,10 +8,12 @@ import kotlinx.coroutines.flow.Flow
 interface KeywordMatchDao {
     /**
      * Insert one or more KeywordMatch entries into the database.
-     * If a conflict occurs, the existing entry will be replaced.
+     * If a conflict occurs, the insertion will be ignored.
+     *
+     * Returns a list of row IDs, where -1 indicates a conflict.
      */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(vararg matches: KeywordMatch)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(vararg matches: KeywordMatch): List<Long>
 
     /**
      * Delete a specific KeywordMatch entry from the database.

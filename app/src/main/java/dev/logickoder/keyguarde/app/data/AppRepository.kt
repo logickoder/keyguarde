@@ -150,8 +150,8 @@ class AppRepository(private val context: Context) {
      *
      * @param match Vararg of [KeywordMatch] objects to be added.
      */
-    suspend fun addKeywordMatch(vararg match: KeywordMatch) {
-        database.keywordMatchDao().insert(*match)
+    suspend fun addKeywordMatch(vararg match: KeywordMatch): List<Long> {
+        return database.keywordMatchDao().insert(*match)
     }
 
     /**

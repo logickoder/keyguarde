@@ -1,8 +1,12 @@
 package dev.logickoder.keyguarde.app.service
 
+import android.app.Notification
+import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
+import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
@@ -46,9 +50,9 @@ class AppListenerService : NotificationListenerService() {
 
             // Extract notification text
             val notification = sbn.notification
-            val title = notification.extras.getCharSequence("android.title")?.toString() ?: ""
-            val text = notification.extras.getCharSequence("android.text")?.toString() ?: ""
-            val bigText = notification.extras.getCharSequence("android.bigText")?.toString() ?: ""
+            val title = extractTitle(sbn.packageName, notification.extras) ?: return@launch
+            val text = notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
+            val bigText = notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
 
             // Use the longer text between text and bigText
             val notificationText = if (bigText.length > text.length) bigText else text
@@ -71,6 +75,41 @@ class AppListenerService : NotificationListenerService() {
         usePersistentSilentNotification = settings.usePersistentSilentNotification.first()
     }
 
+    private fun extractTitle(packageName: String, extras: Bundle): String? {
+        return when (packageName) {
+            WHATSAPP_PACKAGE_NAME -> {
+                // WhatsApp groups typically show the group name in EXTRA_CONVERSATION_TITLE
+                val raw = extras.getString(Notification.EXTRA_CONVERSATION_TITLE)
+                    ?: extras.getString(Notification.EXTRA_TITLE)
+                raw?.replace(Regex("\\s*\\(\\d+\\s+(new\\s+)?messages?\\)", RegexOption.IGNORE_CASE), "")?.trim()
+            }
+
+            TELEGRAM_PACKAGE_NAME -> {
+                // Telegram often uses EXTRA_TITLE for the group name
+                val raw = extras.getString(Notification.EXTRA_TITLE)
+                raw?.replace(Regex("\\s*\\(\\d+\\)", RegexOption.IGNORE_CASE), "")?.trim()
+            }
+
+            else -> {
+                // Fallback for other apps – try multiple fields in order
+                val fallbackKeys = listOf(
+                    Notification.EXTRA_SUB_TEXT,
+                    Notification.EXTRA_TITLE,
+                    Notification.EXTRA_CONVERSATION_TITLE
+                )
+
+                fallbackKeys.mapNotNull { extras.getString(it) }
+                    .firstOrNull { it.isNotBlank() }
+                    ?.replace(
+                        Regex("\\s*\\(\\d+\\s*(new\\s+)?messages?\\)", RegexOption.IGNORE_CASE),
+                        ""
+                    ) // remove (28 messages)
+                    ?.replace(Regex("^[^:]+:\\s*"), "") // remove "Jeffery: Hello" style
+                    ?.trim()
+            }
+        }
+    }
+
     private fun checkForKeywords(title: String, text: String, notification: StatusBarNotification) {
         val matchedKeywords = keywords.filter { (word, _, isCaseSensitive) ->
             text.contains(word, ignoreCase = !isCaseSensitive) || title.contains(word, ignoreCase = !isCaseSensitive)
@@ -86,12 +125,9 @@ class AppListenerService : NotificationListenerService() {
             notification.packageName
         }
 
-        // Update match counters
-        updateMatchCounters(appName, matchedKeywords.size)
-
-        // save matches to db
         scope.launch {
-            repository.addKeywordMatch(
+            // save matches to db
+            val result = repository.addKeywordMatch(
                 *matchedKeywords.map {
                     KeywordMatch(
                         keyword = it.word,
@@ -105,6 +141,12 @@ class AppListenerService : NotificationListenerService() {
                         ),
                     )
                 }.toTypedArray()
+            )
+
+            // Update match counters
+            updateMatchCounters(
+                appName,
+                result.filter { it != -1L }.size
             )
         }
 
