@@ -218,15 +218,22 @@ object NotificationHelper {
      * Register a broadcast receiver to listen for the reset count action
      * This should be called in your service or activity
      */
-    fun registerResetCountReceiver(context: Context) {
-        ContextCompat.registerReceiver(context, object : BroadcastReceiver() {
+    fun registerResetCountReceiver(context: Context): BroadcastReceiver {
+        val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action == ACTION_RESET_COUNT) {
                     Napier.e { "Receiver called" }
                     resetMatchCount(context)
                 }
             }
-        }, IntentFilter(ACTION_RESET_COUNT), ContextCompat.RECEIVER_NOT_EXPORTED)
+        }
+        ContextCompat.registerReceiver(
+            context,
+            receiver,
+            IntentFilter(ACTION_RESET_COUNT),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+        return receiver
     }
 
     fun startListenerService(context: Context) {

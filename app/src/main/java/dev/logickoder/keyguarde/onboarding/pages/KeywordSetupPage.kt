@@ -63,6 +63,10 @@ fun KeywordSetupPage(
             Spacer(modifier = Modifier.height(24.dp))
 
             AnimatedContent(
+                modifier = when (keywords.isEmpty()) {
+                    true -> Modifier
+                    else -> Modifier.weight(1f)
+                },
                 targetState = keywords.isEmpty(),
                 content = { noKeywords ->
                     when (noKeywords) {

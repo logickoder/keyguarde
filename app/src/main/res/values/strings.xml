@@ -15,7 +15,6 @@
     <string name="battery_efficient">Battery Efficient</string>
     <string name="battery_efficient_desc">Designed to use minimal resources while protecting your privacy</string>
     <string name="notification_access">Notification Access</string>
-    <string name="notifications_access_title">Keyguarde needs permission to read your notifications</string>
     <string name="notifications_access_desc">This is necessary to scan for your keywords. Your privacy is our priority - all processing happens on your device and no data leaves it.</string>
     <string name="permission_granted">Permission Granted</string>
     <string name="grant_permission">Grant Permission</string>
@@ -37,12 +36,9 @@
     <string name="dismiss">Dismiss</string>
 
     <!-- Notification Channel Names -->
-    <string name="service_channel_name">Keyguarde Service</string>
-    <string name="service_channel_description">Silent notifications showing Keyguarde is active</string>
-    <string name="matches_channel_name">Keyword Matches</string>
-    <string name="matches_channel_description">Alerts when your keywords are detected</string>
     <string name="channel_background_name">Background Notifications</string>
-    <string name="channel_background_description">Silent notifications showing Keyguarde status and match counts
+    <string name="channel_background_description">
+        Silent notifications showing Keyguarde status and match counts
     </string>
     <string name="channel_match_alerts_name">Match Alerts</string>
     <string name="channel_match_alerts_description">Alerts when your important keywords are detected</string>

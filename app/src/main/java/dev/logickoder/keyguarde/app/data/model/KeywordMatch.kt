@@ -14,7 +14,8 @@ import java.time.LocalDateTime
     tableName = "keyword_matches",
     indices = [
         Index(value = ["keyword"]),
-        Index(value = ["app"])
+        Index(value = ["app"]),
+        Index(value = ["keyword", "message", "chat", "app"], unique = true)
     ],
     foreignKeys = [
         ForeignKey(

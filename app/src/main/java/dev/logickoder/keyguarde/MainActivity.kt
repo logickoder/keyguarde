@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import dev.logickoder.keyguarde.app.data.AppStore
-import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.resetMatchCount
 import dev.logickoder.keyguarde.app.navigation.AppNavigation
 import dev.logickoder.keyguarde.app.navigation.AppRoute
@@ -24,7 +23,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        NotificationHelper.registerResetCountReceiver(this)
 
         val isOnboardingComplete = runBlocking {
             AppStore.getInstance(this@MainActivity).get(AppStore.onboardingComplete).first()

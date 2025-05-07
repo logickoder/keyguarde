@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primary">#3478F6</color>
-    <color name="secondary">#00C896</color>
-
-    <color name="notification_light_color">@color/primary</color>
 </resources>
