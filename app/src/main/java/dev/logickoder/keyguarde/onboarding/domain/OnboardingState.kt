@@ -10,6 +10,7 @@ import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAG
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
+import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.SharingStarted
@@ -92,6 +93,8 @@ class OnboardingState(
                 )
             }
             repository.addWatchedApp(*watchedApps.toTypedArray())
+
+            NotificationHelper.startListenerService(context)
 
             onDone()
         }.invokeOnCompletion {

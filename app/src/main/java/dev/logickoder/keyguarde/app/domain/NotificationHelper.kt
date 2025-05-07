@@ -36,7 +36,7 @@ object NotificationHelper {
     private const val CHANNEL_ID_MATCH_ALERTS = "match_alerts"
 
     // Notification IDs
-    const val NOTIFICATION_ID_PERSISTENT = 1001
+    private const val NOTIFICATION_ID_PERSISTENT = 1001
     private const val NOTIFICATION_ID_MATCH = 2001
 
     // Action IDs
@@ -91,6 +91,7 @@ object NotificationHelper {
      * @param chatCount Number of chats with matches
      * @return The built notification object
      */
+    @SuppressLint("MissingPermission")
     fun showPersistentNotification(
         context: Context,
         matchCount: Int = 0,
@@ -228,9 +229,23 @@ object NotificationHelper {
         }, IntentFilter(ACTION_RESET_COUNT), ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 
-    fun startListenerService(context: Context) = runCatching {
-        if (isListenerServiceEnabled(context)) {
-            context.startService(Intent(context, AppListenerService::class.java))
+    fun startListenerService(context: Context) {
+        try {
+            val pm = context.packageManager
+            val componentName = ComponentName(context, AppListenerService::class.java)
+
+            pm.setComponentEnabledSetting(
+                componentName,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+            )
+            pm.setComponentEnabledSetting(
+                componentName,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+            )
+        } catch (e: Exception) {
+            Napier.e("Failed to trigger rebind", e)
         }
     }
 
