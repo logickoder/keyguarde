@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.settings.components.InfoCard
 import dev.logickoder.keyguarde.settings.components.SettingsSwitchItem
@@ -38,7 +39,13 @@ fun NotificationSettingsScreen(
                     .padding(scaffoldPadding)
                     .padding(16.dp),
                 content = {
-                    NotificationPermissionBanner()
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        content = {
+                            NotificationPermissionBanner()
+                            NotificationListenerBanner()
+                        }
+                    )
 
                     SettingsSwitchItem(
                         title = "Use persistent silent notification",

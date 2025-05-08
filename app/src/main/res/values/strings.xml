@@ -4,7 +4,9 @@
     <string name="next">Next</string>
     <string name="welcome_to_app">Welcome to Keyguarde</string>
     <string name="never_miss_important_messages_again">Never miss important messages again</string>
-    <string name="what_app_does">Keyguarde watches for keywords in your notifications so you\'ll know when something important arrives.</string>
+    <string name="what_app_does">Keyguarde watches for keywords in your notifications so you\'ll know when something
+        important arrives.
+    </string>
     <string name="how_app_works_title">How Keyguarde Works</string>
     <string name="notification_listening">Notification Listening</string>
     <string name="notification_listening_desc">Keyguarde monitors notifications from your selected apps</string>
@@ -15,12 +17,18 @@
     <string name="battery_efficient">Battery Efficient</string>
     <string name="battery_efficient_desc">Designed to use minimal resources while protecting your privacy</string>
     <string name="notification_access">Notification Access</string>
-    <string name="notifications_access_desc">This is necessary to scan for your keywords. Your privacy is our priority - all processing happens on your device and no data leaves it.</string>
+    <string name="notifications_access_desc">This is necessary to scan for your keywords. Your privacy is our priority -
+        all processing happens on your device and no data leaves it.
+    </string>
     <string name="permission_granted">Permission Granted</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="why_is_this_needed">Why is this needed?</string>
-    <string name="notifications_access_desc_1">Keyguarde works by looking at notification content to match your keywords. This permission is essential for the app to work correctly.</string>
-    <string name="notifications_access_desc_2">We take your privacy seriously. All processing happens locally on your device and no data is stored or transmitted elsewhere.</string>
+    <string name="notifications_access_desc_1">Keyguarde works by looking at notification content to match your
+        keywords. This permission is essential for the app to work correctly.
+    </string>
+    <string name="notifications_access_desc_2">We take your privacy seriously. All processing happens locally on your
+        device and no data is stored or transmitted elsewhere.
+    </string>
     <string name="select_apps_to_monitor">Select Apps to Monitor</string>
     <string name="select_apps_to_monitor_desc">Choose which apps Keyguarde should watch for your keywords</string>
     <string name="you_can_change_selections_later">You can change these selections later in Settings</string>
@@ -31,7 +39,11 @@
     <string name="post_notification_desc_details">The persistent notification lets Keyguarde run reliably in the
         background and show you alerts when your keywords are detected.
     </string>
-    <string name="notification_permission_banner_message">Notifications are currently disabled. Tap here to enable.
+    <string name="notification_permission_banner_message">
+        Notifications are currently disabled. Tap here to enable.
+    </string>
+    <string name="notification_listener_banner_message">
+        Enable notification access for full functionality.
     </string>
     <string name="dismiss">Dismiss</string>
 

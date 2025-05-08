@@ -10,7 +10,6 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
-import android.text.TextUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -266,21 +265,8 @@ object NotificationHelper {
     }
 
     fun isListenerServiceEnabled(context: Context): Boolean {
-        val flat = Settings.Secure.getString(
-            context.contentResolver,
-            "enabled_notification_listeners"
-        )
-        if (!TextUtils.isEmpty(flat)) {
-            val names = flat.split(":".toRegex()).dropLastWhile { it.isEmpty() }
-                .toTypedArray()
-            for (i in names.indices) {
-                val name = ComponentName.unflattenFromString(names[i]) ?: continue
-                if (TextUtils.equals(context.packageName, name.packageName)) {
-                    return true
-                }
-            }
-        }
-        return false
+        return Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+            ?.contains(context.packageName) == true
     }
 
     fun launchListenerSettings(context: Context) {

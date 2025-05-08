@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.*
@@ -87,7 +88,13 @@ fun HomeScreen(
                 contentPadding = PaddingValues(bottom = 80.dp),
                 content = {
                     item {
-                        NotificationPermissionBanner()
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            content = {
+                                NotificationPermissionBanner()
+                                NotificationListenerBanner()
+                            }
+                        )
                     }
 
                     item {

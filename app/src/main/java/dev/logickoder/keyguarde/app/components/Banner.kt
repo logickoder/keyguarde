@@ -18,53 +18,62 @@ import dev.logickoder.keyguarde.app.domain.NotificationHelper
 @Composable
 fun Banner(
     message: String,
+    visible: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     showDismiss: Boolean = false,
     onDismiss: (() -> Unit)? = null
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.errorContainer,
-        shape = MaterialTheme.shapes.small,
-        onClick = onClick,
+    AnimatedVisibility(
+        modifier = modifier,
+        visible = visible,
+        enter = expandVertically() + fadeIn(),
+        exit = shrinkVertically() + fadeOut(),
         content = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = MaterialTheme.shapes.small,
+                onClick = onClick,
                 content = {
-                    if (showIcon) {
-                        Icon(
-                            imageVector = Icons.Outlined.Warning,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    if (showDismiss && onDismiss != null) {
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.size(24.dp),
-                            content = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        content = {
+                            if (showIcon) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.dismiss),
-                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                    imageVector = Icons.Outlined.Warning,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
-                        )
-                    }
+
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            if (showDismiss && onDismiss != null) {
+                                IconButton(
+                                    onClick = onDismiss,
+                                    modifier = Modifier.size(24.dp),
+                                    content = {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.dismiss),
+                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    )
                 }
             )
         }
@@ -83,19 +92,33 @@ fun NotificationPermissionBanner(
         val permissionLauncher = NotificationHelper.requestNotificationPermissionLauncher {
             permissionGranted = it
         }
-        AnimatedVisibility(
+
+        Banner(
+            modifier = modifier,
             visible = !permissionGranted,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut(),
-            content = {
-                Banner(
-                    message = stringResource(R.string.notification_permission_banner_message),
-                    onClick = {
-                        permissionLauncher.launch(NotificationHelper.PERMISSION)
-                    },
-                    modifier = modifier,
-                )
-            }
+            message = stringResource(R.string.notification_permission_banner_message),
+            onClick = {
+                permissionLauncher.launch(NotificationHelper.PERMISSION)
+            },
         )
     }
+}
+
+@Composable
+fun NotificationListenerBanner(
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var listenerEnabled by remember {
+        mutableStateOf(NotificationHelper.isListenerServiceEnabled(context))
+    }
+
+    Banner(
+        message = stringResource(R.string.notification_listener_banner_message),
+        onClick = {
+            NotificationHelper.launchListenerSettings(context)
+        },
+        modifier = modifier,
+        visible = !listenerEnabled,
+    )
 }
