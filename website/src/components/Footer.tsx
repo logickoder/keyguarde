@@ -1,6 +1,12 @@
-import { Github, Linkedin, Mail, Shield, Twitter } from "lucide-react";
+import { Linkedin, Mail, Shield } from "lucide-react";
+import Github from '../assets/github.svg';
+import Twitter from '../assets/x.svg';
+import { ReactSVG } from 'react-svg';
 
 export default function Footer() {
+    const itemClass = "text-white hover:text-secondary transition-colors duration-300 ease-in-out";
+    const iconClass = itemClass + " w-5 h-5";
+
     return (
 
         <footer className="bg-primary text-white py-8">
@@ -11,29 +17,28 @@ export default function Footer() {
                         <span className="text-xl font-bold">Keyguarde</span>
                     </div>
                     <div className="flex flex-wrap justify-center gap-4">
-                        <a href="/" className="text-white hover:text-secondary transition-colors">Home</a>
-                        <a href="/#features" className="text-white hover:text-secondary transition-colors">Features</a>
-                        <a href="/contact" className="text-secondary">Contact</a>
-                        <a href="/terms" className="text-white hover:text-secondary transition-colors">Terms</a>
-                        <a href="/privacy-policy" className="text-white hover:text-secondary transition-colors">Privacy Policy</a>
+                        <a href="/" className={itemClass}>Home</a>
+                        <a href="/contact" className={itemClass}>Contact</a>
+                        <a href="/terms" className={itemClass}>Terms</a>
+                        <a href="/privacy-policy" className={itemClass}>Privacy Policy</a>
                     </div>
                     <div className="flex space-x-4 mt-4 md:mt-0">
-                        <a href="https://github.com/keyguarde" className="text-white hover:text-secondary transition-colors">
-                            <Github size={20} />
+                        <a href="https://github.com/logickoder/keyguarde" className={itemClass}>
+                            <ReactSVG src={Github} className={iconClass} />
                         </a>
-                        <a href="https://twitter.com/keyguarde" className="text-white hover:text-secondary transition-colors">
-                            <Twitter size={20} />
+                        <a href="https://x.com/logickoder" className={itemClass}>
+                            <ReactSVG src={Twitter} className={iconClass} />
                         </a>
-                        <a href="https://linkedin.com/company/keyguarde" className="text-white hover:text-secondary transition-colors">
+                        <a href="https://linkedin.com/in/logickoder" className={itemClass}>
                             <Linkedin size={20} />
                         </a>
-                        <a href="mailto:contact@keyguarde.app" className="text-white hover:text-secondary transition-colors">
+                        <a href="mailto:jefferyorazulike@gmail.com" className={itemClass}>
                             <Mail size={20} />
                         </a>
                     </div>
                 </div>
                 <div className="text-center mt-8 text-sm opacity-75">
-                    © {new Date().getFullYear()} Keyguarde. All rights reserved.
+                    © {new Date().getFullYear()} Jeffery Orazulike. All rights reserved.
                 </div>
             </div>
         </footer>

@@ -10,7 +10,7 @@ import ContactPage from './pages/ContactPage';
 export default function App() {
     return (
         <div className="bg-background min-h-screen font-sans text-primary">
-            <BrowserRouter>
+            <BrowserRouter basename='/keyguarde'>
                 <ScrollToTop />
                 <Navbar />
                 <Routes>

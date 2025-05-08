@@ -153,7 +153,7 @@ class AppListenerService : NotificationListenerService() {
             // Show heads-up notification for matched keywords (if enabled)
             if (showHeadsUpNotifications) {
                 NotificationHelper.showKeywordMatchNotification(
-                    context = this,
+                    context = this@AppListenerService,
                     keywords = matchedKeywords,
                     sourceName = title.ifBlank { appName },
                     showHeadsUp = true
