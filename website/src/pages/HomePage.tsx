@@ -1,20 +1,55 @@
-import {useEffect, useState} from 'react';
-import {Bell, CheckCircle, ChevronDown, ChevronUp, ExternalLink, Lock, Shield, Zap} from 'lucide-react';
-import {useLocation} from 'react-router-dom';
-import {getImageUrl} from '../utils/getImageUrl';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Bell, CheckCircle, ChevronDown, ChevronUp, ExternalLink, Lock, Shield, Zap } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { getImageUrl } from '../utils/getImageUrl';
+import useSmoothScroll from '../hooks/useSmoothScroll';
 
 export default function HomePage() {
     const location = useLocation();
     const [activeAccordion, setActiveAccordion] = useState(0);
 
-    const toggleAccordion = (index: number) => {
-        setActiveAccordion(activeAccordion === index ? -1 : index);
-    };
+    const toggleAccordion = useCallback((index: number) => {
+        setActiveAccordion((prev) => prev === index ? -1 : index);
+    }, []);
+
+    const handleClick = useSmoothScroll("/");
+
+    const privacy = useMemo(
+        () => [
+            'All notification processing happens locally on your device',
+            'No messages or notification data is stored externally',
+            'No cloud syncing of your personal data',
+            'We never collect, store, or transmit your notification data',
+        ],
+        []
+    )
+
+    const faqs = useMemo(
+        () => [
+            {
+                question: 'Why does it need notification access?',
+                answer: 'Keyguarde needs notification access to read the content of your notifications and match them against your keywords. This permission is essential for the app to function, but all processing happens locally on your device.',
+            },
+            {
+                question: 'Does it read my messages?',
+                answer: 'Keyguarde only reads the text content of notifications as they appear. It does not access your message history, media, or any other data within your messaging apps. All processing is done locally on your device.',
+            },
+            {
+                question: 'Will it drain my battery?',
+                answer: 'Keyguarde is designed to be lightweight and battery-efficient. It only activates when new notifications arrive, and uses minimal resources while running in the background. The app has been optimized to have negligible impact on your device\'s battery life.',
+            },
+            {
+                question: 'Can I disable alerts for certain chats?',
+                answer: 'Yes! Keyguarde lets you filter notifications by chat names. You can specify which individual chats or groups to monitor, so you only receive alerts from the conversations that matter most to you.',
+            },
+        ],
+        []
+    );
 
     useEffect(() => {
         if (location.state?.scrollTo) {
             const sectionId = location.state.scrollTo;
-            document.getElementById(sectionId)?.scrollIntoView({behavior: "smooth"});
+            document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
         }
     }, [location.state]);
 
@@ -33,19 +68,19 @@ export default function HomePage() {
                                 you never miss what matters.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <a
-                                    href="#download"
+                                <button
+                                    onClick={() => handleClick("download")}
                                     className="bg-primary hover:bg-opacity-90 text-white px-6 py-3 rounded-md transition-colors text-center flex items-center justify-center"
                                 >
-                                    <Zap size={18} className="mr-2"/>
+                                    <Zap size={18} className="mr-2" />
                                     Download Now
-                                </a>
-                                <a
-                                    href="#how-it-works"
+                                </button>
+                                <button
+                                    onClick={() => handleClick("how-it-works")}
                                     className="border border-primary text-primary hover:bg-primary hover:text-white px-6 py-3 rounded-md transition-colors text-center"
                                 >
                                     Learn More
-                                </a>
+                                </button>
                             </div>
                         </div>
                         <div className="md:w-1/2 flex justify-center">
@@ -55,7 +90,7 @@ export default function HomePage() {
                                 <div className="bg-primary h-8 w-full"></div>
                                 <div className="p-4">
                                     <img src="/api/placeholder/250/450" alt="Keyguarde App Screenshot"
-                                         className="rounded-lg"/>
+                                        className="rounded-lg" />
                                 </div>
                             </div>
                         </div>
@@ -72,53 +107,53 @@ export default function HomePage() {
                         <div className="bg-background rounded-lg p-6 text-center shadow-sm">
                             <div
                                 className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Bell className="text-primary" size={24}/>
+                                <Bell className="text-primary" size={24} />
                             </div>
                             <h3 className="text-xl font-bold mb-2">Listens to notifications</h3>
                             <p className="text-muted">Monitors your selected apps for new notifications.</p>
                             <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
                                 {/* Screenshot placeholder */}
                                 <img src="/api/placeholder/150/120" alt="Notification permissions"
-                                     className="rounded-lg"/>
+                                    className="rounded-lg" />
                             </div>
                         </div>
 
                         <div className="bg-background rounded-lg p-6 text-center shadow-sm">
                             <div
                                 className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Shield className="text-primary" size={24}/>
+                                <Shield className="text-primary" size={24} />
                             </div>
                             <h3 className="text-xl font-bold mb-2">Matches your keywords</h3>
                             <p className="text-muted">Checks messages for words important to you.</p>
                             <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
                                 {/* Screenshot placeholder */}
-                                <img src="/api/placeholder/150/120" alt="Keywords matched" className="rounded-lg"/>
+                                <img src="/api/placeholder/150/120" alt="Keywords matched" className="rounded-lg" />
                             </div>
                         </div>
 
                         <div className="bg-background rounded-lg p-6 text-center shadow-sm">
                             <div
                                 className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Zap className="text-primary" size={24}/>
+                                <Zap className="text-primary" size={24} />
                             </div>
                             <h3 className="text-xl font-bold mb-2">Notifies you quietly</h3>
                             <p className="text-muted">Alerts only when your keywords appear.</p>
                             <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
                                 {/* Screenshot placeholder */}
-                                <img src="/api/placeholder/150/120" alt="Notification alert" className="rounded-lg"/>
+                                <img src="/api/placeholder/150/120" alt="Notification alert" className="rounded-lg" />
                             </div>
                         </div>
 
                         <div className="bg-background rounded-lg p-6 text-center shadow-sm">
                             <div
                                 className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Lock className="text-primary" size={24}/>
+                                <Lock className="text-primary" size={24} />
                             </div>
                             <h3 className="text-xl font-bold mb-2">All offline, no tracking</h3>
                             <p className="text-muted">Everything stays on your device.</p>
                             <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
                                 {/* Screenshot placeholder */}
-                                <img src="/api/placeholder/150/120" alt="Privacy features" className="rounded-lg"/>
+                                <img src="/api/placeholder/150/120" alt="Privacy features" className="rounded-lg" />
                             </div>
                         </div>
                     </div>
@@ -160,7 +195,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="flex items-start">
                             <div className="mr-4 mt-1">
-                                <CheckCircle className="text-success" size={20}/>
+                                <CheckCircle className="text-success" size={20} />
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold mb-2">Works Offline</h3>
@@ -171,7 +206,7 @@ export default function HomePage() {
 
                         <div className="flex items-start">
                             <div className="mr-4 mt-1">
-                                <CheckCircle className="text-success" size={20}/>
+                                <CheckCircle className="text-success" size={20} />
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold mb-2">Battery Efficient</h3>
@@ -180,7 +215,7 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        <div className="flex items-start">
+                        {/* <div className="flex items-start">
                             <div className="mr-4 mt-1">
                                 <CheckCircle className="text-success" size={20}/>
                             </div>
@@ -198,7 +233,7 @@ export default function HomePage() {
                                 <h3 className="text-xl font-bold mb-2">Customizable Alerts</h3>
                                 <p className="text-muted">Tailor notifications to match your personal preferences.</p>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="mt-12 bg-background rounded-xl p-6 shadow-sm">
@@ -207,23 +242,23 @@ export default function HomePage() {
                                 <h3 className="text-2xl font-bold mb-4">All Features</h3>
                                 <ul className="space-y-3">
                                     <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16}/>
+                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
                                         <span>Monitor notifications from WhatsApp & Telegram</span>
                                     </li>
                                     <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16}/>
+                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
                                         <span>Custom keyword matching</span>
                                     </li>
                                     <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16}/>
+                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
                                         <span>Select which apps to monitor</span>
                                     </li>
                                     <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16}/>
+                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
                                         <span>Persistent but silent notifications</span>
                                     </li>
                                     <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16}/>
+                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
                                         <span>Privacy-focused design</span>
                                     </li>
                                 </ul>
@@ -233,7 +268,7 @@ export default function HomePage() {
                                     className="h-64 w-32 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center">
                                     {/* App screenshot placeholder */}
                                     <img src="/api/placeholder/120/220" alt="Feature highlights"
-                                         className="rounded-lg"/>
+                                        className="rounded-lg" />
                                 </div>
                             </div>
                         </div>
@@ -247,7 +282,7 @@ export default function HomePage() {
                     <div className="max-w-3xl mx-auto text-center">
                         <div
                             className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                            <Lock className="text-primary" size={24}/>
+                            <Lock className="text-primary" size={24} />
                         </div>
                         <h2 className="text-3xl font-bold mb-6">Privacy First</h2>
                         <p className="text-xl mb-8">Your data stays on your device. Always.</p>
@@ -255,28 +290,20 @@ export default function HomePage() {
                         <div className="bg-surface rounded-xl p-8 shadow-sm text-left">
                             <h3 className="text-xl font-bold mb-4">Our Privacy Commitment</h3>
                             <ul className="space-y-4">
-                                <li className="flex items-start">
-                                    <CheckCircle className="text-success mr-3 mt-1" size={18}/>
-                                    <span>All notification processing happens locally on your device</span>
-                                </li>
-                                <li className="flex items-start">
-                                    <CheckCircle className="text-success mr-3 mt-1" size={18}/>
-                                    <span>No messages or notification data is stored externally</span>
-                                </li>
-                                <li className="flex items-start">
-                                    <CheckCircle className="text-success mr-3 mt-1" size={18}/>
-                                    <span>No cloud syncing of your personal data</span>
-                                </li>
-                                <li className="flex items-start">
-                                    <CheckCircle className="text-success mr-3 mt-1" size={18}/>
-                                    <span>We never collect, store, or transmit your notification data</span>
-                                </li>
+                                {
+                                    privacy.map((item, index) => (
+                                        <li key={index} className="flex items-start">
+                                            <CheckCircle className="text-success mr-3 mt-1" size={18} />
+                                            <span>{item}</span>
+                                        </li>
+                                    ))
+                                }
                             </ul>
 
                             <div className="mt-6">
-                                <a href="#privacy-policy" className="text-primary hover:underline flex items-center">
-                                    Read our full privacy policy <ExternalLink size={16} className="ml-1"/>
-                                </a>
+                                <Link to="/privacy-policy" className="text-primary hover:underline flex items-center">
+                                    Read our full privacy policy <ExternalLink size={16} className="ml-1" />
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -289,106 +316,29 @@ export default function HomePage() {
                     <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
 
                     <div className="max-w-3xl mx-auto">
-                        {/* FAQ Item 1 */}
-                        <div className="mb-4">
-                            <button
-                                className="w-full flex justify-between items-center bg-background p-4 rounded-lg focus:outline-none"
-                                onClick={() => toggleAccordion(0)}
-                            >
-                                <span className="font-bold text-lg">Why does it need notification access?</span>
-                                {activeAccordion === 0 ? (
-                                    <ChevronUp size={20}/>
-                                ) : (
-                                    <ChevronDown size={20}/>
-                                )}
-                            </button>
+                        {
+                            faqs.map((faq, index) => (
+                                <div key={index} className="mb-4">
+                                    <button
+                                        className="w-full flex justify-between items-center bg-background p-4 rounded-lg focus:outline-none"
+                                        onClick={() => toggleAccordion(index)}
+                                    >
+                                        <span className="font-bold text-lg">{faq.question}</span>
+                                        {activeAccordion === index ? (
+                                            <ChevronUp size={20} />
+                                        ) : (
+                                            <ChevronDown size={20} />
+                                        )}
+                                    </button>
 
-                            {activeAccordion === 0 && (
-                                <div className="bg-background p-4 rounded-b-lg mt-px">
-                                    <p className="text-muted">
-                                        Keyguarde needs notification access to read the content of your notifications
-                                        and match them against your keywords. This permission is essential for the app
-                                        to function, but all processing happens locally on your device.
-                                    </p>
+                                    {activeAccordion === index && (
+                                        <div className="bg-background p-4 rounded-b-lg mt-px">
+                                            <p className="text-muted">{faq.answer}</p>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-
-                        {/* FAQ Item 2 */}
-                        <div className="mb-4">
-                            <button
-                                className="w-full flex justify-between items-center bg-background p-4 rounded-lg focus:outline-none"
-                                onClick={() => toggleAccordion(1)}
-                            >
-                                <span className="font-bold text-lg">Does it read my messages?</span>
-                                {activeAccordion === 1 ? (
-                                    <ChevronUp size={20}/>
-                                ) : (
-                                    <ChevronDown size={20}/>
-                                )}
-                            </button>
-
-                            {activeAccordion === 1 && (
-                                <div className="bg-background p-4 rounded-b-lg mt-px">
-                                    <p className="text-muted">
-                                        Keyguarde only reads the text content of notifications as they appear. It does
-                                        not access your message history, media, or any other data within your messaging
-                                        apps. All processing is done locally on your device.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* FAQ Item 3 */}
-                        <div className="mb-4">
-                            <button
-                                className="w-full flex justify-between items-center bg-background p-4 rounded-lg focus:outline-none"
-                                onClick={() => toggleAccordion(2)}
-                            >
-                                <span className="font-bold text-lg">Will it drain my battery?</span>
-                                {activeAccordion === 2 ? (
-                                    <ChevronUp size={20}/>
-                                ) : (
-                                    <ChevronDown size={20}/>
-                                )}
-                            </button>
-
-                            {activeAccordion === 2 && (
-                                <div className="bg-background p-4 rounded-b-lg mt-px">
-                                    <p className="text-muted">
-                                        Keyguarde is designed to be lightweight and battery-efficient. It only activates
-                                        when new notifications arrive, and uses minimal resources while running in the
-                                        background. The app has been optimized to have negligible impact on your
-                                        device's battery life.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* FAQ Item 4 */}
-                        <div className="mb-4">
-                            <button
-                                className="w-full flex justify-between items-center bg-background p-4 rounded-lg focus:outline-none"
-                                onClick={() => toggleAccordion(3)}
-                            >
-                                <span className="font-bold text-lg">Can I disable alerts for certain chats?</span>
-                                {activeAccordion === 3 ? (
-                                    <ChevronUp size={20}/>
-                                ) : (
-                                    <ChevronDown size={20}/>
-                                )}
-                            </button>
-
-                            {activeAccordion === 3 && (
-                                <div className="bg-background p-4 rounded-b-lg mt-px">
-                                    <p className="text-muted">
-                                        Yes! Keyguarde lets you filter notifications by chat names. You can specify
-                                        which individual chats or groups to monitor, so you only receive alerts from the
-                                        conversations that matter most to you.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+                            ))
+                        }
                     </div>
                 </div>
             </section>
@@ -402,13 +352,13 @@ export default function HomePage() {
                     </p>
 
                     <div className="flex justify-center">
-                        <a
-                            href="https://play.google.com/store/apps/details?id=dev.logickoder.keyguarde"
+                        <Link
+                            to="https://play.google.com/store/apps/details?id=dev.logickoder.keyguarde"
                             target="_blank"
                             className="hover:bg-opacity-90"
                         >
-                            <img src={getImageUrl('play-store.png')} alt="Google Play Badge" className="h-16"/>
-                        </a>
+                            <img src={getImageUrl('play-store.png')} alt="Google Play Badge" className="h-16" />
+                        </Link>
                     </div>
                 </div>
             </section>

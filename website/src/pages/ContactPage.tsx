@@ -1,11 +1,39 @@
-import {ArrowRight, Check, Code, ExternalLink, Mail, MessageSquare} from 'lucide-react';
-import {ReactSVG} from 'react-svg';
+import { ArrowRight, Check, Code, ExternalLink, Mail, MessageSquare } from 'lucide-react';
+import { ReactSVG } from 'react-svg';
 import Github from '../assets/github.svg';
 import Twitter from '../assets/x.svg';
 import Linkedin from '../assets/linkedin.svg';
+import { useMemo } from 'react';
 
 
 export default function ContactPage() {
+    const socials = useMemo(() => [
+        {
+            name: 'Email',
+            icon: <Mail size={24} />,
+            link: 'mailto:jefferyorazulike@gmail.com',
+            description: 'jefferyorazulike@gmail.com',
+        },
+        {
+            name: 'Twitter',
+            icon: <ReactSVG src={Twitter} className="w-6 h-6" />,
+            link: 'https://x.com/logickoder',
+            description: '@logickoder',
+        },
+        {
+            name: 'GitHub',
+            icon: <ReactSVG src={Github} className="w-6 h-6" />,
+            link: 'https://github.com/logickoder/keyguarde',
+            description: 'github.com/logickoder/keyguarde',
+        },
+        {
+            name: 'LinkedIn',
+            icon: <ReactSVG src={Linkedin} className="w-6 h-6" />,
+            link: 'https://linkedin.com/in/logickoder',
+            description: 'linkedin.com/in/logickoder',
+        },
+    ], []);
+
     return (
         <div className="bg-background min-h-screen font-sans text-primary">
 
@@ -24,45 +52,19 @@ export default function ContactPage() {
             <section className="py-8 bg-surface">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-wrap justify-center gap-6 max-w-3xl mx-auto">
-                        <a href="mailto:contact@keyguarde.app" className="flex items-center bg-background px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all group">
-                            <div className="bg-primary bg-opacity-10 p-3 rounded-full mr-4 group-hover:bg-primary group-hover:text-white transition-all">
-                                <Mail size={24} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold">Email</h3>
-                                <p className="text-muted text-sm">jefferyorazulike@gmail.com</p>
-                            </div>
-                        </a>
-
-                        <a href="https://twitter.com/keyguarde" className="flex items-center bg-background px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all group">
-                            <div className="bg-primary bg-opacity-10 p-3 rounded-full mr-4 group-hover:bg-primary group-hover:text-white transition-all">
-                                <ReactSVG src={Twitter} className="w-6 h-6"/>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">Twitter</h3>
-                                <p className="text-muted text-sm">@logickoder</p>
-                            </div>
-                        </a>
-
-                        <a href="https://github.com/keyguarde" className="flex items-center bg-background px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all group">
-                            <div className="bg-primary bg-opacity-10 p-3 rounded-full mr-4 group-hover:bg-primary group-hover:text-white transition-all">
-                                <ReactSVG src={Github} className="w-6 h-6"/>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">GitHub</h3>
-                                <p className="text-muted text-sm">github.com/logickoder/keyguarde</p>
-                            </div>
-                        </a>
-
-                        <a href="https://linkedin.com/company/keyguarde" className="flex items-center bg-background px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all group">
-                            <div className="bg-primary bg-opacity-10 p-3 rounded-full mr-4 group-hover:bg-primary group-hover:text-white transition-all">
-                                <ReactSVG src={Linkedin} className="w-6 h-6"/>
-                            </div>
-                            <div>
-                                <h3 className="font-bold">LinkedIn</h3>
-                                <p className="text-muted text-sm">linkedin.com/in/logickoder</p>
-                            </div>
-                        </a>
+                        {
+                            socials.map((social, index) => (
+                                <a key={index} href={social.link} className="flex items-center bg-background px-6 py-4 rounded-lg shadow-sm hover:shadow-md transition-all group">
+                                    <div className="bg-primary bg-opacity-10 p-3 rounded-full mr-4 group-hover:bg-primary group-hover:text-white transition-all">
+                                        {social.icon}
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold">{social.name}</h3>
+                                        <p className="text-muted text-sm">{social.description}</p>
+                                    </div>
+                                </a>
+                            ))
+                        }
                     </div>
                 </div>
             </section>
@@ -84,7 +86,7 @@ export default function ContactPage() {
                                     <div>
                                         <p className="font-medium">Email</p>
                                         <a href="mailto:jefferyorazulike@gmail.com"
-                                           className="text-secondary hover:underline">
+                                            className="text-secondary hover:underline">
                                             jefferyorazulike@gmail.com
                                         </a>
                                     </div>
@@ -138,7 +140,7 @@ export default function ContactPage() {
                         <div className="md:w-1/2">
                             <div className="bg-surface p-6 rounded-lg shadow-sm mb-6">
                                 <h3 className="text-xl font-bold mb-4 flex items-center">
-                                    <ReactSVG src={Github} className="w-5 h-5 mr-2"/>
+                                    <ReactSVG src={Github} className="w-5 h-5 mr-2" />
                                     GitHub Repository
                                 </h3>
 
@@ -234,7 +236,7 @@ export default function ContactPage() {
                             href="https://github.com/logickoder/keyguarde"
                             className="bg-primary hover:bg-opacity-90 text-white px-6 py-3 rounded-md transition-colors inline-flex items-center"
                         >
-                            <ReactSVG src={Github} className="w-5 h-5 mr-2"/>
+                            <ReactSVG src={Github} className="w-5 h-5 mr-2" />
                             View on GitHub
                         </a>
                         <a
