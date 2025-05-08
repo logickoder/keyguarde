@@ -143,15 +143,15 @@ class AppListenerService : NotificationListenerService() {
                 )
             )
 
-            // Update match counters
-            if (result != -1L) {
-                updateMatchCounters(appName)
+            if (result == -1L) {
+                return@launch
             }
-        }
 
-        // Show heads-up notification for each matched keyword (if enabled)
-        if (showHeadsUpNotifications) {
-            matchedKeywords.forEach { keyword ->
+            // Update match counters
+            updateMatchCounters(appName)
+
+            // Show heads-up notification for matched keywords (if enabled)
+            if (showHeadsUpNotifications) {
                 NotificationHelper.showKeywordMatchNotification(
                     context = this,
                     keywords = matchedKeywords,
@@ -162,27 +162,25 @@ class AppListenerService : NotificationListenerService() {
         }
     }
 
-    private fun updateMatchCounters(sourceName: String) {
-        scope.launch {
-            // Get current values
-            val recentMatchCount = repository.recentMatchCount.first()
-            val sources = repository.recentChats.first().toMutableSet()
+    private suspend fun updateMatchCounters(sourceName: String) {
+        // Get current values
+        val recentMatchCount = repository.recentMatchCount.first()
+        val sources = repository.recentChats.first().toMutableSet()
 
-            // Add the new source name and update match count
-            sources.add(sourceName)
+        // Add the new source name and update match count
+        sources.add(sourceName)
 
-            // Save updated values
-            repository.updateRecentMatchCount(recentMatchCount + 1)
-            repository.updateRecentChats(sources)
+        // Save updated values
+        repository.updateRecentMatchCount(recentMatchCount + 1)
+        repository.updateRecentChats(sources)
 
-            // Update the persistent notification
-            if (usePersistentSilentNotification) {
-                NotificationHelper.showPersistentNotification(
-                    this@AppListenerService,
-                    recentMatchCount + 1,
-                    sources.size
-                )
-            }
+        // Update the persistent notification
+        if (usePersistentSilentNotification) {
+            NotificationHelper.showPersistentNotification(
+                this@AppListenerService,
+                recentMatchCount + 1,
+                sources.size
+            )
         }
     }
 
