@@ -1,5 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.performance)
+    alias(libs.plugins.gms)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.parcelize)
@@ -33,21 +36,28 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            applicationIdSuffix = ".dev"
+        }
     }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
+    implementation(libs.firebase.analytics)
     coreLibraryDesugaring(libs.desugarjdklibs)
 
     // AndroidX
@@ -75,16 +85,25 @@ dependencies {
     // Datastore
     implementation(libs.datastore)
 
+    // Firebase
+    implementation(platform(libs.firebase))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.performance)
+
     // Junit
     testImplementation(libs.junit)
-
-    // Napier
-    implementation(libs.napier)
 
     // Kotlin
     implementation(libs.kotlin.immutable)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.serialization)
+
+    // Napier
+    implementation(libs.napier)
+
+    // Play Services
+    implementation(libs.play.services.ads)
 
     // Room
     ksp(libs.room.compiler)

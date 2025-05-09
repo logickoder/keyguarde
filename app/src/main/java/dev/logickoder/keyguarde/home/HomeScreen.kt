@@ -1,13 +1,30 @@
 package dev.logickoder.keyguarde.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -19,10 +36,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.BannerAd
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
-import dev.logickoder.keyguarde.home.components.*
+import dev.logickoder.keyguarde.home.components.EmptyMatchesState
+import dev.logickoder.keyguarde.home.components.FilterChips
+import dev.logickoder.keyguarde.home.components.KeywordDialog
+import dev.logickoder.keyguarde.home.components.MatchItem
+import dev.logickoder.keyguarde.home.components.MatchSummaryCard
 import dev.logickoder.keyguarde.home.domain.rememberHomeState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,72 +103,79 @@ fun HomeScreen(
             )
         },
         content = { scaffoldPadding ->
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding),
-                contentPadding = PaddingValues(bottom = 80.dp),
                 content = {
-                    item {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                            content = {
-                                NotificationPermissionBanner()
-                                NotificationListenerBanner()
-                            }
-                        )
-                    }
-
-                    item {
-                        MatchSummaryCard(
-                            matchCount = recentCount,
-                            onResetClick = state::resetCount
-                        )
-                    }
-
-                    item {
-                        FilterChips(
-                            selected = state.filter,
-                            apps = watchedApps,
-                            onSelected = state::changeFilter
-                        )
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Recent Matches",
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
-
-                    when (matches.isEmpty()) {
-                        true -> item {
-                            EmptyMatchesState(modifier = Modifier.animateItem())
-                        }
-
-                        else -> items(
-                            matches.size,
-                            key = { matches[it].id },
-                            itemContent = {
-                                MatchItem(
-                                    modifier = Modifier.animateItem(),
-                                    match = matches[it],
-                                    apps = watchedApps,
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(bottom = 80.dp),
+                        content = {
+                            item {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    content = {
+                                        NotificationPermissionBanner()
+                                        NotificationListenerBanner()
+                                    }
                                 )
                             }
+
+                            item {
+                                MatchSummaryCard(
+                                    matchCount = recentCount,
+                                    onResetClick = state::resetCount
+                                )
+                            }
+
+                            item {
+                                FilterChips(
+                                    selected = state.filter,
+                                    apps = watchedApps,
+                                    onSelected = state::changeFilter
+                                )
+                            }
+
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Recent Matches",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                            }
+
+                            when (matches.isEmpty()) {
+                                true -> item {
+                                    EmptyMatchesState(modifier = Modifier.animateItem())
+                                }
+
+                                else -> items(
+                                    matches.size,
+                                    key = { matches[it].id },
+                                    itemContent = {
+                                        MatchItem(
+                                            modifier = Modifier.animateItem(),
+                                            match = matches[it],
+                                            apps = watchedApps,
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    )
+
+                    BannerAd(modifier = Modifier.padding(top = 8.dp))
+
+                    if (state.isKeywordDialogVisible) {
+                        KeywordDialog(
+                            onDismiss = state::toggleKeywordDialog,
+                            onSave = state::saveKeyword
                         )
                     }
                 }
             )
-
-            if (state.isKeywordDialogVisible) {
-                KeywordDialog(
-                    onDismiss = state::toggleKeywordDialog,
-                    onSave = state::saveKeyword
-                )
-            }
         },
         floatingActionButton = {
             FloatingActionButton(
