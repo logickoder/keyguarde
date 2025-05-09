@@ -212,7 +212,7 @@ export default function ContactPage() {
                                 </div>
 
                                 <a
-                                    href="https://github.com/keyguarde/keyguarde-android/blob/main/CONTRIBUTING.md"
+                                    href="https://github.com/logickoder/keyguarde/blob/main/CONTRIBUTING.md"
                                     className="mt-6 inline-block text-primary hover:underline font-medium flex items-center"
                                 >
                                     Read our contribution guidelines
