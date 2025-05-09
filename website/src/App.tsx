@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import Navbar from './components/Navbar';
@@ -10,7 +10,7 @@ import ContactPage from './pages/ContactPage';
 export default function App() {
     return (
         <div className="bg-background min-h-screen font-sans text-primary">
-            <BrowserRouter basename='/keyguarde'>
+            <HashRouter>
                 <ScrollToTop />
                 <Navbar />
                 <Routes>
@@ -20,7 +20,7 @@ export default function App() {
                     <Route path="/contact" element={<ContactPage />} />
                 </Routes>
                 <Footer />
-            </BrowserRouter>
+            </HashRouter>
         </div>
     );
 }

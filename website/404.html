@@ -1,10 +1,17 @@
-<!doctype html>
-<html lang="en" class="smooth-scroll">
+<!DOCTYPE html>
+<html>
 
 <head>
-    <meta http-equiv="refresh" content="0; url=/keyguarde/" />
+    <meta charset="utf-8" />
+    <title>Redirecting...</title>
+    <script>
+        const redirectTo = window.location.pathname.replace('/keyguarde', '');
+        window.location.replace('/keyguarde/#' + redirectTo + window.location.search + window.location.hash);
+    </script>
 </head>
 
-<body></body>
+<body>
+    <h1>Redirecting…</h1>
+</body>
 
 </html>
