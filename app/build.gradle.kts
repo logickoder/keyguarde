@@ -13,7 +13,11 @@ plugins {
 }
 
 val keystoreProperties = Properties()
-keystoreProperties.load(rootProject.file("local.properties").inputStream())
+rootProject.file("local.properties").let { file ->
+    if (file.exists()) {
+        keystoreProperties.load(file.inputStream())
+    }
+}
 
 /**
  * Get the value of a key from the keystore properties or from the environment variables.
