@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.firebase.crashlytics)
@@ -8,6 +10,19 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+}
+
+val keystoreProperties = Properties()
+keystoreProperties.load(rootProject.file("local.properties").inputStream())
+
+/**
+ * Get the value of a key from the keystore properties or from the environment variables.
+ * @param key The key to look for.
+ * @param properties The properties file to look in.
+ * @return The value of the key, or null if not found.
+ */
+fun getValue(key: String): String {
+    return (keystoreProperties[key] ?: System.getenv(key))?.toString().orEmpty()
 }
 
 android {
@@ -28,6 +43,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(getValue("KEYSTORE_PATH"))
+            storePassword = getValue("KEYSTORE_PASSWORD")
+            keyAlias = getValue("KEY_ALIAS")
+            keyPassword = getValue("KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -35,6 +59,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             applicationIdSuffix = ".dev"
