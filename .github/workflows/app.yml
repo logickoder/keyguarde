@@ -1,4 +1,4 @@
-name: Build App
+name: Build and Upload App
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       build_type:
         description: "Specify the build type (e.g., apk or aab)"
         required: true
-        default: 'apk'
+        default: "apk"
         type: choice
         options:
           - aab
@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-upload:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,22 +27,9 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Make Gradlew Executable
-        run: chmod +x ./gradlew
+          distribution: "temurin"
+          java-version: "17"
+          cache: "gradle"
 
       - name: Set up Keystore
         env:
@@ -56,18 +43,16 @@ jobs:
         run: |
           echo "$GOOGLE_SERVICES" | base64 -d > app/google-services.json
 
-      - name: Build app
+      - uses: burrunan/gradle-cache-action@v3
+        name: Build app
         env:
           KEYSTORE_PATH: keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          if [ "${{ github.event.inputs.build_type }}" == "apk" ]; then
-            ./gradlew assembleRelease --no-daemon
-          elif [ "${{ github.event.inputs.build_type }}" == "aab" ]; then
-            ./gradlew bundleRelease --no-daemon
-          fi
+        with:
+          arguments: ${{ github.event.inputs.build_type == 'apk' && 'assembleRelease --no-daemon' || 'bundleRelease --no-daemon' }}
+          gradle-version: wrapper
 
       - name: Upload app
         if: ${{ github.event.inputs.build_type == 'apk' }}
@@ -83,7 +68,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GCP_CREDENTIAL }}
-          packageName: 'dev.logickoder.keyguarde'
+          packageName: "dev.logickoder.keyguarde"
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           mappingFile: app/build/outputs/mapping/release/mapping.txt
           debugSymbols: app/build/intermediates/merged_native_libs/release/out/lib
