@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f0bc2e14581b213f9b36402a0f0d7686",
+    "identityHash": "77ec08962aaba04b908fa15bf8f1f0d4",
     "entities": [
       {
         "tableName": "keywords",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`word` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isCaseSensitive` INTEGER NOT NULL, PRIMARY KEY(`word`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`word` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`word`))",
         "fields": [
           {
             "fieldPath": "word",
@@ -17,12 +17,6 @@
           {
             "fieldPath": "createdAt",
             "columnName": "createdAt",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "isCaseSensitive",
-            "columnName": "isCaseSensitive",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -150,7 +144,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f0bc2e14581b213f9b36402a0f0d7686')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '77ec08962aaba04b908fa15bf8f1f0d4')"
     ]
   }
 }

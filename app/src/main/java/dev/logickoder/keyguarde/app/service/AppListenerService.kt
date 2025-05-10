@@ -7,7 +7,6 @@ import android.service.notification.StatusBarNotification
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
-import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.settings.SettingsRepository
@@ -26,7 +25,7 @@ class AppListenerService : NotificationListenerService() {
     private val settings by lazy { SettingsRepository.getInstance(this) }
 
     private var watchedPackages = emptySet<String>()
-    private var keywords = emptyList<Keyword>()
+    private var keywords = emptyList<Pair<String, Regex>>()
     private var showHeadsUpNotifications = true
     private var usePersistentSilentNotification = true
 
@@ -51,8 +50,10 @@ class AppListenerService : NotificationListenerService() {
             // Extract notification text
             val notification = sbn.notification
             val title = extractTitle(sbn.packageName, notification.extras) ?: return@launch
-            val text = notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
-            val bigText = notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
+            val text =
+                notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
+            val bigText =
+                notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
 
             // Use the longer text between text and bigText
             val notificationText = if (bigText.length > text.length) bigText else text
@@ -68,7 +69,9 @@ class AppListenerService : NotificationListenerService() {
         watchedPackages = repository.watchedApps.first().map { it.packageName }.toSet()
 
         // Load keywords
-        keywords = repository.keywords.first()
+        keywords = repository.keywords.first().map { (word) ->
+            word to "\\b${Regex.escape(word)}\\b".toRegex(RegexOption.IGNORE_CASE)
+        }
 
         // Load notification preferences
         showHeadsUpNotifications = settings.showHeadsUpAlert.first()
@@ -81,7 +84,12 @@ class AppListenerService : NotificationListenerService() {
                 // WhatsApp groups typically show the group name in EXTRA_CONVERSATION_TITLE
                 val raw = extras.getString(Notification.EXTRA_CONVERSATION_TITLE)
                     ?: extras.getString(Notification.EXTRA_TITLE)
-                raw?.replace(Regex("\\s*\\(\\d+\\s+(new\\s+)?messages?\\)", RegexOption.IGNORE_CASE), "")?.trim()
+                raw?.replace(
+                    Regex(
+                        "\\s*\\(\\d+\\s+(new\\s+)?messages?\\)",
+                        RegexOption.IGNORE_CASE
+                    ), ""
+                )?.trim()
             }
 
             TELEGRAM_PACKAGE_NAME -> {
@@ -111,17 +119,20 @@ class AppListenerService : NotificationListenerService() {
     }
 
     private fun checkForKeywords(title: String, text: String, notification: StatusBarNotification) {
-        val matchedKeywords = keywords.filter { (word, _, isCaseSensitive) ->
-            text.contains(word, ignoreCase = !isCaseSensitive) || title.contains(word, ignoreCase = !isCaseSensitive)
-        }.map {
-            it.word
-        }.toSet()
+        val matchedKeywords = keywords.filter { (_, pattern) ->
+            pattern.containsMatchIn(text)
+        }.map { it.first }.toSet()
 
         if (matchedKeywords.isEmpty()) return
 
         // Get app name for better display
         val appName = try {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(notification.packageName, 0))
+            packageManager.getApplicationLabel(
+                packageManager.getApplicationInfo(
+                    notification.packageName,
+                    0
+                )
+            )
                 .toString()
         } catch (_: Exception) {
             notification.packageName

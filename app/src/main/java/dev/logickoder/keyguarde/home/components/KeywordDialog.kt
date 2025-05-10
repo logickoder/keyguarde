@@ -1,8 +1,26 @@
 package dev.logickoder.keyguarde.home.components
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -19,7 +37,7 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 fun KeywordDialog(
     initialKeyword: Keyword? = null,
     onDismiss: () -> Unit,
-    onSave: (String, Boolean) -> Unit
+    onSave: (String) -> Unit
 ) {
     var word by remember(initialKeyword) {
         mutableStateOf(
@@ -29,7 +47,6 @@ fun KeywordDialog(
             )
         )
     }
-    var isCaseSensitive by remember(initialKeyword) { mutableStateOf(initialKeyword?.isCaseSensitive ?: false) }
     var isValid by remember { mutableStateOf(true) }
 
     val focusRequester = remember { FocusRequester() }
@@ -73,23 +90,6 @@ fun KeywordDialog(
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                content = {
-                                    Text(
-                                        text = "Case sensitive",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-                                    Switch(
-                                        checked = isCaseSensitive,
-                                        onCheckedChange = { isCaseSensitive = it }
-                                    )
-                                }
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically,
                                 content = {
@@ -102,18 +102,12 @@ fun KeywordDialog(
 
                                     Spacer(modifier = Modifier.width(8.dp))
 
-                                    val trimmedWord = word.text.trim()
+                                    val trimmedWord = word.text.trim().lowercase()
                                     Button(
                                         onClick = {
                                             isValid = trimmedWord.length >= 2
                                             if (isValid) {
-                                                onSave(
-                                                    when (isCaseSensitive) {
-                                                        true -> trimmedWord
-                                                        else -> trimmedWord.lowercase()
-                                                    },
-                                                    isCaseSensitive
-                                                )
+                                                onSave(trimmedWord)
                                             }
                                         },
                                         enabled = trimmedWord.isNotEmpty(),

@@ -11,5 +11,4 @@ import androidx.room.PrimaryKey
 data class Keyword(
     @PrimaryKey val word: String,
     val createdAt: Long = System.currentTimeMillis(),
-    val isCaseSensitive: Boolean = false,
 )

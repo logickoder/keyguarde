@@ -6,10 +6,15 @@ import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.service.notification.NotificationListenerService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -79,7 +84,12 @@ object NotificationHelper {
         }
 
         val notificationManager = context.getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannels(listOf(backgroundChannel, matchAlertsChannel))
+        notificationManager.createNotificationChannels(
+            listOf(
+                backgroundChannel,
+                matchAlertsChannel
+            )
+        )
     }
 
     /**
@@ -264,6 +274,23 @@ object NotificationHelper {
         }
     }
 
+    fun requestListenerServiceRebind(context: Context) {
+        if (!isListenerServiceEnabled(context)) {
+            return
+        }
+
+        try {
+            NotificationListenerService.requestRebind(
+                ComponentName(
+                    context,
+                    AppListenerService::class.java
+                )
+            )
+        } catch (e: Exception) {
+            Napier.e(e) { "Failed to rebind notification listener" }
+        }
+    }
+
     fun isListenerServiceEnabled(context: Context): Boolean {
         return Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
             ?.contains(context.packageName) == true
@@ -274,10 +301,11 @@ object NotificationHelper {
     }
 
     @Composable
-    fun requestNotificationPermissionLauncher(onResult: (Boolean) -> Unit) = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = onResult
-    )
+    fun requestNotificationPermissionLauncher(onResult: (Boolean) -> Unit) =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = onResult
+        )
 
     @SuppressLint("NewApi")
     fun canRequestNotificationPermission(activity: Activity): Boolean {

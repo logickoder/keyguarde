@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import dev.logickoder.keyguarde.app.data.AppStore
+import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.resetMatchCount
 import dev.logickoder.keyguarde.app.navigation.AppNavigation
 import dev.logickoder.keyguarde.app.navigation.AppRoute
@@ -35,6 +36,8 @@ class MainActivity : ComponentActivity() {
             MobileAds.initialize(this@MainActivity) {}
         }
 
+        NotificationHelper.requestListenerServiceRebind(this)
+
         setContent {
             AppTheme {
                 AppNavigation(
@@ -56,4 +59,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }

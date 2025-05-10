@@ -36,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.app.components.BannerAd
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -103,79 +102,72 @@ fun HomeScreen(
             )
         },
         content = { scaffoldPadding ->
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding),
+                contentPadding = PaddingValues(bottom = 80.dp),
                 content = {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(bottom = 80.dp),
-                        content = {
-                            item {
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    content = {
-                                        NotificationPermissionBanner()
-                                        NotificationListenerBanner()
-                                    }
-                                )
+                    item {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            content = {
+                                NotificationPermissionBanner()
+                                NotificationListenerBanner()
                             }
+                        )
+                    }
 
-                            item {
-                                MatchSummaryCard(
-                                    matchCount = recentCount,
-                                    onResetClick = state::resetCount
-                                )
-                            }
+                    item {
+                        MatchSummaryCard(
+                            matchCount = recentCount,
+                            onResetClick = state::resetCount
+                        )
+                    }
 
-                            item {
-                                FilterChips(
-                                    selected = state.filter,
-                                    apps = watchedApps,
-                                    onSelected = state::changeFilter
-                                )
-                            }
+                    item {
+                        FilterChips(
+                            selected = state.filter,
+                            apps = watchedApps,
+                            onSelected = state::changeFilter
+                        )
+                    }
 
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Recent Matches",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                                )
-                            }
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Recent Matches",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
 
-                            when (matches.isEmpty()) {
-                                true -> item {
-                                    EmptyMatchesState(modifier = Modifier.animateItem())
-                                }
-
-                                else -> items(
-                                    matches.size,
-                                    key = { matches[it].id },
-                                    itemContent = {
-                                        MatchItem(
-                                            modifier = Modifier.animateItem(),
-                                            match = matches[it],
-                                            apps = watchedApps,
-                                        )
-                                    }
-                                )
-                            }
+                    when (matches.isEmpty()) {
+                        true -> item {
+                            EmptyMatchesState(modifier = Modifier.animateItem())
                         }
-                    )
 
-                    BannerAd(modifier = Modifier.padding(top = 8.dp))
-
-                    if (state.isKeywordDialogVisible) {
-                        KeywordDialog(
-                            onDismiss = state::toggleKeywordDialog,
-                            onSave = state::saveKeyword
+                        else -> items(
+                            matches.size,
+                            key = { matches[it].id },
+                            itemContent = {
+                                MatchItem(
+                                    modifier = Modifier.animateItem(),
+                                    match = matches[it],
+                                    apps = watchedApps,
+                                )
+                            }
                         )
                     }
                 }
             )
+
+            if (state.isKeywordDialogVisible) {
+                KeywordDialog(
+                    onDismiss = state::toggleKeywordDialog,
+                    onSave = state::saveKeyword
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(

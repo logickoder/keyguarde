@@ -1,7 +1,13 @@
 package dev.logickoder.keyguarde.home.domain
 
 import android.content.Context
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
@@ -12,7 +18,11 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class HomeState(
@@ -59,10 +69,10 @@ class HomeState(
         isKeywordDialogVisible = !isKeywordDialogVisible
     }
 
-    fun saveKeyword(word: String, isCaseSensitive: Boolean) {
+    fun saveKeyword(word: String) {
         if (word.isNotBlank()) {
             scope.launch {
-                repository.addKeyword(Keyword(word = word, isCaseSensitive = isCaseSensitive))
+                repository.addKeyword(Keyword(word = word))
             }.invokeOnCompletion {
                 toggleKeywordDialog()
             }

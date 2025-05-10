@@ -1,7 +1,12 @@
 package dev.logickoder.keyguarde.settings.domain
 
 import android.content.Context
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
@@ -40,11 +45,11 @@ class KeywordsState(
         isDialogVisible = !isDialogVisible
     }
 
-    fun saveKeyword(word: String, isCaseSensitive: Boolean) {
+    fun saveKeyword(word: String) {
         if (word.isNotBlank()) {
             scope.launch {
                 AppListenerService.fetch = true
-                val keyword = Keyword(word = word, isCaseSensitive = isCaseSensitive)
+                val keyword = Keyword(word = word)
                 when (edit) {
                     null -> repository.addKeyword(keyword)
                     else -> repository.updateKeyword(edit!!, keyword)
