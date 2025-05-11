@@ -200,10 +200,10 @@ export default function HomePage() {
 
                                     <h3 className="text-xl font-bold mb-2">{item.title}</h3>
                                     <p className="text-muted">{item.description}</p>
-                                    <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
-                                        {/* Screenshot placeholder */}
+                                    {/* Screenshot placeholder */}
+                                    {/* <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
                                         <img src={item.image} alt={item.alt} className="rounded-lg" />
-                                    </div>
+                                    </div> */}
                                 </div>
                             ))
                         }
