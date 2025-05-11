@@ -14,6 +14,91 @@ export default function HomePage() {
 
     const handleClick = useSmoothScroll("/");
 
+    const howItWorks = useMemo(
+        () => [
+            {
+                icon: Bell,
+                title: 'Listens to notifications',
+                description: 'Monitors your selected apps for new notifications.',
+                image: '/api/placeholder/150/120',
+                alt: 'Notification permissions',
+            },
+            {
+                icon: Shield,
+                title: 'Matches your keywords',
+                description: 'Checks messages for words important to you.',
+                image: '/api/placeholder/150/120',
+                alt: 'Keywords matched',
+            },
+            {
+                icon: Zap,
+                title: 'Notifies you quietly',
+                description: 'Alerts only when your keywords appear.',
+                image: '/api/placeholder/150/120',
+                alt: 'Notification alert',
+            },
+            {
+                icon: Lock,
+                title: 'All offline, no tracking',
+                description: 'Everything stays on your device.',
+                image: '/api/placeholder/150/120',
+                alt: 'Privacy features',
+            },
+        ],
+        []
+    );
+
+    const whoItsFor = useMemo(
+        () => [
+            {
+                title: 'Job Seekers',
+                description: 'Never miss that important interview invitation or job offer. Setup keywords like "position," "interview," or company names.',
+            },
+            {
+                title: 'Market Traders',
+                description: 'Stay on top of market updates in busy group chats. Set keywords for stock symbols, "buy," "sell," or specific market events.',
+            },
+            {
+                title: 'Busy Group Members',
+                description: 'Filter through noisy group chats to find messages that matter. Set keywords for your name or important topics.',
+            },
+        ],
+        []
+    );
+
+    const features = useMemo(
+        () => [
+            {
+                title: 'Works Offline',
+                description: 'Everything happens on your device with no internet connection required.',
+            },
+            {
+                title: 'Battery Efficient',
+                description: 'Designed to consume minimal resources while running in the background.',
+            },
+            // {
+            //     title: 'Chat-Specific Filters',
+            //     description: 'Monitor only the chats that matter most to you.',
+            // },
+            {
+                title: 'Customizable Alerts',
+                description: 'Tailor notifications to match your personal preferences.',
+            },
+        ],
+        []
+    );
+
+    const allFeatures = useMemo(
+        () => [
+            'Monitor notifications from WhatsApp & Telegram',
+            'Custom keyword matching',
+            'Select which apps to monitor',
+            'Persistent but silent notifications',
+            'Privacy-focused design',
+        ],
+        []
+    );
+
     const privacy = useMemo(
         () => [
             'All notification processing happens locally on your device',
@@ -22,7 +107,7 @@ export default function HomePage() {
             'We never collect, store, or transmit your notification data',
         ],
         []
-    )
+    );
 
     const faqs = useMemo(
         () => [
@@ -38,10 +123,10 @@ export default function HomePage() {
                 question: 'Will it drain my battery?',
                 answer: 'Keyguarde is designed to be lightweight and battery-efficient. It only activates when new notifications arrive, and uses minimal resources while running in the background. The app has been optimized to have negligible impact on your device\'s battery life.',
             },
-            {
-                question: 'Can I disable alerts for certain chats?',
-                answer: 'Yes! Keyguarde lets you filter notifications by chat names. You can specify which individual chats or groups to monitor, so you only receive alerts from the conversations that matter most to you.',
-            },
+            // {
+            //     question: 'Can I disable alerts for certain chats?',
+            //     answer: 'Yes! Keyguarde lets you filter notifications by chat names. You can specify which individual chats or groups to monitor, so you only receive alerts from the conversations that matter most to you.',
+            // },
         ],
         []
     );
@@ -89,7 +174,7 @@ export default function HomePage() {
                                 className="w-64 h-96 bg-surface rounded-3xl shadow-lg border border-gray-200 overflow-hidden relative">
                                 <div className="bg-primary h-8 w-full"></div>
                                 <div className="p-4">
-                                    <img src="/api/placeholder/250/450" alt="Keyguarde App Screenshot"
+                                    <img src={getImageUrl('app-screenshot.png')} alt="Keyguarde App Screenshot"
                                         className="rounded-lg" />
                                 </div>
                             </div>
@@ -104,58 +189,24 @@ export default function HomePage() {
                     <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div className="bg-background rounded-lg p-6 text-center shadow-sm">
-                            <div
-                                className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Bell className="text-primary" size={24} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-2">Listens to notifications</h3>
-                            <p className="text-muted">Monitors your selected apps for new notifications.</p>
-                            <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
-                                {/* Screenshot placeholder */}
-                                <img src="/api/placeholder/150/120" alt="Notification permissions"
-                                    className="rounded-lg" />
-                            </div>
-                        </div>
+                        {
+                            howItWorks.map((item, index) => (
+                                <div key={index} className="bg-background rounded-lg p-6 text-center shadow-sm">
 
-                        <div className="bg-background rounded-lg p-6 text-center shadow-sm">
-                            <div
-                                className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Shield className="text-primary" size={24} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-2">Matches your keywords</h3>
-                            <p className="text-muted">Checks messages for words important to you.</p>
-                            <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
-                                {/* Screenshot placeholder */}
-                                <img src="/api/placeholder/150/120" alt="Keywords matched" className="rounded-lg" />
-                            </div>
-                        </div>
+                                    <div
+                                        className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                                        <item.icon className="text-primary" size={24} />
+                                    </div>
 
-                        <div className="bg-background rounded-lg p-6 text-center shadow-sm">
-                            <div
-                                className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Zap className="text-primary" size={24} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-2">Notifies you quietly</h3>
-                            <p className="text-muted">Alerts only when your keywords appear.</p>
-                            <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
-                                {/* Screenshot placeholder */}
-                                <img src="/api/placeholder/150/120" alt="Notification alert" className="rounded-lg" />
-                            </div>
-                        </div>
-
-                        <div className="bg-background rounded-lg p-6 text-center shadow-sm">
-                            <div
-                                className="bg-secondary bg-opacity-20 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                <Lock className="text-primary" size={24} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-2">All offline, no tracking</h3>
-                            <p className="text-muted">Everything stays on your device.</p>
-                            <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
-                                {/* Screenshot placeholder */}
-                                <img src="/api/placeholder/150/120" alt="Privacy features" className="rounded-lg" />
-                            </div>
-                        </div>
+                                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                                    <p className="text-muted">{item.description}</p>
+                                    <div className="mt-4 h-36 bg-gray-100 rounded-lg flex items-center justify-center">
+                                        {/* Screenshot placeholder */}
+                                        <img src={item.image} alt={item.alt} className="rounded-lg" />
+                                    </div>
+                                </div>
+                            ))
+                        }
                     </div>
                 </div>
             </section>
@@ -166,23 +217,14 @@ export default function HomePage() {
                     <h2 className="text-3xl font-bold text-center mb-12">Who It's For</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="bg-surface rounded-lg p-6 shadow-sm">
-                            <h3 className="text-xl font-bold mb-4">Job Seekers</h3>
-                            <p className="text-muted">Never miss that important interview invitation or job offer. Set
-                                up keywords like "position," "interview," or company names.</p>
-                        </div>
-
-                        <div className="bg-surface rounded-lg p-6 shadow-sm">
-                            <h3 className="text-xl font-bold mb-4">Market Traders</h3>
-                            <p className="text-muted">Stay on top of market updates in busy group chats. Set keywords
-                                for stock symbols, "buy," "sell," or specific market events.</p>
-                        </div>
-
-                        <div className="bg-surface rounded-lg p-6 shadow-sm">
-                            <h3 className="text-xl font-bold mb-4">Busy Group Members</h3>
-                            <p className="text-muted">Filter through noisy group chats to find messages that matter. Set
-                                keywords for your name or important topics.</p>
-                        </div>
+                        {
+                            whoItsFor.map((item, index) => (
+                                <div key={index} className="bg-surface rounded-lg p-6 shadow-sm">
+                                    <h3 className="text-xl font-bold mb-4">{item.title}</h3>
+                                    <p className="text-muted">{item.description}</p>
+                                </div>
+                            ))
+                        }
                     </div>
                 </div>
             </section>
@@ -193,47 +235,19 @@ export default function HomePage() {
                     <h2 className="text-3xl font-bold text-center mb-12">Why Keyguarde?</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="flex items-start">
-                            <div className="mr-4 mt-1">
-                                <CheckCircle className="text-success" size={20} />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold mb-2">Works Offline</h3>
-                                <p className="text-muted">Everything happens on your device with no internet connection
-                                    required.</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start">
-                            <div className="mr-4 mt-1">
-                                <CheckCircle className="text-success" size={20} />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold mb-2">Battery Efficient</h3>
-                                <p className="text-muted">Designed to consume minimal resources while running in the
-                                    background.</p>
-                            </div>
-                        </div>
-
-                        {/* <div className="flex items-start">
-                            <div className="mr-4 mt-1">
-                                <CheckCircle className="text-success" size={20}/>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold mb-2">Chat-Specific Filters</h3>
-                                <p className="text-muted">Monitor only the chats that matter most to you.</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start">
-                            <div className="mr-4 mt-1">
-                                <CheckCircle className="text-success" size={20}/>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold mb-2">Customizable Alerts</h3>
-                                <p className="text-muted">Tailor notifications to match your personal preferences.</p>
-                            </div>
-                        </div> */}
+                        {
+                            features.map((feature, index) => (
+                                <div key={index} className="flex items-start">
+                                    <div className="mr-4 mt-1">
+                                        <CheckCircle className="text-success" size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                                        <p className="text-muted">{feature.description}</p>
+                                    </div>
+                                </div>
+                            ))
+                        }
                     </div>
 
                     <div className="mt-12 bg-background rounded-xl p-6 shadow-sm">
@@ -241,33 +255,21 @@ export default function HomePage() {
                             <div className="md:w-1/2 mb-6 md:mb-0">
                                 <h3 className="text-2xl font-bold mb-4">All Features</h3>
                                 <ul className="space-y-3">
-                                    <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
-                                        <span>Monitor notifications from WhatsApp & Telegram</span>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
-                                        <span>Custom keyword matching</span>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
-                                        <span>Select which apps to monitor</span>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
-                                        <span>Persistent but silent notifications</span>
-                                    </li>
-                                    <li className="flex items-start">
-                                        <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
-                                        <span>Privacy-focused design</span>
-                                    </li>
+                                    {
+                                        allFeatures.map((feature, index) => (
+                                            <li key={index} className="flex items-start">
+                                                <CheckCircle className="text-success mr-2 mt-1 flex-shrink-0" size={16} />
+                                                <span>{feature}</span>
+                                            </li>
+                                        ))
+                                    }
                                 </ul>
                             </div>
                             <div className="md:w-1/2 flex justify-center">
                                 <div
                                     className="h-64 w-32 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center">
                                     {/* App screenshot placeholder */}
-                                    <img src="/api/placeholder/120/220" alt="Feature highlights"
+                                    <img src={getImageUrl('features-screenshot.png')} alt="Feature highlights"
                                         className="rounded-lg" />
                                 </div>
                             </div>
@@ -318,7 +320,7 @@ export default function HomePage() {
                     <div className="max-w-3xl mx-auto">
                         {
                             faqs.map((faq, index) => (
-                                <div key={index} className="mb-4">
+                                <div key={index} className="mb-4 transition-all duration-300">
                                     <button
                                         className="w-full flex justify-between items-center bg-background p-4 rounded-lg focus:outline-none"
                                         onClick={() => toggleAccordion(index)}
