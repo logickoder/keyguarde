@@ -1,18 +1,29 @@
 package dev.logickoder.keyguarde.settings
 
 import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import dev.logickoder.keyguarde.settings.components.SettingsCard
 import dev.logickoder.keyguarde.settings.components.SettingsIconText
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
@@ -26,8 +37,10 @@ fun PrivacySettingsScreen(
     val context = LocalContext.current
     val openPrivacyPolicy = remember {
         {
-            val privacyPolicyUrl = "https://www.example.com/privacy-policy"
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(privacyPolicyUrl))
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                "https://logickoder.github.io/keyguarde/privacy-policy".toUri()
+            )
             if (intent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(intent)
             }

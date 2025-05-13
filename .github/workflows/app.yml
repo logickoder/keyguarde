@@ -11,6 +11,14 @@ on:
         options:
           - aab
           - apk
+      distribution_track:
+        description: "Specify the distribution track for play store release (e.g., qa or production)"
+        required: true
+        default: "qa"
+        type: choice
+        options:
+          - qa
+          - production
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -72,8 +80,8 @@ jobs:
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           mappingFile: app/build/outputs/mapping/release/mapping.txt
           debugSymbols: app/build/intermediates/merged_native_libs/release/out/lib
-          inAppUpdatePriority: 5
-          track: production
+          inAppUpdatePriority: ${{ github.event.inputs.distribution_track == 'qa' && 0 || 5 }}
+          track: ${{ github.event.inputs.distribution_track }}
           status: completed
 
       - name: Create release notes
