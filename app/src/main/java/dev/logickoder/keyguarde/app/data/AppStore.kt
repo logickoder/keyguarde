@@ -2,7 +2,6 @@ package dev.logickoder.keyguarde.app.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import dev.logickoder.keyguarde.BuildConfig
@@ -53,7 +52,5 @@ class AppStore(
         )
 
         override fun createInstance(dependency: Context) = AppStore(dependency)
-
-        val onboardingComplete = booleanPreferencesKey("onboarding_complete")
     }
 }

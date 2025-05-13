@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
-import dev.logickoder.keyguarde.app.data.AppStore
+import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.resetMatchCount
 import dev.logickoder.keyguarde.app.navigation.AppNavigation
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val isOnboardingComplete = runBlocking {
-            AppStore.getInstance(this@MainActivity).get(AppStore.onboardingComplete).first()
+            AppRepository.getInstance(this@MainActivity).onboardingComplete.first()
         }
 
         CoroutineScope(Dispatchers.IO).launch {

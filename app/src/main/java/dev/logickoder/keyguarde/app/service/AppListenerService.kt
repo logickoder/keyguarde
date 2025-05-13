@@ -1,6 +1,8 @@
 package dev.logickoder.keyguarde.app.service
 
 import android.app.Notification
+import android.content.ComponentName
+import android.content.Intent
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -28,6 +30,22 @@ class AppListenerService : NotificationListenerService() {
     private var keywords = emptyList<Pair<String, Regex>>()
     private var showHeadsUpNotifications = true
     private var usePersistentSilentNotification = true
+
+    private var componentName: ComponentName? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return super.onStartCommand(intent, flags, startId)
+
+        if (componentName == null) {
+            componentName = ComponentName(this, this::class.java)
+        }
+
+        componentName?.let {
+            requestRebind(it)
+            NotificationHelper.startListenerService(this)
+        }
+        return START_REDELIVER_INTENT
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -62,6 +80,16 @@ class AppListenerService : NotificationListenerService() {
             // Check for keywords
             checkForKeywords(title, notificationText, sbn)
         }
+    }
+
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+
+        if (componentName == null) {
+            componentName = ComponentName(this, this::class.java)
+        }
+
+        componentName?.let { requestRebind(it) }
     }
 
     private suspend fun loadSettings() {

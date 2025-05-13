@@ -292,8 +292,10 @@ object NotificationHelper {
     }
 
     fun isListenerServiceEnabled(context: Context): Boolean {
-        return Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-            ?.contains(context.packageName) == true
+        val enabledListeners =
+            Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+        val componentName = ComponentName(context, AppListenerService::class.java).flattenToString()
+        return enabledListeners?.split(":")?.contains(componentName) == true
     }
 
     fun launchListenerSettings(context: Context) {

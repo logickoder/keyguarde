@@ -1,7 +1,13 @@
 package dev.logickoder.keyguarde.onboarding.domain
 
 import android.content.Context
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -12,11 +18,15 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class OnboardingState(
     private val context: Context,
@@ -95,6 +105,7 @@ class OnboardingState(
             repository.addWatchedApp(*watchedApps.toTypedArray())
 
             NotificationHelper.startListenerService(context)
+            NotificationHelper.requestListenerServiceRebind(context)
 
             onDone()
         }.invokeOnCompletion {
