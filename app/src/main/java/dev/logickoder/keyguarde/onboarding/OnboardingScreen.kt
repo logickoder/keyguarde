@@ -2,6 +2,7 @@ package dev.logickoder.keyguarde.onboarding
 
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -21,7 +22,12 @@ import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.rememberOnboardingState
-import dev.logickoder.keyguarde.onboarding.pages.*
+import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
+import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
+import dev.logickoder.keyguarde.onboarding.pages.KeywordSetupPage
+import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
+import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
+import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
 import kotlinx.collections.immutable.toImmutableList
 
 @Composable
@@ -76,6 +82,7 @@ fun OnboardingScreen(
         },
         bottomBar = {
             AnimatedVisibility(
+                modifier = Modifier.navigationBarsPadding(),
                 visible = currentScreen != OnboardingPage.ReadyScreen,
                 content = {
                     OnboardingBottomBar(
