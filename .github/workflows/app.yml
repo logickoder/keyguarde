@@ -80,7 +80,7 @@ jobs:
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           mappingFile: app/build/outputs/mapping/release/mapping.txt
           debugSymbols: app/build/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib
-          inAppUpdatePriority: ${{ github.event.inputs.distribution_track == 'internal' && 0 || 5 }}
+          inAppUpdatePriority: 5
           track: ${{ github.event.inputs.distribution_track }}
           status: completed
 

@@ -20,6 +20,7 @@ import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
@@ -45,7 +46,7 @@ class OnboardingState(
         initialValue = OnboardingPage.Welcome,
     )
 
-    val selectedApps = mutableStateListOf<String>()
+    val selectedApps = mutableStateListOf(WHATSAPP_PACKAGE_NAME, TELEGRAM_PACKAGE_NAME)
 
     val keywords = mutableStateListOf<Keyword>()
 
@@ -58,25 +59,30 @@ class OnboardingState(
         private set
 
     init {
+        var loadAppsJob: Job? = null
         scope.launch(Dispatchers.Default) {
+            loadAppsJob = launch {
+                apps.addAll(repository.getInstalledApps())
+            }
             launch {
                 currentScreen.collectLatest { screen ->
-                    if (screen == OnboardingPage.Permissions) {
-                        while (isActive) {
-                            permissionGranted = isListenerServiceEnabled(context)
-                            delay(1_000)
+                    when {
+                        screen == OnboardingPage.Permissions -> {
+                            while (isActive) {
+                                permissionGranted = isListenerServiceEnabled(context)
+                                delay(1_000)
+                            }
+                        }
+
+                        screen == OnboardingPage.AppSelection && apps.isEmpty() -> {
+                            if (!loadAppsJob.isActive) {
+                                loadAppsJob = launch {
+                                    apps.addAll(repository.getInstalledApps())
+                                }
+                            }
                         }
                     }
                 }
-            }
-
-            apps.addAll(repository.getInstalledApps())
-            // automatically select whatsapp and telegram if available
-            apps.find { it.packageName == WHATSAPP_PACKAGE_NAME }?.let {
-                selectedApps.add(it.packageName)
-            }
-            apps.find { it.packageName == TELEGRAM_PACKAGE_NAME }?.let {
-                selectedApps.add(it.packageName)
             }
         }
     }

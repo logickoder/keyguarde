@@ -3,6 +3,7 @@ package dev.logickoder.keyguarde.app.data
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -67,12 +68,25 @@ class AppRepository(private val context: Context) {
             PackageManager.GET_META_DATA
         )
         for (app in installedApplications) {
-            if (packageManager.checkPermission(
-                    android.Manifest.permission.POST_NOTIFICATIONS,
-                    app.packageName
-                ) == PackageManager.PERMISSION_GRANTED
-                && app.packageName != context.packageName
-            ) {
+            // Exclude the current app from the list
+            if (app.packageName == context.packageName) {
+                continue
+            }
+
+            var passesPermissionCheck = true
+
+            // Only check for POST_NOTIFICATIONS on Android 13 (API 33) and higher
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (packageManager.checkPermission(
+                        android.Manifest.permission.POST_NOTIFICATIONS,
+                        app.packageName
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    passesPermissionCheck = false
+                }
+            }
+
+            if (passesPermissionCheck) {
                 add(
                     AppInfo(
                         name = packageManager.getApplicationLabel(app).toString(),
