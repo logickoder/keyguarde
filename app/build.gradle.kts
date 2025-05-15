@@ -49,7 +49,11 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(getValue("KEYSTORE_PATH"))
+            getValue("KEYSTORE_PATH").let {
+                if (it.isNotBlank()) {
+                    storeFile = file(it)
+                }
+            }
             storePassword = getValue("KEYSTORE_PASSWORD")
             keyAlias = getValue("KEY_ALIAS")
             keyPassword = getValue("KEY_PASSWORD")
