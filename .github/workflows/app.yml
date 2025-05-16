@@ -12,13 +12,14 @@ on:
           - aab
           - apk
       distribution_track:
-        description: "Specify the distribution track for play store release (e.g., closed, internal or production)"
+        description: "Specify the distribution track for play store release (e.g., alpha, beta, internal or production)"
         required: true
-        default: "closed"
+        default: "alpha"
         type: choice
         options:
+          - alpha
+          - beta
           - internal
-          - closed
           - production
 
 concurrency:
