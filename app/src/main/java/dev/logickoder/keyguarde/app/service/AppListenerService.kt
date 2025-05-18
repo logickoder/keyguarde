@@ -1,9 +1,12 @@
 package dev.logickoder.keyguarde.app.service
 
+import android.app.AlarmManager
 import android.app.Notification
+import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import dev.logickoder.keyguarde.app.data.AppRepository
@@ -12,9 +15,11 @@ import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAG
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.settings.SettingsRepository
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -34,7 +39,7 @@ class AppListenerService : NotificationListenerService() {
     private var componentName: ComponentName? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return super.onStartCommand(intent, flags, startId)
+        Napier.i { "Listener start command received" }
 
         if (componentName == null) {
             componentName = ComponentName(this, this::class.java)
@@ -44,46 +49,53 @@ class AppListenerService : NotificationListenerService() {
             requestRebind(it)
             NotificationHelper.startListenerService(this)
         }
-        return START_REDELIVER_INTENT
+
+        return START_STICKY
     }
 
     override fun onCreate() {
         super.onCreate()
+        Napier.i { "Listener created" }
         NotificationHelper.createNotificationChannels(this)
+        loadSettings()
+    }
+
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        Napier.i { "Listener connected" }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         // Skip if notification is from this app
         if (sbn.packageName == packageName) return
 
-        scope.launch {
-            if (!fetch) {
-                fetch = true
-                loadSettings()
-            }
+        // Early return if keywords or watched packages are empty
+        if (keywords.isEmpty() || watchedPackages.isEmpty()) return
 
-            // Check if this package should be monitored
-            if (!watchedPackages.contains(sbn.packageName)) return@launch
+        // Check if this package is monitored
+        if (!watchedPackages.contains(sbn.packageName)) return
 
-            // Extract notification text
-            val notification = sbn.notification
-            val title = extractTitle(sbn.packageName, notification.extras) ?: return@launch
-            val text =
-                notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
-            val bigText =
-                notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
+        // Extract notification text
+        val notification = sbn.notification
+        val title = extractTitle(sbn.packageName, notification.extras) ?: return
+        val text =
+            notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty()
+        val bigText =
+            notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+                .orEmpty()
 
-            // Use the longer text between text and bigText
-            val notificationText = if (bigText.length > text.length) bigText else text
-            if (notificationText.isBlank()) return@launch
+        // Use the longer text between text and bigText
+        val notificationText = if (bigText.length > text.length) bigText else text
+        if (notificationText.isBlank()) return
 
-            // Check for keywords
-            checkForKeywords(title, notificationText, sbn)
-        }
+        // Check for keywords
+        checkForKeywords(title, notificationText, sbn)
     }
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
+
+        Napier.i { "Listener disconnected" }
 
         if (componentName == null) {
             componentName = ComponentName(this, this::class.java)
@@ -92,18 +104,49 @@ class AppListenerService : NotificationListenerService() {
         componentName?.let { requestRebind(it) }
     }
 
-    private suspend fun loadSettings() {
-        // Load monitored apps
-        watchedPackages = repository.watchedApps.first().map { it.packageName }.toSet()
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        Napier.i { "Listener removed" }
+        // Set an alarm to restart the service
+        val restartServiceIntent = Intent(applicationContext, this.javaClass)
+        val restartServicePendingIntent = PendingIntent.getService(
+            applicationContext, 1, restartServiceIntent, PendingIntent.FLAG_IMMUTABLE
+        )
 
-        // Load keywords
-        keywords = repository.keywords.first().map { (word) ->
-            word to "\\b${Regex.escape(word)}\\b".toRegex(RegexOption.IGNORE_CASE)
+        val alarmManager = applicationContext.getSystemService(ALARM_SERVICE) as AlarmManager
+        alarmManager.set(
+            AlarmManager.ELAPSED_REALTIME,
+            SystemClock.elapsedRealtime() + 1000,
+            restartServicePendingIntent
+        )
+    }
+
+    private fun loadSettings() {
+        scope.launch {
+            repository.watchedApps.collectLatest { apps ->
+                watchedPackages = apps.map { it.packageName }.toSet()
+            }
         }
 
-        // Load notification preferences
-        showHeadsUpNotifications = settings.showHeadsUpAlert.first()
-        usePersistentSilentNotification = settings.usePersistentSilentNotification.first()
+        scope.launch {
+            repository.keywords.collectLatest { words ->
+                keywords = words.map { (word) ->
+                    word to "\\b${Regex.escape(word)}\\b".toRegex(RegexOption.IGNORE_CASE)
+                }
+            }
+        }
+
+        scope.launch {
+            settings.showHeadsUpAlert.collectLatest {
+                showHeadsUpNotifications = it
+            }
+        }
+
+        scope.launch {
+            settings.usePersistentSilentNotification.collectLatest {
+                usePersistentSilentNotification = it
+            }
+        }
     }
 
     private fun extractTitle(packageName: String, extras: Bundle): String? {
@@ -221,9 +264,5 @@ class AppListenerService : NotificationListenerService() {
                 sources.size
             )
         }
-    }
-
-    companion object {
-        var fetch = false
     }
 }

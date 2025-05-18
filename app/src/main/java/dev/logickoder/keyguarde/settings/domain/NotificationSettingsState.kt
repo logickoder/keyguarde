@@ -6,7 +6,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.service.AppListenerService
 import dev.logickoder.keyguarde.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,14 +37,12 @@ class NotificationSettingState(
 
     fun toggleUsePersistentSilentNotification() {
         scope.launch {
-            AppListenerService.fetch = true
             repository.toggleUsePersistentSilentNotification()
         }
     }
 
     fun toggleShowHeadsUpAlert() {
         scope.launch {
-            AppListenerService.fetch = true
             repository.toggleShowHeadsUpAlert()
         }
     }

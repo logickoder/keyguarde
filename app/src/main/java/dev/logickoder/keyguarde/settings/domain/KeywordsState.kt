@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
-import dev.logickoder.keyguarde.app.service.AppListenerService
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
@@ -48,7 +47,6 @@ class KeywordsState(
     fun saveKeyword(word: String) {
         if (word.isNotBlank()) {
             scope.launch {
-                AppListenerService.fetch = true
                 val keyword = Keyword(word = word)
                 when (edit) {
                     null -> repository.addKeyword(keyword)
@@ -62,7 +60,6 @@ class KeywordsState(
 
     fun deleteKeyword(keyword: Keyword) {
         scope.launch {
-            AppListenerService.fetch = true
             repository.deleteKeyword(keyword)
         }
     }
