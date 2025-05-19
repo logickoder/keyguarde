@@ -39,12 +39,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
+import dev.logickoder.keyguarde.app.theme.AppTheme
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -73,7 +76,7 @@ fun MatchItem(
                 modifier = Modifier
                     .animateContentSize()
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 content = {
                     Row(
@@ -334,4 +337,25 @@ private val LinkRegex = run {
     val phonePattern = "(?<phone>\\+?\\d{10,15}|0\\d{9,10})"
 
     "$urlPattern|$wwwPattern|$domainPattern|$emailPattern|$phonePattern".toRegex()
+}
+
+@Preview
+@Composable
+private fun MatchItemPreview() = AppTheme {
+    MatchItem(
+        match = KeywordMatch(
+            id = 1,
+            keywords = setOf("keyword", "test"),
+            message = "This is a test message with a keyword and a link: https://example.com",
+            chat = "Chat Name",
+            app = "com.example.app",
+            timestamp = LocalDateTime.now()
+        ),
+        apps = persistentListOf(
+            WatchedApp("com.example.app", "Example App", "")
+        ),
+        showOpenInApp = true,
+        onDeleteMatch = {},
+        onOpenInApp = {}
+    )
 }
