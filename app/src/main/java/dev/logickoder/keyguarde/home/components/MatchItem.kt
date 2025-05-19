@@ -2,15 +2,33 @@ package dev.logickoder.keyguarde.home.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
@@ -132,10 +150,6 @@ private fun buildText(match: KeywordMatch): AnnotatedString {
             .toRegex(RegexOption.IGNORE_CASE)
     }
 
-    val linkRegex = remember {
-        "(https?://[\\w./?=&%-]+)|(www\\.[\\w.-]+\\.[a-zA-Z]{2,})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})|(\\+?\\d{10,15}|0\\d{9,10})".toRegex()
-    }
-
     val message = match.message
 
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -147,7 +161,7 @@ private fun buildText(match: KeywordMatch): AnnotatedString {
 
             // Merge matches from both keywords and links
             val keywordMatches = keywordRegex.findAll(message).map { "keyword" to it }.toList()
-            val linkMatches = linkRegex.findAll(message).map { "link" to it }.toList()
+            val linkMatches = LinkRegex.findAll(message).map { "link" to it }.toList()
 
             val allMatches = (keywordMatches + linkMatches)
                 .sortedBy { it.second.range.first }
@@ -173,17 +187,21 @@ private fun buildText(match: KeywordMatch): AnnotatedString {
 
                     "link" -> {
                         val normalizedLink = when {
-                            matchedText.startsWith("http", ignoreCase = true) -> matchedText
-                            matchedText.startsWith("www.", ignoreCase = true) -> "https://$matchedText"
-                            matchedText.contains("@") -> "mailto:$matchedText"
-                            matchedText.any { it.isDigit() } -> "tel:$matchedText"
+                            matchResult.groups["www"] != null || matchResult.groups["domain"] != null -> "https://$matchedText"
+                            matchResult.groups["email"] != null -> "mailto:$matchedText"
+                            matchResult.groups["phone"] != null -> "tel:$matchedText"
                             else -> matchedText
                         }
 
                         withLink(
                             LinkAnnotation.Url(
                                 normalizedLink,
-                                TextLinkStyles(style = SpanStyle(fontWeight = FontWeight.Bold, color = secondaryColor))
+                                TextLinkStyles(
+                                    style = SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        color = secondaryColor
+                                    )
+                                )
                             )
                         ) {
                             append(matchedText)
@@ -199,4 +217,14 @@ private fun buildText(match: KeywordMatch): AnnotatedString {
             }
         }
     }
+}
+
+private val LinkRegex = run {
+    val urlPattern = "(?<url>https?://[\\w./?=&%-]+)"
+    val wwwPattern = "(?<www>www\\.[\\w.-]+\\.[a-zA-Z]{2,})"
+    val domainPattern = "(?<domain>[\\w-]+\\.[a-zA-Z]{2,}(?:\\.[a-zA-Z]{2,})*)"
+    val emailPattern = "(?<email>[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})"
+    val phonePattern = "(?<phone>\\+?\\d{10,15}|0\\d{9,10})"
+
+    "$urlPattern|$wwwPattern|$domainPattern|$emailPattern|$phonePattern".toRegex()
 }
