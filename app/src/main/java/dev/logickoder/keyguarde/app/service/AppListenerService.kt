@@ -19,8 +19,11 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -229,6 +232,15 @@ class AppListenerService : NotificationListenerService() {
                 return@launch
             }
 
+            // Create a pending intent for the notification
+            _notificationIntents.update { prev ->
+                val pendingIntent = notification.notification.contentIntent
+                when (pendingIntent) {
+                    null -> prev
+                    else -> prev + (result to pendingIntent)
+                }
+            }
+
             // Update match counters
             updateMatchCounters(appName)
 
@@ -264,5 +276,14 @@ class AppListenerService : NotificationListenerService() {
                 sources.size
             )
         }
+    }
+
+    companion object {
+        /**
+         * A flow that holds the pending intents for notifications.
+         */
+        private val _notificationIntents = MutableStateFlow(emptyMap<Long, PendingIntent>())
+        val notificationIntents: StateFlow<Map<Long, PendingIntent>>
+            get() = _notificationIntents
     }
 }

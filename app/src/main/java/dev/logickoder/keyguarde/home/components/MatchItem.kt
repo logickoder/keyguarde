@@ -2,13 +2,23 @@ package dev.logickoder.keyguarde.home.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,13 +49,18 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MatchItem(
     match: KeywordMatch,
     apps: ImmutableList<WatchedApp>,
+    showOpenInApp: Boolean,
     modifier: Modifier = Modifier,
+    onDeleteMatch: () -> Unit,
+    onOpenInApp: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
 
     Card(
         modifier = modifier
@@ -55,20 +70,21 @@ fun MatchItem(
         onClick = { expanded = !expanded },
         content = {
             Column(
-                modifier = Modifier.animateContentSize()
+                modifier = Modifier
+                    .animateContentSize()
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 content = {
                     Row(
-                        modifier = Modifier.Companion.fillMaxWidth(),
-                        verticalAlignment = Alignment.Companion.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
                         content = {
                             Text(
                                 text = match.chat,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Companion.SemiBold,
-                                modifier = Modifier.Companion.weight(1f)
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.weight(1f)
                             )
 
                             val app = remember(apps, match.app) {
@@ -89,16 +105,44 @@ fun MatchItem(
                             text = buildText(match),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = if (expanded) Int.MAX_VALUE else 3,
-                            overflow = TextOverflow.Companion.Ellipsis
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    Text(
-                        text = remember(match.timestamp) {
-                            formatTime(match.timestamp)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        content = {
+                            Text(
+                                text = remember(match.timestamp) {
+                                    formatTime(match.timestamp)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Box {
+                                IconButton(
+                                    onClick = { showMenu = true },
+                                    content = {
+                                        Icon(
+                                            imageVector = Icons.Default.MoreHoriz,
+                                            contentDescription = "Actions",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                )
+
+                                ActionMenu(
+                                    expanded = showMenu,
+                                    onDismiss = { showMenu = false },
+                                    showOpen = showOpenInApp,
+                                    onDelete = onDeleteMatch,
+                                    onOpen = onOpenInApp
+                                )
+                            }
+                        }
                     )
                 }
             )
@@ -128,6 +172,69 @@ private fun AppSourceBadge(app: WatchedApp) {
         }
     )
 }
+
+@Composable
+private fun ActionMenu(
+    expanded: Boolean,
+    showOpen: Boolean,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit,
+    onOpen: () -> Unit
+) {
+    DropdownMenu(
+        modifier = modifier,
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        content = {
+            AnimatedVisibility(
+                visible = showOpen,
+                content = {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Open in app",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = {
+                            onOpen()
+                            onDismiss()
+                        }
+                    )
+                }
+            )
+
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = "Delete match",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                },
+                onClick = {
+                    onDelete()
+                    onDismiss()
+                }
+            )
+        }
+    )
+}
+
 
 private fun formatTime(timestamp: LocalDateTime): String {
     val now = LocalDateTime.now()

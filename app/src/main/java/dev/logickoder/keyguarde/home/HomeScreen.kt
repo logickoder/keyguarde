@@ -56,6 +56,7 @@ fun HomeScreen(
     val watchedApps by state.watchedApps.collectAsStateWithLifecycle()
     val matches by state.matches.collectAsStateWithLifecycle()
     val recentCount by state.recentCount.collectAsStateWithLifecycle()
+    val openInAppIntents by state.openInAppIntents.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier,
@@ -151,10 +152,18 @@ fun HomeScreen(
                             matches.size,
                             key = { matches[it].id },
                             itemContent = {
+                                val match = matches[it]
                                 MatchItem(
                                     modifier = Modifier.animateItem(),
-                                    match = matches[it],
+                                    match = match,
                                     apps = watchedApps,
+                                    showOpenInApp = openInAppIntents.containsKey(match.id),
+                                    onDeleteMatch = {
+                                        state.deleteMatch(match)
+                                    },
+                                    onOpenInApp = {
+                                        state.openInApp(match)
+                                    }
                                 )
                             }
                         )

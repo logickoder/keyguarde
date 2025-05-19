@@ -20,7 +20,7 @@ import dev.logickoder.keyguarde.app.data.model.WatchedApp
         WatchedApp::class,
         KeywordMatch::class,
     ],
-    version = 1
+    version = 1,
 )
 abstract class AppDatabase : RoomDatabase() {
 
