@@ -325,7 +325,7 @@ export default function HomePage() {
                                         className="w-full flex justify-between items-center bg-background p-4 rounded-lg focus:outline-none"
                                         onClick={() => toggleAccordion(index)}
                                     >
-                                        <span className="font-bold text-lg">{faq.question}</span>
+                                        <span className="font-bold text-lg text-left">{faq.question}</span>
                                         {activeAccordion === index ? (
                                             <ChevronUp size={20} />
                                         ) : (
