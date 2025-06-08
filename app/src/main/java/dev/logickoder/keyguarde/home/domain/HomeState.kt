@@ -108,6 +108,7 @@ class HomeState(
                     null,
                     null,
                     ActivityOptions.makeBasic().apply {
+                        @Suppress("DEPRECATION")
                         pendingIntentBackgroundActivityStartMode = when {
                             SDK_INT >= Build.VERSION_CODES.BAKLAVA -> ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
                             else -> ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED

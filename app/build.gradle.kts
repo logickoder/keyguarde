@@ -34,7 +34,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.logickoder.keyguarde"
+        applicationId = "dev.logickoder.keyguarde.dev"
         minSdk = 26
         targetSdk = 36
         versionCode = 8
