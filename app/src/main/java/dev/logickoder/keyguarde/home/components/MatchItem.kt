@@ -1,7 +1,15 @@
 package dev.logickoder.keyguarde.home.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,12 +17,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -59,18 +71,41 @@ fun MatchItem(
     apps: ImmutableList<WatchedApp>,
     showOpenInApp: Boolean,
     modifier: Modifier = Modifier,
+    isSelected: Boolean? = null,
     onDeleteMatch: () -> Unit,
     onOpenInApp: () -> Unit,
+    onToggleSelection: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
+
+    val containerColor by animateColorAsState(
+        targetValue = when {
+            isSelected == true -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            else -> MaterialTheme.colorScheme.surface
+        },
+        label = "MatchItemContainerColor"
+    )
+    val titleColor by animateColorAsState(
+        targetValue = when {
+            isSelected == true -> MaterialTheme.colorScheme.onPrimaryContainer
+            else -> MaterialTheme.colorScheme.onSurface
+        },
+        label = "MatchItemContainerColor"
+    )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = MaterialTheme.shapes.medium,
-        onClick = { expanded = !expanded },
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        onClick = {
+            when (isSelected) {
+                null -> expanded = !expanded
+                else -> onToggleSelection()
+            }
+        },
         content = {
             Column(
                 modifier = Modifier
@@ -83,10 +118,50 @@ fun MatchItem(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         content = {
+                            AnimatedContent(
+                                targetState = isSelected,
+                                transitionSpec = {
+                                    fadeIn(animationSpec = tween(150)) + scaleIn(
+                                        animationSpec = tween(
+                                            150
+                                        )
+                                    ) togetherWith
+                                            fadeOut(animationSpec = tween(150)) + scaleOut(
+                                        animationSpec = tween(150)
+                                    )
+                                },
+                                content = { isChecked ->
+                                    when (isChecked) {
+                                        null -> {
+                                            // no-op
+                                        }
+
+                                        else -> Icon(
+                                            imageVector = if (isChecked) {
+                                                Icons.Filled.CheckCircle
+                                            } else {
+                                                Icons.Outlined.RadioButtonUnchecked
+                                            },
+                                            contentDescription = if (isChecked) "Selected" else "Not selected",
+                                            tint = if (isChecked) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            },
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .padding(end = 12.dp)
+                                        )
+                                    }
+
+                                }
+                            )
+
                             Text(
                                 text = match.chat,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
+                                color = titleColor,
                                 modifier = Modifier.weight(1f)
                             )
 

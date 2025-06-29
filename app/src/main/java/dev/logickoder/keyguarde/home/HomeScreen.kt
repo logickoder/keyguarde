@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,6 +39,7 @@ import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
 import dev.logickoder.keyguarde.home.components.FilterChips
+import dev.logickoder.keyguarde.home.components.HomeHeader
 import dev.logickoder.keyguarde.home.components.KeywordDialog
 import dev.logickoder.keyguarde.home.components.MatchItem
 import dev.logickoder.keyguarde.home.components.MatchSummaryCard
@@ -135,11 +134,18 @@ fun HomeScreen(
                     }
 
                     item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Recent Matches",
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        HomeHeader(
+                            modifier = Modifier.padding(top = 8.dp).animateItem(),
+                            hasMatches = matches.isNotEmpty(),
+                            selectedMatchesSize = when (state.isSelectionMode) {
+                                true -> state.selectedMatches.size
+                                else -> null
+                            },
+                            toggleSelectionMode = state::toggleSelectionMode,
+                            clearAllMatches = state::clearAllMatches,
+                            selectAllMatches = state::selectAllMatches,
+                            clearSelection = state::clearSelection,
+                            deleteSelectedMatches = state::deleteSelectedMatches,
                         )
                     }
 
@@ -158,11 +164,18 @@ fun HomeScreen(
                                     match = match,
                                     apps = watchedApps,
                                     showOpenInApp = openInAppIntents.containsKey(match.id),
+                                    isSelected = when (state.isSelectionMode) {
+                                        true -> state.selectedMatches.contains(match.id)
+                                        else -> null
+                                    },
                                     onDeleteMatch = {
                                         state.deleteMatch(match)
                                     },
                                     onOpenInApp = {
                                         state.openInApp(match)
+                                    },
+                                    onToggleSelection = {
+                                        state.toggleMatchSelection(match.id)
                                     }
                                 )
                             }

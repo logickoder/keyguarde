@@ -1,6 +1,10 @@
 package dev.logickoder.keyguarde.app.data.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import kotlinx.coroutines.flow.Flow
 
@@ -19,7 +23,7 @@ interface KeywordMatchDao {
      * Delete a specific KeywordMatch entry from the database.
      */
     @Delete
-    suspend fun delete(match: KeywordMatch)
+    suspend fun delete(vararg match: KeywordMatch)
 
     /**
      * Fetch all KeywordMatch entries from the database.

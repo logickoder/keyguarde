@@ -7,6 +7,7 @@ import android.os.Build.VERSION.SDK_INT
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -44,6 +45,12 @@ class HomeState(
         private set
 
     var isKeywordDialogVisible by mutableStateOf(false)
+        private set
+
+    var isSelectionMode by mutableStateOf(false)
+        private set
+
+    var selectedMatches = mutableStateSetOf<Long>()
         private set
 
     val watchedApps = repository.watchedApps.map { it.toImmutableList() }.stateIn(
@@ -135,6 +142,58 @@ class HomeState(
     }
 
     fun resetCount() = resetMatchCount(context)
+
+    fun toggleSelectionMode() {
+        isSelectionMode = !isSelectionMode
+        if (!isSelectionMode) {
+            clearSelection()
+        }
+    }
+
+    fun toggleMatchSelection(matchId: Long) {
+        when (selectedMatches.contains(matchId)) {
+            true -> selectedMatches -= matchId
+            else -> selectedMatches += matchId
+        }
+    }
+
+    fun selectAllMatches() {
+        selectedMatches.addAll(matches.value.map { it.id })
+    }
+
+    fun clearSelection() {
+        selectedMatches.clear()
+    }
+
+    fun deleteSelectedMatches() {
+        scope.launch {
+            val matchesToDelete = matches.value.filter { selectedMatches.contains(it.id) }
+            repository.deleteKeywordMatch(*matchesToDelete.toTypedArray())
+
+            val deletedCount = matchesToDelete.size
+            toastManager.show(
+                message = "Deleted $deletedCount ${if (deletedCount == 1) "match" else "matches"}",
+                type = ToastType.Success
+            )
+
+            // Exit selection mode after deletion
+            isSelectionMode = false
+            clearSelection()
+        }
+    }
+
+    fun clearAllMatches() {
+        scope.launch {
+            val currentMatches = matches.value
+            repository.deleteKeywordMatch(*currentMatches.toTypedArray())
+
+            val deletedCount = currentMatches.size
+            toastManager.show(
+                message = "Cleared all $deletedCount ${if (deletedCount == 1) "match" else "matches"}",
+                type = ToastType.Success
+            )
+        }
+    }
 }
 
 @Composable

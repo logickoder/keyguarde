@@ -173,8 +173,8 @@ class AppRepository(private val context: Context) {
      *
      * @param match The [KeywordMatch] object to be deleted.
      */
-    suspend fun deleteKeywordMatch(match: KeywordMatch) {
-        database.keywordMatchDao().delete(match)
+    suspend fun deleteKeywordMatch(vararg match: KeywordMatch) {
+        database.keywordMatchDao().delete(*match)
     }
 
     /**
