@@ -14,6 +14,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastManager
+import dev.logickoder.keyguarde.app.components.ToastType
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
@@ -100,29 +101,36 @@ class HomeState(
     }
 
     fun openInApp(match: KeywordMatch) {
-        val intent = openInAppIntents.value[match.id] ?: return
-        when {
-            SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
-                intent.send(
-                    null,
-                    0,
-                    null,
-                    null,
-                    null,
-                    null,
-                    ActivityOptions.makeBasic().apply {
-                        @Suppress("DEPRECATION")
-                        pendingIntentBackgroundActivityStartMode = when {
-                            SDK_INT >= Build.VERSION_CODES.BAKLAVA -> ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
-                            else -> ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                        }
-                    }.toBundle(),
-                )
-            }
+        try {
+            val intent = openInAppIntents.value[match.id] ?: return
+            when {
+                SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+                    intent.send(
+                        null,
+                        0,
+                        null,
+                        null,
+                        null,
+                        null,
+                        ActivityOptions.makeBasic().apply {
+                            @Suppress("DEPRECATION")
+                            pendingIntentBackgroundActivityStartMode = when {
+                                SDK_INT >= Build.VERSION_CODES.BAKLAVA -> ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
+                                else -> ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                            }
+                        }.toBundle(),
+                    )
+                }
 
-            else -> {
-                intent.send()
+                else -> {
+                    intent.send()
+                }
             }
+        } catch (e: Exception) {
+            toastManager.show(
+                message = "Failed to open app: ${e.message ?: "Unknown error"}",
+                type = ToastType.Error
+            )
         }
     }
 
