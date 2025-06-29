@@ -6,7 +6,7 @@ on:
       build_type:
         description: "Specify the build type (e.g., apk or aab)"
         required: true
-        default: "apk"
+        default: "aab"
         type: choice
         options:
           - aab
