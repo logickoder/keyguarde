@@ -12,6 +12,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
+import dev.logickoder.keyguarde.app.components.LocalToastManager
+import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
@@ -33,6 +35,7 @@ import kotlinx.coroutines.launch
 class HomeState(
     private val context: Context,
     private val scope: CoroutineScope,
+    private val toastManager: ToastManager,
 ) {
     private val repository = AppRepository.getInstance(context)
 
@@ -129,11 +132,13 @@ class HomeState(
 @Composable
 fun rememberHomeState(): HomeState {
     val context = LocalContext.current
+    val toastManager = LocalToastManager.current
     val scope = rememberCoroutineScope()
     return remember {
         HomeState(
             context,
             scope,
+            toastManager,
         )
     }
 }
