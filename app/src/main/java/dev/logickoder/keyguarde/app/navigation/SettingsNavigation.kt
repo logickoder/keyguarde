@@ -15,6 +15,7 @@ import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsExit
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopEnterTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopExitTransition
 import dev.logickoder.keyguarde.settings.BatterySettingsScreen
+import dev.logickoder.keyguarde.settings.ContactScreen
 import dev.logickoder.keyguarde.settings.FaqScreen
 import dev.logickoder.keyguarde.settings.KeywordsScreen
 import dev.logickoder.keyguarde.settings.NotificationSettingsScreen
@@ -86,6 +87,12 @@ fun SettingsNavigation(
                     onBack = goBack,
                 )
             }
+
+            screen<SettingsRoute.Contact> {
+                ContactScreen(
+                    onBack = goBack,
+                )
+            }
         }
     )
 }
@@ -128,4 +135,8 @@ sealed interface SettingsRoute : Parcelable {
     @Serializable
     @Parcelize
     data object Faqs : SettingsRoute
+
+    @Serializable
+    @Parcelize
+    data object Contact : SettingsRoute
 }

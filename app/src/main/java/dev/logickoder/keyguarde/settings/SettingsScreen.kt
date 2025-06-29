@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ContactSupport
 import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.BatteryChargingFull
@@ -104,6 +105,17 @@ fun SettingsScreen(
                             description = "Frequently asked questions",
                             onClick = {
                                 onNavigate(SettingsRoute.Faqs)
+                            }
+                        )
+                    }
+
+                    item {
+                        SettingsCategory(
+                            title = "Contact Support",
+                            icon = Icons.AutoMirrored.Rounded.ContactSupport,
+                            description = "Get help from our support team",
+                            onClick = {
+                                onNavigate(SettingsRoute.Contact)
                             }
                         )
                     }
