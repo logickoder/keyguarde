@@ -130,21 +130,28 @@ object NotificationHelper {
 
         // Notification content
         val title = context.getString(R.string.persistent_notification_title)
-        val contentText = if (matchCount > 0) {
-            context.getString(
-                R.string.persistent_notification_content_with_matches,
+        val content = when {
+            matchCount <= 0 -> context.getString(R.string.persistent_notification_content_no_matches)
+            chatCount == 1 -> context.resources.getQuantityString(
+                R.plurals.persistent_notification_matches,
+                matchCount,
                 matchCount,
                 chatCount
             )
-        } else {
-            context.getString(R.string.persistent_notification_content_no_matches)
+
+            else -> context.resources.getQuantityString(
+                R.plurals.persistent_notification_matches_multiple_chats,
+                matchCount,
+                matchCount,
+                chatCount
+            )
         }
 
         // Build the notification
         val notification = NotificationCompat.Builder(context, CHANNEL_ID_BACKGROUND)
             .setSmallIcon(R.drawable.logo)
             .setContentTitle(title)
-            .setContentText(contentText)
+            .setContentText(content)
             .setContentIntent(contentIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setColor(ContextCompat.getColor(context, R.color.primary))
@@ -191,16 +198,26 @@ object NotificationHelper {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = context.getString(
-            when {
-                keywords.size > 3 -> R.string.keyword_match_notification_title_alt
-                else -> R.string.keyword_match_notification_title
-            },
-            when {
-                keywords.size > 3 -> keywords.size
-                else -> keywords.joinToString(", ")
+        // Use proper pluralization for keyword match titles
+        val title = when {
+            keywords.size > 3 -> {
+                // Use count-based pluralization for many keywords
+                context.resources.getQuantityString(
+                    R.plurals.keyword_match_notification_title_count,
+                    keywords.size,
+                    keywords.size
+                )
             }
-        )
+
+            else -> {
+                // Use keyword list with proper singular/plural
+                context.resources.getQuantityString(
+                    R.plurals.keyword_match_notification_title_plural,
+                    keywords.size,
+                    keywords.joinToString(", ")
+                )
+            }
+        }
         val content = context.getString(R.string.keyword_match_notification_content, sourceName)
 
         // Build the notification with or without heads-up based on user preference

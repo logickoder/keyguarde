@@ -58,11 +58,26 @@
     <!-- Persistent Notification Content -->
     <string name="persistent_notification_title">Keyword Matches</string>
     <string name="persistent_notification_content_no_matches">Monitoring for keyword matches</string>
-    <string name="persistent_notification_content_with_matches">%1$d new matches found in %2$d chats</string>
+    <plurals name="persistent_notification_matches">
+        <item quantity="one">%1$d new match found in %2$d chat</item>
+        <item quantity="other">%1$d new matches found in %2$d chats</item>
+    </plurals>
+
+    <plurals name="persistent_notification_matches_multiple_chats">
+        <item quantity="one">%1$d new match found in %2$d chats</item>
+        <item quantity="other">%1$d new matches found in %2$d chats</item>
+    </plurals>
     <string name="action_reset">Reset</string>
 
     <!-- Keyword Match Notification Content -->
     <string name="keyword_match_notification_title">Keywords matched: %1$s</string>
-    <string name="keyword_match_notification_title_alt">%1$d keywords matched</string>
     <string name="keyword_match_notification_content">From: %1$s</string>
+    <plurals name="keyword_match_notification_title_plural">
+        <item quantity="one">Keyword matched: %1$s</item>
+        <item quantity="other">Keywords matched: %1$s</item>
+    </plurals>
+    <plurals name="keyword_match_notification_title_count">
+        <item quantity="one">%1$d keyword matched</item>
+        <item quantity="other">%1$d keywords matched</item>
+    </plurals>
 </resources>
