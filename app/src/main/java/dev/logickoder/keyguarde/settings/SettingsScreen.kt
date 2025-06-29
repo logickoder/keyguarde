@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Notifications
@@ -16,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.app.navigation.SettingsRoute
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.SettingsCategory
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
@@ -26,11 +28,7 @@ import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
-    onKeywords: () -> Unit,
-    onApps: () -> Unit,
-    onNotifications: () -> Unit,
-    onBattery: () -> Unit,
-    onPrivacy: () -> Unit
+    onNavigate: (SettingsRoute) -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
@@ -49,7 +47,9 @@ fun SettingsScreen(
                             title = "Keyword Filters",
                             icon = Icons.Rounded.TextFields,
                             description = "Manage words to watch for in messages",
-                            onClick = onKeywords
+                            onClick = {
+                                onNavigate(SettingsRoute.Keywords)
+                            }
                         )
                     }
 
@@ -58,7 +58,9 @@ fun SettingsScreen(
                             title = "Watched Apps",
                             icon = Icons.Rounded.Apps,
                             description = "Select which apps to monitor for keywords",
-                            onClick = onApps
+                            onClick = {
+                                onNavigate(SettingsRoute.Apps)
+                            }
                         )
                     }
 
@@ -67,7 +69,9 @@ fun SettingsScreen(
                             title = "Notification Settings",
                             icon = Icons.Rounded.Notifications,
                             description = "Control how you're alerted about matches",
-                            onClick = onNotifications
+                            onClick = {
+                                onNavigate(SettingsRoute.Notifications)
+                            }
                         )
                     }
 
@@ -76,7 +80,9 @@ fun SettingsScreen(
                             title = "Battery & Background",
                             icon = Icons.Rounded.BatteryChargingFull,
                             description = "Optimize for reliable background operation",
-                            onClick = onBattery
+                            onClick = {
+                                onNavigate(SettingsRoute.Battery)
+                            }
                         )
                     }
 
@@ -85,7 +91,20 @@ fun SettingsScreen(
                             title = "Privacy",
                             icon = Icons.Rounded.Security,
                             description = "How your data is handled",
-                            onClick = onPrivacy
+                            onClick = {
+                                onNavigate(SettingsRoute.Privacy)
+                            }
+                        )
+                    }
+
+                    item {
+                        SettingsCategory(
+                            title = "FAQ",
+                            icon = Icons.AutoMirrored.Rounded.HelpOutline,
+                            description = "Frequently asked questions",
+                            onClick = {
+                                onNavigate(SettingsRoute.Faqs)
+                            }
                         )
                     }
                 }
@@ -99,10 +118,6 @@ fun SettingsScreen(
 private fun SettingsScreenPreview() = AppTheme {
     SettingsScreen(
         onBack = {},
-        onKeywords = {},
-        onApps = {},
-        onNotifications = {},
-        onBattery = {},
-        onPrivacy = {}
+        onNavigate = {}
     )
 }

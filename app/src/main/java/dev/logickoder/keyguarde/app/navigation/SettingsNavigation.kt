@@ -14,7 +14,13 @@ import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsEnte
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsExitTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopEnterTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopExitTransition
-import dev.logickoder.keyguarde.settings.*
+import dev.logickoder.keyguarde.settings.BatterySettingsScreen
+import dev.logickoder.keyguarde.settings.FaqScreen
+import dev.logickoder.keyguarde.settings.KeywordsScreen
+import dev.logickoder.keyguarde.settings.NotificationSettingsScreen
+import dev.logickoder.keyguarde.settings.PrivacySettingsScreen
+import dev.logickoder.keyguarde.settings.SettingsScreen
+import dev.logickoder.keyguarde.settings.WatchedAppsScreen
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
@@ -39,21 +45,9 @@ fun SettingsNavigation(
             screen<SettingsRoute.Main> {
                 SettingsScreen(
                     onBack = onBack,
-                    onKeywords = {
-                        navController.navigate(SettingsRoute.Keywords)
+                    onNavigate = {
+                        navController.navigate(it)
                     },
-                    onApps = {
-                        navController.navigate(SettingsRoute.Apps)
-                    },
-                    onNotifications = {
-                        navController.navigate(SettingsRoute.Notifications)
-                    },
-                    onBattery = {
-                        navController.navigate(SettingsRoute.Battery)
-                    },
-                    onPrivacy = {
-                        navController.navigate(SettingsRoute.Privacy)
-                    }
                 )
             }
 
@@ -83,6 +77,12 @@ fun SettingsNavigation(
 
             screen<SettingsRoute.Privacy> {
                 PrivacySettingsScreen(
+                    onBack = goBack,
+                )
+            }
+
+            screen<SettingsRoute.Faqs> {
+                FaqScreen(
                     onBack = goBack,
                 )
             }
@@ -124,4 +124,8 @@ sealed interface SettingsRoute : Parcelable {
     @Serializable
     @Parcelize
     data object Privacy : SettingsRoute
+
+    @Serializable
+    @Parcelize
+    data object Faqs : SettingsRoute
 }
