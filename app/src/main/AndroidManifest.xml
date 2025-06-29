@@ -36,6 +36,7 @@
         <service
                 android:name=".app.service.AppListenerService"
                 android:exported="false"
+                android:stopWithTask="false"
                 android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
