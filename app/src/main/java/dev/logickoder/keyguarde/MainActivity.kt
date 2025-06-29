@@ -4,10 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
 import dev.logickoder.keyguarde.app.components.LocalToastManager
+import dev.logickoder.keyguarde.app.components.ToastContainer
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.globalToastManager
 import dev.logickoder.keyguarde.app.data.AppRepository
@@ -50,10 +52,15 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalToastManager provides toastManager,
                     content = {
-                        AppNavigation(
-                            start = when (isOnboardingComplete) {
-                                true -> AppRoute.Main
-                                else -> AppRoute.Onboarding
+                        Box(
+                            content = {
+                                AppNavigation(
+                                    start = when (isOnboardingComplete) {
+                                        true -> AppRoute.Main
+                                        else -> AppRoute.Onboarding
+                                    }
+                                )
+                                ToastContainer()
                             }
                         )
                     }
