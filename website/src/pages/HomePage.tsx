@@ -123,10 +123,30 @@ export default function HomePage() {
                 question: 'Will it drain my battery?',
                 answer: 'Keyguarde is designed to be lightweight and battery-efficient. It only activates when new notifications arrive, and uses minimal resources while running in the background. The app has been optimized to have negligible impact on your device\'s battery life.',
             },
-            // {
-            //     question: 'Can I disable alerts for certain chats?',
-            //     answer: 'Yes! Keyguarde lets you filter notifications by chat names. You can specify which individual chats or groups to monitor, so you only receive alerts from the conversations that matter most to you.',
-            // },
+            {
+                question: 'I\'m not getting matches after installing. What should I do?',
+                answer: 'If you\'re not receiving keyword matches after setup, try restarting your device. This ensures the notification listener service starts properly and can monitor your notifications. Also make sure you\'ve granted notification access permission and selected the apps you want to monitor.',
+            },
+            {
+                question: 'How do I add or remove keywords?',
+                answer: 'You can manage your keywords from the home screen by tapping the \'+\' button to add new keywords. To remove keywords, go to Settings > Keyword Filters where you can view and delete existing keywords.',
+            },
+            {
+                question: 'Can I select which apps to monitor?',
+                answer: 'Yes! Go to Settings > Watched Apps to choose which messaging apps Keyguarde should monitor. By default, WhatsApp and Telegram are selected, but you can add or remove apps as needed.',
+            },
+            {
+                question: 'Is my data private and secure?',
+                answer: 'Absolutely. All notification processing happens locally on your device. No messages, notification data, or personal information is stored externally or transmitted to any servers. Your privacy is our top priority.',
+            },
+            {
+                question: 'How do keyword matches work?',
+                answer: 'Keyguarde matches whole words only and is case-insensitive. For example, \'react\' will match \'React\' but not \'reacted\'. Multiple keywords can be matched in the same message, and you\'ll be notified when any of your keywords appear.',
+            },
+        // {
+        //     question: 'Can I disable alerts for certain chats?',
+        //     answer: 'Yes! Keyguarde lets you filter notifications by chat names. You can specify which individual chats or groups to monitor, so you only receive alerts from the conversations that matter most to you.',
+        // },
         ],
         []
     );
