@@ -1,6 +1,10 @@
 package dev.logickoder.keyguarde.settings
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -10,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.AppList
 import dev.logickoder.keyguarde.settings.components.InfoCard
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
@@ -67,5 +73,13 @@ fun WatchedAppsScreen(
                 }
             )
         }
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun WatchedAppsScreenPreview() = AppTheme {
+    WatchedAppsScreen(
+        onBack = {}
     )
 }
