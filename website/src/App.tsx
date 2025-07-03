@@ -8,34 +8,34 @@ import TermsOfUsePage from './pages/TermsOfUsePage';
 import ContactPage from './pages/ContactPage';
 
 export default function App() {
-    return (
-        <div className="bg-background min-h-screen font-sans text-primary">
-            <HashRouter>
-                <ScrollToTop />
-                <Navbar />
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                    <Route path="/terms" element={<TermsOfUsePage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                </Routes>
-                <Footer />
-            </HashRouter>
-        </div>
-    );
+  return (
+    <div className="bg-background min-h-screen font-sans text-primary">
+      <HashRouter>
+        <ScrollToTop />
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfUsePage />} />
+          <Route path="/contact" element={<ContactPage />} />
+        </Routes>
+        <Footer />
+      </HashRouter>
+    </div>
+  );
 }
 
 function ScrollToTop() {
-    const { pathname } = useLocation();
+  const { pathname } = useLocation();
 
-    useEffect(() => {
-        const canControlScrollRestoration = 'scrollRestoration' in window.history;
-        if (canControlScrollRestoration) {
-            window.history.scrollRestoration = 'manual';
-        }
+  useEffect(() => {
+    const canControlScrollRestoration = 'scrollRestoration' in window.history;
+    if (canControlScrollRestoration) {
+      window.history.scrollRestoration = 'manual';
+    }
 
-        window.scrollTo(0, 0);
-    }, [pathname]);
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
-    return null;
+  return null;
 }
