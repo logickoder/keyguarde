@@ -1,23 +1,12 @@
 package dev.logickoder.keyguarde.settings
 
 import android.content.Intent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -39,7 +28,7 @@ fun PrivacySettingsScreen(
         {
             val intent = Intent(
                 Intent.ACTION_VIEW,
-                "https://logickoder.github.io/keyguarde/privacy-policy".toUri()
+                "https://logickoder.dev/keyguarde/privacy-policy".toUri()
             )
             if (intent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(intent)

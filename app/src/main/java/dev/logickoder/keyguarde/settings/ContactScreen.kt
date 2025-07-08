@@ -2,14 +2,7 @@ package dev.logickoder.keyguarde.settings
 
 import android.content.Intent
 import android.os.Build
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -17,12 +10,7 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -53,7 +41,7 @@ fun ContactScreen(
             ) {
                 val intent = Intent(Intent.ACTION_SENDTO).apply {
                     data = "mailto:".toUri()
-                    putExtra(Intent.EXTRA_EMAIL, arrayOf("jefferyorazulike@gmail.com"))
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf("jeffery@logickoder.dev"))
                     putExtra(Intent.EXTRA_SUBJECT, "Keyguarde Feedback")
                     putExtra(
                         Intent.EXTRA_TEXT,
@@ -102,7 +90,7 @@ fun ContactScreen(
                 context.startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        "https://logickoder.github.io/keyguarde/".toUri()
+                        "https://logickoder.dev/keyguarde/".toUri()
                     )
                 )
             },

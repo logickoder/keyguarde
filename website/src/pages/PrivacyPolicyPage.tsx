@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="bg-surface p-4 rounded-xl border border-gray-200 mb-8">
                   <p className="text-on-surface">
-                    <strong>Email:</strong> jefferyorazulike@gmail.com
+                    <strong>Email:</strong> jeffery@logickoder.dev
                   </p>
                 </div>
 

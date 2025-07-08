@@ -43,14 +43,13 @@ export default function Footer() {
             <Link to="https://linkedin.com/in/logickoder" className={itemClass} target="_blank">
               <ReactSVG src={Linkedin} className={iconClass} />
             </Link>
-            <Link to="mailto:jefferyorazulike@gmail.com" className={itemClass} target="_blank">
+            <Link to="mailto:jeffery@logickoder.dev" className={itemClass} target="_blank">
               <Mail size={20} />
             </Link>
           </div>
         </div>
         <div className="text-center mt-8 text-sm opacity-75">
-          © {new Date().getFullYear()}{' '}
-          <Link to="https://logickoder.github.io">Jeffery Orazulike</Link>. All rights reserved.
+          © 2025 <Link to="https://logickoder.dev">Jeffery Orazulike</Link>. All rights reserved.
         </div>
       </div>
     </footer>

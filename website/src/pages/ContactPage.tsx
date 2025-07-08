@@ -12,8 +12,8 @@ export default function ContactPage() {
       {
         name: 'Email',
         icon: <Mail size={24} />,
-        link: 'mailto:jefferyorazulike@gmail.com',
-        description: 'jefferyorazulike@gmail.com'
+        link: 'mailto:jeffery@logickoder.dev',
+        description: 'jeffery@logickoder.dev'
       },
       {
         name: 'Twitter',
@@ -93,10 +93,10 @@ export default function ContactPage() {
                   <div>
                     <p className="font-semibold text-lg text-on-surface">Email</p>
                     <a
-                      href="mailto:jefferyorazulike@gmail.com"
+                      href="mailto:jeffery@logickoder.dev"
                       className="text-primary hover:text-secondary transition-colors duration-200 font-medium"
                     >
-                      jefferyorazulike@gmail.com
+                      jeffery@logickoder.dev
                     </a>
                   </div>
                 </div>
