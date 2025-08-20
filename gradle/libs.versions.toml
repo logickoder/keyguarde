@@ -42,6 +42,9 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlin-serialization = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0"
 # Napier
 napier = "io.github.aakira:napier:2.7.1"
+# ML Kit for semantic text matching
+mlkit-translate = "com.google.mlkit:translate:17.0.3"
+mlkit-common = "com.google.mlkit:common:18.12.0"
 # Play Services
 play-services-ads = "com.google.android.gms:play-services-ads:24.5.0"
 # Room

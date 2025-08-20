@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -37,7 +38,7 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 fun KeywordDialog(
     initialKeyword: Keyword? = null,
     onDismiss: () -> Unit,
-    onSave: (String) -> Unit
+    onSave: (String, String, Boolean) -> Unit // word, context, useSemanticMatching
 ) {
     var word by remember(initialKeyword) {
         mutableStateOf(
@@ -46,6 +47,17 @@ fun KeywordDialog(
                 selection = TextRange(initialKeyword?.word?.length ?: 0)
             )
         )
+    }
+    var context by remember(initialKeyword) {
+        mutableStateOf(
+            TextFieldValue(
+                text = initialKeyword?.context.orEmpty(),
+                selection = TextRange(initialKeyword?.context?.length ?: 0)
+            )
+        )
+    }
+    var useSemanticMatching by remember(initialKeyword) {
+        mutableStateOf(initialKeyword?.useSemanticMatching ?: false)
     }
     var isValid by remember { mutableStateOf(true) }
 
@@ -88,6 +100,33 @@ fun KeywordDialog(
                                 } else null,
                             )
 
+                            OutlinedTextField(
+                                modifier = Modifier.fillMaxWidth(),
+                                value = context,
+                                onValueChange = { context = it },
+                                label = { Text("Context (Optional)") },
+                                maxLines = 3,
+                                supportingText = {
+                                    Text("Describe what this keyword relates to for better AI matching")
+                                },
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                content = {
+                                    Checkbox(
+                                        checked = useSemanticMatching,
+                                        onCheckedChange = { useSemanticMatching = it }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Use AI semantic matching",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            )
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End,
@@ -103,11 +142,12 @@ fun KeywordDialog(
                                     Spacer(modifier = Modifier.width(8.dp))
 
                                     val trimmedWord = word.text.trim().lowercase()
+                                    val trimmedContext = context.text.trim()
                                     Button(
                                         onClick = {
                                             isValid = trimmedWord.length >= 2
                                             if (isValid) {
-                                                onSave(trimmedWord)
+                                                onSave(trimmedWord, trimmedContext, useSemanticMatching)
                                             }
                                         },
                                         enabled = trimmedWord.isNotEmpty(),

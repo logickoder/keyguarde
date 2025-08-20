@@ -135,6 +135,10 @@ dependencies {
     // Napier
     implementation(libs.napier)
 
+    // ML Kit for AI-based semantic matching
+    implementation(libs.mlkit.common)
+    implementation(libs.mlkit.translate)
+
     // Play Services
     implementation(libs.play.services.ads)
 
