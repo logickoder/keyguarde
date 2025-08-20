@@ -1,11 +1,15 @@
 package dev.logickoder.keyguarde.settings.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,11 +47,37 @@ fun KeywordItem(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 content = {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = keyword.word,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = keyword.word,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            
+                            if (keyword.useSemanticMatching) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Default.SmartToy,
+                                    contentDescription = "AI Enabled",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(4.dp)
+                                )
+                            }
+                        }
+                        
+                        if (keyword.context.isNotBlank()) {
+                            Text(
+                                text = keyword.context,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
 
                     Row(
                         content = {
@@ -83,9 +113,20 @@ fun KeywordItem(
 @Preview(showBackground = true)
 @Composable
 private fun KeywordItemPreview() = AppTheme {
-    KeywordItem(
-        keyword = Keyword("test"),
-        onEdit = {},
-        onDelete = {}
-    )
+    Column {
+        KeywordItem(
+            keyword = Keyword("test"),
+            onEdit = {},
+            onDelete = {}
+        )
+        KeywordItem(
+            keyword = Keyword(
+                word = "job", 
+                context = "Work and career opportunities",
+                useSemanticMatching = true
+            ),
+            onEdit = {},
+            onDelete = {}
+        )
+    }
 }

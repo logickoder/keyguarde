@@ -44,10 +44,14 @@ class KeywordsState(
         isDialogVisible = !isDialogVisible
     }
 
-    fun saveKeyword(word: String) {
+    fun saveKeyword(word: String, context: String = "", useSemanticMatching: Boolean = false) {
         if (word.isNotBlank()) {
             scope.launch {
-                val keyword = Keyword(word = word)
+                val keyword = Keyword(
+                    word = word,
+                    context = context,
+                    useSemanticMatching = useSemanticMatching
+                )
                 when (edit) {
                     null -> repository.addKeyword(keyword)
                     else -> repository.updateKeyword(edit!!, keyword)
