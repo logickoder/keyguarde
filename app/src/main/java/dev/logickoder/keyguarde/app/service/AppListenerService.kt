@@ -12,8 +12,10 @@ import android.service.notification.StatusBarNotification
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
+import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
+import dev.logickoder.keyguarde.app.ai.SemanticMatchingService
 import dev.logickoder.keyguarde.settings.SettingsRepository
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -33,9 +35,11 @@ class AppListenerService : NotificationListenerService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val repository by lazy { AppRepository.getInstance(this) }
     private val settings by lazy { SettingsRepository.getInstance(this) }
+    private val semanticMatchingService by lazy { SemanticMatchingService.getInstance(this) }
 
     private var watchedPackages = emptySet<String>()
     private var keywords = emptyList<Pair<String, Regex>>()
+    private var allKeywords = emptyList<Keyword>()
     private var showHeadsUpNotifications = true
     private var usePersistentSilentNotification = true
 
@@ -133,8 +137,9 @@ class AppListenerService : NotificationListenerService() {
 
         scope.launch {
             repository.keywords.collectLatest { words ->
-                keywords = words.map { (word) ->
-                    word to "\\b${Regex.escape(word)}\\b".toRegex(RegexOption.IGNORE_CASE)
+                allKeywords = words
+                keywords = words.map { keyword ->
+                    keyword.word to "\\b${Regex.escape(keyword.word)}\\b".toRegex(RegexOption.IGNORE_CASE)
                 }
             }
         }
@@ -193,11 +198,23 @@ class AppListenerService : NotificationListenerService() {
     }
 
     private fun checkForKeywords(title: String, text: String, notification: StatusBarNotification) {
-        val matchedKeywords = keywords.filter { (_, pattern) ->
+        // Exact keyword matching (existing functionality)
+        val exactMatchedKeywords = keywords.filter { (_, pattern) ->
             pattern.containsMatchIn(text)
         }.map { it.first }.toSet()
 
-        if (matchedKeywords.isEmpty()) return
+        // Semantic keyword matching (new AI functionality)
+        val semanticMatchedKeywords = try {
+            semanticMatchingService.findSemanticMatches(text, allKeywords)
+        } catch (e: Exception) {
+            Napier.e(e) { "Error during semantic matching" }
+            emptySet()
+        }
+
+        // Combine both types of matches
+        val allMatchedKeywords = exactMatchedKeywords + semanticMatchedKeywords
+
+        if (allMatchedKeywords.isEmpty()) return
 
         // Get app name for better display
         val appName = try {
@@ -216,7 +233,7 @@ class AppListenerService : NotificationListenerService() {
             // save matches to db
             val result = repository.addKeywordMatch(
                 KeywordMatch(
-                    keywords = matchedKeywords,
+                    keywords = allMatchedKeywords,
                     app = notification.packageName,
                     chat = title,
                     message = text,
@@ -248,7 +265,7 @@ class AppListenerService : NotificationListenerService() {
             if (showHeadsUpNotifications) {
                 NotificationHelper.showKeywordMatchNotification(
                     context = this@AppListenerService,
-                    keywords = matchedKeywords,
+                    keywords = allMatchedKeywords,
                     sourceName = title.ifBlank { appName },
                     showHeadsUp = true
                 )

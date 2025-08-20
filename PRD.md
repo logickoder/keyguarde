@@ -23,6 +23,13 @@ Help users filter noisy chat notifications and get alerted only when specific ke
     * Matching is **case-insensitive**
     * Matches only **whole words** (e.g., “react” doesn’t match “reacted”)
     * Multiple keywords can be matched in the same message
+    * **NEW**: AI-powered semantic matching with context support
+        * Users can add optional context descriptions for keywords
+        * Fuzzy matching for typos and variations (e.g., "urgnt" matches "urgent")
+        * Word association patterns (e.g., "discount" can match "sale" keyword)
+        * Context-based similarity using word overlap analysis
+        * All AI processing happens locally on device for privacy
+        * Users can choose between exact or AI-enhanced matching per keyword
 
 * **Notification Alerts**
 

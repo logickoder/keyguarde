@@ -91,10 +91,16 @@ class HomeState(
         isKeywordDialogVisible = !isKeywordDialogVisible
     }
 
-    fun saveKeyword(word: String) {
+    fun saveKeyword(word: String, context: String = "", useSemanticMatching: Boolean = false) {
         if (word.isNotBlank()) {
             scope.launch {
-                repository.addKeyword(Keyword(word = word))
+                repository.addKeyword(
+                    Keyword(
+                        word = word,
+                        context = context,
+                        useSemanticMatching = useSemanticMatching
+                    )
+                )
             }.invokeOnCompletion {
                 toggleKeywordDialog()
             }

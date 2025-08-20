@@ -126,6 +126,8 @@ dependencies {
 
     // Junit
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    androidTestImplementation(libs.mockk.android)
 
     // Kotlin
     implementation(libs.kotlin.immutable)
@@ -134,6 +136,10 @@ dependencies {
 
     // Napier
     implementation(libs.napier)
+
+    // ML Kit for AI-based semantic matching
+    implementation(libs.mlkit.common)
+    implementation(libs.mlkit.translate)
 
     // Play Services
     implementation(libs.play.services.ads)

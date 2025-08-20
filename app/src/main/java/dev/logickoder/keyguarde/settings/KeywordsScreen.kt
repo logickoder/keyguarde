@@ -115,7 +115,9 @@ fun KeywordsScreen(
         KeywordDialog(
             initialKeyword = state.edit,
             onDismiss = state::toggleDialog,
-            onSave = state::saveKeyword
+            onSave = { word, context, useSemanticMatching ->
+                state.saveKeyword(word, context, useSemanticMatching)
+            }
         )
     }
 }

@@ -187,7 +187,9 @@ fun HomeScreen(
             if (state.isKeywordDialogVisible) {
                 KeywordDialog(
                     onDismiss = state::toggleKeywordDialog,
-                    onSave = state::saveKeyword
+                    onSave = { word, context, useSemanticMatching ->
+                        state.saveKeyword(word, context, useSemanticMatching)
+                    }
                 )
             }
         },
