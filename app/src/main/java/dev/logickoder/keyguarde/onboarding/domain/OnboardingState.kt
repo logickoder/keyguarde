@@ -75,7 +75,7 @@ class OnboardingState(
                         }
 
                         screen == OnboardingPage.AppSelection && apps.isEmpty() -> {
-                            if (!loadAppsJob.isActive) {
+                            if (loadAppsJob?.isActive != true) {
                                 loadAppsJob = launch {
                                     apps.addAll(repository.getInstalledApps())
                                 }
