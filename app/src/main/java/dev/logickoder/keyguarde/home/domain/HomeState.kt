@@ -20,7 +20,7 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
-import dev.logickoder.keyguarde.app.domain.resetMatchCount
+import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -141,7 +141,11 @@ class HomeState(
         }
     }
 
-    fun resetCount() = resetMatchCount(context)
+    fun resetCount() {
+        scope.launch {
+            ResetMatchCountUsecase(context)
+        }
+    }
 
     fun toggleSelectionMode() {
         isSelectionMode = !isSelectionMode
