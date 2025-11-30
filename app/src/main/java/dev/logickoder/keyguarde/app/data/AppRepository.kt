@@ -153,13 +153,19 @@ class AppRepository(private val context: Context) {
      * Get all keyword matches.
      *
      * @param packageName (Optional) The package name of the app for which to retrieve keyword matches.
+     * @param query (Optional) The query to search for in the keyword matches.
      *
      * @return A [Flow] emitting [PagingData] of [KeywordMatch] objects.
      */
-    fun getMatches(packageName: String? = null): Flow<PagingData<KeywordMatch>> = Pager(
+    fun getMatches(
+        packageName: String? = null,
+        query: String = "",
+    ): Flow<PagingData<KeywordMatch>> = Pager<Int, KeywordMatch>(
         config = PagingConfig(pageSize = 20),
         pagingSourceFactory = {
-            database.keywordMatchDao().getMatches(packageName?.takeIf { it.isNotBlank() })
+            val packageFilter = packageName?.takeIf { it.isNotBlank() }
+            val queryFilter = query.takeIf { it.isNotBlank() }
+            database.keywordMatchDao().getMatches(packageFilter, queryFilter)
         }
     ).flow
 

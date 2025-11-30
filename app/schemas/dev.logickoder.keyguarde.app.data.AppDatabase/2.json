@@ -1,0 +1,195 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "85394056c401c1f15682d4d73c82808b",
+    "entities": [
+      {
+        "tableName": "keywords",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`word` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`word`))",
+        "fields": [
+          {
+            "fieldPath": "word",
+            "columnName": "word",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "word"
+          ]
+        }
+      },
+      {
+        "tableName": "selected_apps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `name` TEXT NOT NULL, `icon` TEXT NOT NULL, PRIMARY KEY(`packageName`))",
+        "fields": [
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "packageName"
+          ]
+        }
+      },
+      {
+        "tableName": "keyword_matches",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rowid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `keywords` TEXT NOT NULL, `message` TEXT NOT NULL, `chat` TEXT NOT NULL, `app` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, FOREIGN KEY(`app`) REFERENCES `selected_apps`(`packageName`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "rowid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keywords",
+            "columnName": "keywords",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chat",
+            "columnName": "chat",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "app",
+            "columnName": "app",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "rowid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_keyword_matches_app",
+            "unique": false,
+            "columnNames": [
+              "app"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_keyword_matches_app` ON `${TABLE_NAME}` (`app`)"
+          },
+          {
+            "name": "index_keyword_matches_message_chat_app",
+            "unique": true,
+            "columnNames": [
+              "message",
+              "chat",
+              "app"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_keyword_matches_message_chat_app` ON `${TABLE_NAME}` (`message`, `chat`, `app`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "selected_apps",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "app"
+            ],
+            "referencedColumns": [
+              "packageName"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "keyword_matches_fts",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`keywords` TEXT NOT NULL, `message` TEXT NOT NULL, `chat` TEXT NOT NULL, content=`keyword_matches`)",
+        "fields": [
+          {
+            "fieldPath": "keywords",
+            "columnName": "keywords",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chat",
+            "columnName": "chat",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": []
+        },
+        "ftsVersion": "FTS4",
+        "ftsOptions": {
+          "tokenizer": "simple",
+          "tokenizerArgs": [],
+          "contentTable": "keyword_matches",
+          "languageIdColumnName": "",
+          "matchInfo": "FTS4",
+          "notIndexedColumns": [],
+          "prefixSizes": [],
+          "preferredOrder": "ASC"
+        },
+        "contentSyncTriggers": [
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_keyword_matches_fts_BEFORE_UPDATE BEFORE UPDATE ON `keyword_matches` BEGIN DELETE FROM `keyword_matches_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_keyword_matches_fts_BEFORE_DELETE BEFORE DELETE ON `keyword_matches` BEGIN DELETE FROM `keyword_matches_fts` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_keyword_matches_fts_AFTER_UPDATE AFTER UPDATE ON `keyword_matches` BEGIN INSERT INTO `keyword_matches_fts`(`docid`, `keywords`, `message`, `chat`) VALUES (NEW.`rowid`, NEW.`keywords`, NEW.`message`, NEW.`chat`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_keyword_matches_fts_AFTER_INSERT AFTER INSERT ON `keyword_matches` BEGIN INSERT INTO `keyword_matches_fts`(`docid`, `keywords`, `message`, `chat`) VALUES (NEW.`rowid`, NEW.`keywords`, NEW.`message`, NEW.`chat`); END"
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '85394056c401c1f15682d4d73c82808b')"
+    ]
+  }
+}

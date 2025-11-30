@@ -49,6 +49,9 @@ class HomeState(
     var filter by mutableStateOf<WatchedApp?>(null)
         private set
 
+    var query by mutableStateOf("")
+        private set
+
     var isKeywordDialogVisible by mutableStateOf(false)
         private set
 
@@ -65,8 +68,8 @@ class HomeState(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val matches = snapshotFlow { filter }.flatMapLatest { filter ->
-        repository.getMatches(filter?.packageName)
+    val matches = snapshotFlow { filter to query }.flatMapLatest { (filter, query) ->
+        repository.getMatches(filter?.packageName, query)
     }.flowOn(Dispatchers.Default).cachedIn(scope)
 
     val openInAppIntents = when {
@@ -83,6 +86,10 @@ class HomeState(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = 0,
     )
+
+    fun onSearchQueryChange(query: String) {
+        this.query = query
+    }
 
     fun changeFilter(app: WatchedApp?) {
         filter = app

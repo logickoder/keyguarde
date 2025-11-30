@@ -29,7 +29,7 @@ interface KeywordMatchDao {
     /**
      * Delete a specific KeywordMatch entry from the database.
      */
-    @Query("DELETE FROM keyword_matches WHERE id IN (:ids)")
+    @Query("DELETE FROM keyword_matches WHERE rowid IN (:ids)")
     suspend fun delete(ids: List<Long>)
 
     /**
@@ -41,8 +41,15 @@ interface KeywordMatchDao {
     /**
      * Fetch KeywordMatch entries filtered by a specific app if provided.
      */
-    @Query("SELECT * FROM keyword_matches WHERE :app IS NULL OR app = :app ORDER BY timestamp DESC")
-    fun getMatches(app: String?): PagingSource<Int, KeywordMatch>
+    @Query(
+        """
+        SELECT * FROM keyword_matches
+        WHERE (:app IS NULL OR app = :app)
+        AND (:query IS NULL OR rowid IN (SELECT rowid FROM keyword_matches_fts WHERE keyword_matches_fts MATCH :query))
+        ORDER BY timestamp DESC
+        """
+    )
+    fun getMatches(app: String?, query: String?): PagingSource<Int, KeywordMatch>
 
     /**
      * Delete all KeywordMatch entries from the database.

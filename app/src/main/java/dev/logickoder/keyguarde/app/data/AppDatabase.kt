@@ -12,6 +12,7 @@ import dev.logickoder.keyguarde.app.data.dao.KeywordMatchDao
 import dev.logickoder.keyguarde.app.data.dao.WatchedAppDao
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
+import dev.logickoder.keyguarde.app.data.model.KeywordMatchFts
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.AppScope
 import dev.logickoder.keyguarde.app.domain.usecase.PrepopulateDatabaseUsecase
@@ -24,8 +25,9 @@ import kotlinx.coroutines.launch
         Keyword::class,
         WatchedApp::class,
         KeywordMatch::class,
+        KeywordMatchFts::class,
     ],
-    version = 1,
+    version = 2,
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -67,7 +69,7 @@ abstract class AppDatabase : RoomDatabase() {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "${BuildConfig.APPLICATION_ID}.db"
-            ).addCallback(callback).build()
+            ).addMigrations(MIGRATION_1_2).addCallback(callback).build()
         }
     }
 }
