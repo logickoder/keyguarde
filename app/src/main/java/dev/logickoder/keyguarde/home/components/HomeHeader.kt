@@ -1,7 +1,15 @@
 package dev.logickoder.keyguarde.home.components
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,9 +42,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun HomeHeader(
     selectedMatchesSize: Int?,
@@ -50,6 +61,9 @@ fun HomeHeader(
 ) {
     val isSelectionMode = selectedMatchesSize != null
     val hasSelection = selectedMatchesSize != null && selectedMatchesSize > 0
+
+    BackHandler(isSelectionMode, toggleSelectionMode)
+
     Column(
         modifier = modifier,
         content = {
@@ -62,8 +76,8 @@ fun HomeHeader(
                 content = {
                     Text(
                         text = when (isSelectionMode) {
-                            true -> "$selectedMatchesSize selected"
-                            else -> "Recent Matches"
+                            true -> stringResource(R.string.selected_count, selectedMatchesSize)
+                            else -> stringResource(R.string.recent_matches)
                         },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = if (isSelectionMode) FontWeight.Medium else FontWeight.Normal
@@ -74,23 +88,44 @@ fun HomeHeader(
 
                         Box {
                             IconButton(
-                                onClick = { showMenu = true },
+                                onClick = {
+                                    when {
+                                        isSelectionMode -> toggleSelectionMode()
+                                        else -> showMenu = true
+                                    }
+                                },
                                 content = {
-                                    Icon(
-                                        imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "Options",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    AnimatedContent(
+                                        targetState = isSelectionMode,
+                                        transitionSpec = {
+                                            (fadeIn() + scaleIn()) togetherWith (fadeOut() + scaleOut())
+                                        },
+                                        label = "Animate Toggle",
+                                        content = { selectionMode ->
+                                            Icon(
+                                                imageVector = when {
+                                                    selectionMode -> Icons.Default.Close
+                                                    else -> Icons.Default.MoreVert
+                                                },
+                                                contentDescription = stringResource(R.string.exit_selection),
+                                                tint = when {
+                                                    selectionMode -> MaterialTheme.colorScheme.onSurface
+                                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                                }
+                                            )
+                                        }
                                     )
                                 }
                             )
-
                             DropdownMenu(
                                 expanded = showMenu,
                                 onDismissRequest = { showMenu = false },
                                 content = {
                                     if (!isSelectionMode) {
                                         DropdownMenuItem(
-                                            text = { Text("Select matches") },
+                                            text = {
+                                                Text(stringResource(R.string.select_matches))
+                                            },
                                             leadingIcon = {
                                                 Icon(
                                                     Icons.Default.CheckCircle,
@@ -104,7 +139,7 @@ fun HomeHeader(
                                             }
                                         )
                                         DropdownMenuItem(
-                                            text = { Text("Clear all matches") },
+                                            text = { Text(stringResource(R.string.clear_all_matches)) },
                                             leadingIcon = {
                                                 Icon(
                                                     Icons.Default.DeleteSweep,
@@ -150,7 +185,7 @@ fun HomeHeader(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.size(4.dp))
-                                    Text("Select Visible")
+                                    Text(stringResource(R.string.select_visible))
                                 }
                             )
 
@@ -163,7 +198,7 @@ fun HomeHeader(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.size(4.dp))
-                                    Text("Clear")
+                                    Text(stringResource(R.string.clear))
                                 }
                             )
 
@@ -185,19 +220,8 @@ fun HomeHeader(
                                     )
                                     Spacer(modifier = Modifier.size(4.dp))
                                     Text(
-                                        "Delete",
+                                        stringResource(R.string.delete),
                                         color = tint
-                                    )
-                                }
-                            )
-
-                            IconButton(
-                                onClick = toggleSelectionMode,
-                                content = {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Exit selection",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             )
