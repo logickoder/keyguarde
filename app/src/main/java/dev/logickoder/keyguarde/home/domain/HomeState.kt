@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.ToastType
@@ -29,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -38,6 +40,7 @@ class HomeState(
     private val context: Context,
     private val scope: CoroutineScope,
     private val toastManager: ToastManager,
+    private val inPreview: Boolean,
 ) {
     private val repository = AppRepository.getInstance(context)
 
@@ -71,7 +74,10 @@ class HomeState(
         initialValue = persistentListOf(),
     )
 
-    val openInAppIntents = AppListenerService.notificationIntents.stateIn(
+    val openInAppIntents = when {
+        inPreview -> flowOf(emptyMap())
+        else -> AppListenerService.notificationIntents
+    }.stateIn(
         scope = scope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyMap(),
@@ -204,12 +210,15 @@ class HomeState(
 fun rememberHomeState(): HomeState {
     val context = LocalContext.current
     val toastManager = LocalToastManager.current
+    val inPreview = LocalInspectionMode.current
     val scope = rememberCoroutineScope()
+
     return remember {
         HomeState(
             context,
             scope,
             toastManager,
+            inPreview,
         )
     }
 }
