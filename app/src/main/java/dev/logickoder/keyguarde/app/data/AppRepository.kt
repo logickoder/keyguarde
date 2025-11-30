@@ -160,11 +160,15 @@ class AppRepository(private val context: Context) {
     fun getMatches(
         packageName: String? = null,
         query: String = "",
-    ): Flow<PagingData<KeywordMatch>> = Pager<Int, KeywordMatch>(
+    ): Flow<PagingData<KeywordMatch>> = Pager(
         config = PagingConfig(pageSize = 20),
         pagingSourceFactory = {
             val packageFilter = packageName?.takeIf { it.isNotBlank() }
-            val queryFilter = query.takeIf { it.isNotBlank() }
+            val queryFilter = query.takeIf { it.isNotBlank() }?.let {
+                it.split(" ").filter { term ->
+                    term.isNotBlank()
+                }.joinToString(" ") { term -> "$term*" }
+            }
             database.keywordMatchDao().getMatches(packageFilter, queryFilter)
         }
     ).flow
