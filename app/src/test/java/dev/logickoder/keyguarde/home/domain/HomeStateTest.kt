@@ -66,7 +66,7 @@ class HomeStateTest {
     @Test
     fun `matches should return filtered data`() = runTest {
         val app = WatchedApp("com.example.app1", "App 1")
-        every { repository.getKeywordMatchesForApp(app.packageName) } returns flowOf(
+        every { repository.getMatches(app.packageName) } returns flowOf(
             listOf()
         )
 

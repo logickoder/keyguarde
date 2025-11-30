@@ -7,11 +7,15 @@ import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.SingletonCompanion
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
@@ -39,11 +43,6 @@ class AppRepository(private val context: Context) {
      * Get all watched apps stored in the database.
      */
     val watchedApps = database.watchedAppDao().getAll()
-
-    /**
-     * Get all keyword matches stored in the database.
-     */
-    val matches = database.keywordMatchDao().getAll()
 
     /**
      * Get the count of recent matches from the local store.
@@ -151,13 +150,25 @@ class AppRepository(private val context: Context) {
     }
 
     /**
-     * Get all keyword matches for a specific app.
+     * Get the count of keyword matches.
      *
-     * @param packageName The package name of the app for which to retrieve keyword matches.
+     * @return The count of keyword matches.
      */
-    fun getKeywordMatchesForApp(packageName: String) = database.keywordMatchDao().getByApp(
-        packageName
-    )
+    suspend fun getMatchesCount() = database.keywordMatchDao().getSize()
+
+    /**
+     * Get all keyword matches.
+     *
+     * @param packageName (Optional) The package name of the app for which to retrieve keyword matches.
+     *
+     * @return A [Flow] emitting [PagingData] of [KeywordMatch] objects.
+     */
+    fun getMatches(packageName: String? = null): Flow<PagingData<KeywordMatch>> = Pager(
+        config = PagingConfig(pageSize = 20),
+        pagingSourceFactory = {
+            database.keywordMatchDao().getMatches(packageName?.takeIf { it.isNotBlank() })
+        }
+    ).flow
 
     /**
      * Add matched keywords to the database.
@@ -175,6 +186,13 @@ class AppRepository(private val context: Context) {
      */
     suspend fun deleteKeywordMatch(vararg match: KeywordMatch) {
         database.keywordMatchDao().delete(*match)
+    }
+
+    /**
+     * Clear all matches from the database.
+     */
+    suspend fun clearMatches() {
+        database.keywordMatchDao().clear()
     }
 
     /**

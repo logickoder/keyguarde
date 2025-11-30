@@ -3,6 +3,7 @@ agp = "8.13.1"
 compose = "2025.11.01"
 firebase = "34.6.0"
 kotlin = "2.2.21"
+paging = "3.3.6"
 room = "2.8.4"
 
 [libraries]
@@ -42,12 +43,16 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlin-serialization = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0"
 # Napier
 napier = "io.github.aakira:napier:2.7.1"
+# Paging
+paging-runtime = { module = "androidx.paging:paging-runtime-ktx", version.ref = "paging" }
+paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 # Play Services
 play-services-ads = "com.google.android.gms:play-services-ads:24.8.0"
 # Room
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

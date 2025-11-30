@@ -90,7 +90,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.firebase.analytics)
     coreLibraryDesugaring(libs.desugarjdklibs)
 
     // AndroidX
@@ -135,6 +134,10 @@ dependencies {
     // Napier
     implementation(libs.napier)
 
+    // Paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
     // Play Services
     implementation(libs.play.services.ads)
 
@@ -142,4 +145,5 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging)
 }

@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.app.data.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -26,20 +27,26 @@ interface KeywordMatchDao {
     suspend fun delete(vararg match: KeywordMatch)
 
     /**
-     * Fetch all KeywordMatch entries from the database.
-     */
-    @Query("SELECT * FROM keyword_matches ORDER BY timestamp DESC")
-    fun getAll(): Flow<List<KeywordMatch>>
-
-    /**
      * Fetch KeywordMatch entries filtered by a specific keyword.
      */
     @Query("SELECT * FROM keyword_matches WHERE :keyword IN (keywords) ORDER BY timestamp DESC")
     fun getByKeyword(keyword: String): Flow<List<KeywordMatch>>
 
     /**
-     * Fetch KeywordMatch entries filtered by a specific app.
+     * Fetch KeywordMatch entries filtered by a specific app if provided.
      */
-    @Query("SELECT * FROM keyword_matches WHERE app = :app ORDER BY timestamp DESC")
-    fun getByApp(app: String): Flow<List<KeywordMatch>>
+    @Query("SELECT * FROM keyword_matches WHERE :app IS NULL OR app = :app ORDER BY timestamp DESC")
+    fun getMatches(app: String?): PagingSource<Int, KeywordMatch>
+
+    /**
+     * Get the total count of KeywordMatch entries.
+     */
+    @Query("SELECT COUNT(*) FROM keyword_matches")
+    suspend fun getSize(): Long
+
+    /**
+     * Delete all KeywordMatch entries from the database.
+     */
+    @Query("DELETE FROM keyword_matches")
+    suspend fun clear()
 }

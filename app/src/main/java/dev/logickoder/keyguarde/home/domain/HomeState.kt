@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.paging.cachedIn
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.ToastType
@@ -64,15 +65,8 @@ class HomeState(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val matches = snapshotFlow { filter }.flatMapLatest { filter ->
-        when (filter) {
-            null -> repository.matches
-            else -> repository.getKeywordMatchesForApp(filter.packageName)
-        }
-    }.map { it.toImmutableList() }.flowOn(Dispatchers.Default).stateIn(
-        scope = scope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = persistentListOf(),
-    )
+        repository.getMatches(filter?.packageName)
+    }.flowOn(Dispatchers.Default).cachedIn(scope)
 
     val openInAppIntents = when {
         inPreview -> flowOf(emptyMap())
@@ -168,7 +162,7 @@ class HomeState(
     }
 
     fun selectAllMatches() {
-        selectedMatches.addAll(matches.value.map { it.id })
+        // Paging doesn't support selecting all items across pages
     }
 
     fun clearSelection() {
@@ -177,29 +171,20 @@ class HomeState(
 
     fun deleteSelectedMatches() {
         scope.launch {
-            val matchesToDelete = matches.value.filter { selectedMatches.contains(it.id) }
-            repository.deleteKeywordMatch(*matchesToDelete.toTypedArray())
-
-            val deletedCount = matchesToDelete.size
+            // Paging doesn't support deleting selected items across pages
             toastManager.show(
-                message = "Deleted $deletedCount ${if (deletedCount == 1) "match" else "matches"}",
-                type = ToastType.Success
+                message = "This feature is not supported with paging",
+                type = ToastType.Error
             )
-
-            // Exit selection mode after deletion
-            isSelectionMode = false
-            clearSelection()
         }
     }
 
     fun clearAllMatches() {
         scope.launch {
-            val currentMatches = matches.value
-            repository.deleteKeywordMatch(*currentMatches.toTypedArray())
-
-            val deletedCount = currentMatches.size
+            val deletedCount = repository.getMatchesCount()
+            repository.clearMatches()
             toastManager.show(
-                message = "Cleared all $deletedCount ${if (deletedCount == 1) "match" else "matches"}",
+                message = "Cleared all $deletedCount ${if (deletedCount == 1L) "match" else "matches"}",
                 type = ToastType.Success
             )
         }

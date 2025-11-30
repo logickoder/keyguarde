@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
@@ -53,7 +54,7 @@ fun HomeScreen(
 ) {
     val state = rememberHomeState()
     val watchedApps by state.watchedApps.collectAsStateWithLifecycle()
-    val matches by state.matches.collectAsStateWithLifecycle()
+    val matches = state.matches.collectAsLazyPagingItems()
     val recentCount by state.recentCount.collectAsStateWithLifecycle()
     val openInAppIntents by state.openInAppIntents.collectAsStateWithLifecycle()
 
@@ -135,8 +136,10 @@ fun HomeScreen(
 
                     item {
                         HomeHeader(
-                            modifier = Modifier.padding(top = 8.dp).animateItem(),
-                            hasMatches = matches.isNotEmpty(),
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .animateItem(),
+                            hasMatches = matches.itemCount > 0,
                             selectedMatchesSize = when (state.isSelectionMode) {
                                 true -> state.selectedMatches.size
                                 else -> null
@@ -149,35 +152,37 @@ fun HomeScreen(
                         )
                     }
 
-                    when (matches.isEmpty()) {
-                        true -> item {
+                    when (matches.itemCount) {
+                        0 -> item {
                             EmptyMatchesState(modifier = Modifier.animateItem())
                         }
 
                         else -> items(
-                            matches.size,
-                            key = { matches[it].id },
+                            matches.itemCount,
+                            key = { matches[it]?.id ?: 0L },
                             itemContent = {
-                                val match = matches[it]
-                                MatchItem(
-                                    modifier = Modifier.animateItem(),
-                                    match = match,
-                                    apps = watchedApps,
-                                    showOpenInApp = openInAppIntents.containsKey(match.id),
-                                    isSelected = when (state.isSelectionMode) {
-                                        true -> state.selectedMatches.contains(match.id)
-                                        else -> null
-                                    },
-                                    onDeleteMatch = {
-                                        state.deleteMatch(match)
-                                    },
-                                    onOpenInApp = {
-                                        state.openInApp(match)
-                                    },
-                                    onToggleSelection = {
-                                        state.toggleMatchSelection(match.id)
-                                    }
-                                )
+                                matches[it]?.let { match ->
+                                    MatchItem(
+                                        modifier = Modifier.animateItem(),
+                                        match = match,
+                                        apps = watchedApps,
+                                        showOpenInApp = openInAppIntents.containsKey(match.id),
+                                        isSelected = when (state.isSelectionMode) {
+                                            true -> state.selectedMatches.contains(match.id)
+                                            else -> null
+                                        },
+                                        onDeleteMatch = {
+                                            state.deleteMatch(match)
+                                        },
+                                        onOpenInApp = {
+                                            state.openInApp(match)
+                                        },
+                                        onToggleSelection = {
+                                            state.toggleMatchSelection(match.id)
+                                        }
+                                    )
+                                }
+
                             }
                         )
                     }
