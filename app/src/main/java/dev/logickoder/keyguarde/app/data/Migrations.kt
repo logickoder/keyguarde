@@ -31,5 +31,24 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         // Recreate the indices
         db.execSQL("CREATE INDEX `index_keyword_matches_app` ON `keyword_matches` (`app`)")
         db.execSQL("CREATE UNIQUE INDEX `index_keyword_matches_message_chat_app` ON `keyword_matches` (`message`, `chat`, `app`)")
+
+        // Recreate the fts table for keyword matches
+        db.execSQL(
+            """
+            CREATE VIRTUAL TABLE `keyword_matches_fts` USING fts4(
+                content=`keyword_matches`,
+                keywords,
+                message,
+                chat
+            )
+            """
+        )
+        // Repopulate the fts table
+        db.execSQL(
+            """
+            INSERT INTO `keyword_matches_fts` (docid, keywords, message, chat)
+            SELECT `rowid`, keywords, message, chat FROM `keyword_matches`
+            """
+        )
     }
 }
