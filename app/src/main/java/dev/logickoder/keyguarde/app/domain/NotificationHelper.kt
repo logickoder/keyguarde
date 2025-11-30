@@ -28,8 +28,10 @@ import androidx.core.graphics.drawable.toBitmap
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.MainActivity
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.launch
 
 /**
  * Helper class to manage all notification-related functionality
@@ -257,8 +259,9 @@ object NotificationHelper {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action == ACTION_RESET_COUNT) {
-                    Napier.e { "Receiver called" }
-                    resetMatchCount(context)
+                    AppScope.launch {
+                        ResetMatchCountUsecase(context)
+                    }
                 }
             }
         }

@@ -14,7 +14,7 @@ import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.globalToastManager
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.domain.resetMatchCount
+import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.app.navigation.AppNavigation
 import dev.logickoder.keyguarde.app.navigation.AppRoute
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             if (settings.resetMatchCountOnAppOpen.first()) {
-                resetMatchCount(this@MainActivity)
+                ResetMatchCountUsecase(this@MainActivity)
             }
         }
     }

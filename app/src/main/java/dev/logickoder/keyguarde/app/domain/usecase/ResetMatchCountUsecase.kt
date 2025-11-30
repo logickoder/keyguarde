@@ -1,16 +1,13 @@
-package dev.logickoder.keyguarde.app.domain
+package dev.logickoder.keyguarde.app.domain.usecase
 
 import android.content.Context
 import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.settings.SettingsRepository
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
-@OptIn(DelicateCoroutinesApi::class)
-fun resetMatchCount(context: Context) {
-    GlobalScope.launch {
+object ResetMatchCountUsecase {
+    suspend operator fun invoke(context: Context) {
         val repository = AppRepository.getInstance(context)
         repository.updateRecentMatchCount(0)
         repository.updateRecentChats(emptySet())

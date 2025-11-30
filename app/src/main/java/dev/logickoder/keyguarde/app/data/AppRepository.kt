@@ -7,11 +7,15 @@ import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.SingletonCompanion
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
@@ -39,11 +43,6 @@ class AppRepository(private val context: Context) {
      * Get all watched apps stored in the database.
      */
     val watchedApps = database.watchedAppDao().getAll()
-
-    /**
-     * Get all keyword matches stored in the database.
-     */
-    val matches = database.keywordMatchDao().getAll()
 
     /**
      * Get the count of recent matches from the local store.
@@ -151,13 +150,28 @@ class AppRepository(private val context: Context) {
     }
 
     /**
-     * Get all keyword matches for a specific app.
+     * Get all keyword matches.
      *
-     * @param packageName The package name of the app for which to retrieve keyword matches.
+     * @param packageName (Optional) The package name of the app for which to retrieve keyword matches.
+     * @param query (Optional) The query to search for in the keyword matches.
+     *
+     * @return A [Flow] emitting [PagingData] of [KeywordMatch] objects.
      */
-    fun getKeywordMatchesForApp(packageName: String) = database.keywordMatchDao().getByApp(
-        packageName
-    )
+    fun getMatches(
+        packageName: String? = null,
+        query: String = "",
+    ): Flow<PagingData<KeywordMatch>> = Pager(
+        config = PagingConfig(pageSize = 20),
+        pagingSourceFactory = {
+            val packageFilter = packageName?.takeIf { it.isNotBlank() }
+            val queryFilter = query.takeIf { it.isNotBlank() }?.let {
+                it.split(" ").filter { term ->
+                    term.isNotBlank()
+                }.joinToString(" ") { term -> "$term*" }
+            }
+            database.keywordMatchDao().getMatches(packageFilter, queryFilter)
+        }
+    ).flow
 
     /**
      * Add matched keywords to the database.
@@ -175,6 +189,24 @@ class AppRepository(private val context: Context) {
      */
     suspend fun deleteKeywordMatch(vararg match: KeywordMatch) {
         database.keywordMatchDao().delete(*match)
+    }
+
+    /**
+     * Delete keyword matches by their IDs.
+     *
+     * @param ids The IDs of the keyword matches to delete.
+     */
+    suspend fun deleteKeywordMatches(ids: List<Long>) {
+        database.keywordMatchDao().delete(ids)
+    }
+
+    /**
+     * Clear all matches from the database.
+     *
+     * @return The number of rows deleted.
+     */
+    suspend fun clearMatches(): Int {
+        return database.keywordMatchDao().clear()
     }
 
     /**

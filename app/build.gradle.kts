@@ -37,7 +37,7 @@ android {
         applicationId = "dev.logickoder.keyguarde"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
+        versionCode = 12
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -90,7 +90,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.firebase.analytics)
     coreLibraryDesugaring(libs.desugarjdklibs)
 
     // AndroidX
@@ -135,6 +134,10 @@ dependencies {
     // Napier
     implementation(libs.napier)
 
+    // Paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
     // Play Services
     implementation(libs.play.services.ads)
 
@@ -142,4 +145,5 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging)
 }

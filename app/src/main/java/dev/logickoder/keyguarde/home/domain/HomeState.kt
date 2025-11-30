@@ -13,6 +13,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.paging.cachedIn
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.ToastType
@@ -20,7 +23,7 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
-import dev.logickoder.keyguarde.app.domain.resetMatchCount
+import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -29,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -38,10 +42,14 @@ class HomeState(
     private val context: Context,
     private val scope: CoroutineScope,
     private val toastManager: ToastManager,
+    inPreview: Boolean,
 ) {
     private val repository = AppRepository.getInstance(context)
 
     var filter by mutableStateOf<WatchedApp?>(null)
+        private set
+
+    var query by mutableStateOf("")
         private set
 
     var isKeywordDialogVisible by mutableStateOf(false)
@@ -60,18 +68,14 @@ class HomeState(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val matches = snapshotFlow { filter }.flatMapLatest { filter ->
-        when (filter) {
-            null -> repository.matches
-            else -> repository.getKeywordMatchesForApp(filter.packageName)
-        }
-    }.map { it.toImmutableList() }.flowOn(Dispatchers.Default).stateIn(
-        scope = scope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = persistentListOf(),
-    )
+    val matches = snapshotFlow { filter to query }.flatMapLatest { (filter, query) ->
+        repository.getMatches(filter?.packageName, query)
+    }.flowOn(Dispatchers.Default).cachedIn(scope)
 
-    val openInAppIntents = AppListenerService.notificationIntents.stateIn(
+    val openInAppIntents = when {
+        inPreview -> flowOf(emptyMap())
+        else -> AppListenerService.notificationIntents
+    }.stateIn(
         scope = scope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyMap(),
@@ -82,6 +86,10 @@ class HomeState(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = 0,
     )
+
+    fun onSearchQueryChange(query: String) {
+        this.query = query
+    }
 
     fun changeFilter(app: WatchedApp?) {
         filter = app
@@ -141,7 +149,11 @@ class HomeState(
         }
     }
 
-    fun resetCount() = resetMatchCount(context)
+    fun resetCount() {
+        scope.launch {
+            ResetMatchCountUsecase(context)
+        }
+    }
 
     fun toggleSelectionMode() {
         isSelectionMode = !isSelectionMode
@@ -157,8 +169,8 @@ class HomeState(
         }
     }
 
-    fun selectAllMatches() {
-        selectedMatches.addAll(matches.value.map { it.id })
+    fun selectVisibleMatches(matches: List<KeywordMatch>) {
+        selectedMatches.addAll(matches.map { it.id })
     }
 
     fun clearSelection() {
@@ -167,29 +179,30 @@ class HomeState(
 
     fun deleteSelectedMatches() {
         scope.launch {
-            val matchesToDelete = matches.value.filter { selectedMatches.contains(it.id) }
-            repository.deleteKeywordMatch(*matchesToDelete.toTypedArray())
-
-            val deletedCount = matchesToDelete.size
+            val deletedCount = selectedMatches.size
+            repository.deleteKeywordMatches(selectedMatches.toList())
+            clearSelection()
+            toggleSelectionMode()
             toastManager.show(
-                message = "Deleted $deletedCount ${if (deletedCount == 1) "match" else "matches"}",
+                message = context.resources.getQuantityString(
+                    R.plurals.deleted_match,
+                    deletedCount,
+                    deletedCount,
+                ),
                 type = ToastType.Success
             )
-
-            // Exit selection mode after deletion
-            isSelectionMode = false
-            clearSelection()
         }
     }
 
     fun clearAllMatches() {
         scope.launch {
-            val currentMatches = matches.value
-            repository.deleteKeywordMatch(*currentMatches.toTypedArray())
-
-            val deletedCount = currentMatches.size
+            val deletedCount = repository.clearMatches()
             toastManager.show(
-                message = "Cleared all $deletedCount ${if (deletedCount == 1) "match" else "matches"}",
+                message = context.resources.getQuantityString(
+                    R.plurals.cleared_match,
+                    deletedCount,
+                    deletedCount,
+                ),
                 type = ToastType.Success
             )
         }
@@ -200,12 +213,15 @@ class HomeState(
 fun rememberHomeState(): HomeState {
     val context = LocalContext.current
     val toastManager = LocalToastManager.current
+    val inPreview = LocalInspectionMode.current
     val scope = rememberCoroutineScope()
+
     return remember {
         HomeState(
             context,
             scope,
             toastManager,
+            inPreview,
         )
     }
 }

@@ -46,6 +46,14 @@
         Enable notification access for full functionality.
     </string>
     <string name="dismiss">Dismiss</string>
+    <plurals name="deleted_match">
+        <item quantity="one">Deleted 1 match</item>
+        <item quantity="other">Deleted %1$d matches</item>
+    </plurals>
+    <plurals name="cleared_match">
+        <item quantity="one">Cleared match</item>
+        <item quantity="other">Cleared all %1$d matches</item>
+    </plurals>
 
     <!-- Notification Channel Names -->
     <string name="channel_background_name">Background Notifications</string>
@@ -72,6 +80,9 @@
     <!-- Keyword Match Notification Content -->
     <string name="keyword_match_notification_title">Keywords matched: %1$s</string>
     <string name="keyword_match_notification_content">From: %1$s</string>
+    <string name="settings">Settings</string>
+    <string name="search_matches">Search matches...</string>
+    <string name="search">Search</string>
     <plurals name="keyword_match_notification_title_plural">
         <item quantity="one">Keyword matched: %1$s</item>
         <item quantity="other">Keywords matched: %1$s</item>

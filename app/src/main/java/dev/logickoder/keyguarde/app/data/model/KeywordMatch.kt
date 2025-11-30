@@ -1,7 +1,9 @@
 package dev.logickoder.keyguarde.app.data.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Fts4
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.LocalDateTime
@@ -26,10 +28,19 @@ import java.time.LocalDateTime
     ]
 )
 data class KeywordMatch(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @[PrimaryKey(autoGenerate = true) ColumnInfo(name = "rowid")]
+    val id: Long = 0,
     val keywords: Set<String>,
     val message: String,
     val chat: String,
     val app: String,
     val timestamp: LocalDateTime
+)
+
+@Fts4(contentEntity = KeywordMatch::class)
+@Entity(tableName = "keyword_matches_fts")
+data class KeywordMatchFts(
+    val keywords: Set<String>,
+    val message: String,
+    val chat: String,
 )

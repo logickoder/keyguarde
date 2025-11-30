@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.app.data.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -26,10 +27,10 @@ interface KeywordMatchDao {
     suspend fun delete(vararg match: KeywordMatch)
 
     /**
-     * Fetch all KeywordMatch entries from the database.
+     * Delete a specific KeywordMatch entry from the database.
      */
-    @Query("SELECT * FROM keyword_matches ORDER BY timestamp DESC")
-    fun getAll(): Flow<List<KeywordMatch>>
+    @Query("DELETE FROM keyword_matches WHERE rowid IN (:ids)")
+    suspend fun delete(ids: List<Long>)
 
     /**
      * Fetch KeywordMatch entries filtered by a specific keyword.
@@ -38,8 +39,23 @@ interface KeywordMatchDao {
     fun getByKeyword(keyword: String): Flow<List<KeywordMatch>>
 
     /**
-     * Fetch KeywordMatch entries filtered by a specific app.
+     * Fetch KeywordMatch entries filtered by a specific app if provided.
      */
-    @Query("SELECT * FROM keyword_matches WHERE app = :app ORDER BY timestamp DESC")
-    fun getByApp(app: String): Flow<List<KeywordMatch>>
+    @Query(
+        """
+        SELECT * FROM keyword_matches
+        WHERE (:app IS NULL OR app = :app)
+        AND (:query IS NULL OR rowid IN (SELECT rowid FROM keyword_matches_fts WHERE keyword_matches_fts MATCH :query))
+        ORDER BY timestamp DESC
+        """
+    )
+    fun getMatches(app: String?, query: String?): PagingSource<Int, KeywordMatch>
+
+    /**
+     * Delete all KeywordMatch entries from the database.
+     *
+     * @return The number of rows deleted.
+     */
+    @Query("DELETE FROM keyword_matches")
+    suspend fun clear(): Int
 }
