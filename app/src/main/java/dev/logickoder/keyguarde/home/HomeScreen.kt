@@ -146,7 +146,9 @@ fun HomeScreen(
                             },
                             toggleSelectionMode = state::toggleSelectionMode,
                             clearAllMatches = state::clearAllMatches,
-                            selectAllMatches = state::selectAllMatches,
+                            selectVisibleMatches = {
+                                state.selectVisibleMatches(matches.itemSnapshotList.items)
+                            },
                             clearSelection = state::clearSelection,
                             deleteSelectedMatches = state::deleteSelectedMatches,
                         )
@@ -182,7 +184,6 @@ fun HomeScreen(
                                         }
                                     )
                                 }
-
                             }
                         )
                     }

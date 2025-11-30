@@ -27,6 +27,12 @@ interface KeywordMatchDao {
     suspend fun delete(vararg match: KeywordMatch)
 
     /**
+     * Delete a specific KeywordMatch entry from the database.
+     */
+    @Query("DELETE FROM keyword_matches WHERE id IN (:ids)")
+    suspend fun delete(ids: List<Long>)
+
+    /**
      * Fetch KeywordMatch entries filtered by a specific keyword.
      */
     @Query("SELECT * FROM keyword_matches WHERE :keyword IN (keywords) ORDER BY timestamp DESC")
@@ -39,14 +45,10 @@ interface KeywordMatchDao {
     fun getMatches(app: String?): PagingSource<Int, KeywordMatch>
 
     /**
-     * Get the total count of KeywordMatch entries.
-     */
-    @Query("SELECT COUNT(*) FROM keyword_matches")
-    suspend fun getSize(): Long
-
-    /**
      * Delete all KeywordMatch entries from the database.
+     *
+     * @return The number of rows deleted.
      */
     @Query("DELETE FROM keyword_matches")
-    suspend fun clear()
+    suspend fun clear(): Int
 }

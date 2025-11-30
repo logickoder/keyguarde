@@ -150,13 +150,6 @@ class AppRepository(private val context: Context) {
     }
 
     /**
-     * Get the count of keyword matches.
-     *
-     * @return The count of keyword matches.
-     */
-    suspend fun getMatchesCount() = database.keywordMatchDao().getSize()
-
-    /**
      * Get all keyword matches.
      *
      * @param packageName (Optional) The package name of the app for which to retrieve keyword matches.
@@ -189,10 +182,21 @@ class AppRepository(private val context: Context) {
     }
 
     /**
-     * Clear all matches from the database.
+     * Delete keyword matches by their IDs.
+     *
+     * @param ids The IDs of the keyword matches to delete.
      */
-    suspend fun clearMatches() {
-        database.keywordMatchDao().clear()
+    suspend fun deleteKeywordMatches(ids: List<Long>) {
+        database.keywordMatchDao().delete(ids)
+    }
+
+    /**
+     * Clear all matches from the database.
+     *
+     * @return The number of rows deleted.
+     */
+    suspend fun clearMatches(): Int {
+        return database.keywordMatchDao().clear()
     }
 
     /**

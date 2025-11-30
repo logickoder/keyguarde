@@ -44,7 +44,7 @@ fun HomeHeader(
     modifier: Modifier = Modifier,
     toggleSelectionMode: () -> Unit,
     clearAllMatches: () -> Unit,
-    selectAllMatches: () -> Unit,
+    selectVisibleMatches: () -> Unit,
     clearSelection: () -> Unit,
     deleteSelectedMatches: () -> Unit,
 ) {
@@ -134,77 +134,70 @@ fun HomeHeader(
                                 MaterialTheme.colorScheme.primaryContainer,
                                 MaterialTheme.shapes.medium
                             )
-                            .padding(horizontal = 32.dp, vertical = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                            .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            8.dp,
+                            Alignment.CenterHorizontally
+                        ),
                         verticalAlignment = Alignment.CenterVertically,
                         content = {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            TextButton(
+                                onClick = selectVisibleMatches,
                                 content = {
-                                    TextButton(
-                                        onClick = selectAllMatches,
-                                        content = {
-                                            Icon(
-                                                Icons.Default.SelectAll,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.size(4.dp))
-                                            Text("Select All")
+                                    Icon(
+                                        Icons.Default.SelectAll,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Text("Select Visible")
+                                }
+                            )
+
+                            TextButton(
+                                onClick = clearSelection,
+                                content = {
+                                    Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Text("Clear")
+                                }
+                            )
+
+                            OutlinedButton(
+                                onClick = deleteSelectedMatches,
+                                enabled = hasSelection,
+                                content = {
+                                    val tint by animateColorAsState(
+                                        targetValue = when (hasSelection) {
+                                            true -> MaterialTheme.colorScheme.error
+                                            else -> MaterialTheme.colorScheme.onSurfaceVariant
                                         }
                                     )
-
-                                    TextButton(
-                                        onClick = clearSelection,
-                                        content = {
-                                            Icon(
-                                                Icons.Default.Clear,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.size(4.dp))
-                                            Text("Clear")
-                                        }
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = tint
+                                    )
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Text(
+                                        "Delete",
+                                        color = tint
                                     )
                                 }
                             )
 
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            IconButton(
+                                onClick = toggleSelectionMode,
                                 content = {
-                                    OutlinedButton(
-                                        onClick = deleteSelectedMatches,
-                                        enabled = hasSelection,
-                                        content = {
-                                            val tint by animateColorAsState(
-                                                targetValue = when (hasSelection) {
-                                                    true -> MaterialTheme.colorScheme.error
-                                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                                }
-                                            )
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(18.dp),
-                                                tint = tint
-                                            )
-                                            Spacer(modifier = Modifier.size(4.dp))
-                                            Text(
-                                                "Delete",
-                                                color = tint
-                                            )
-                                        }
-                                    )
-
-                                    IconButton(
-                                        onClick = toggleSelectionMode,
-                                        content = {
-                                            Icon(
-                                                Icons.Default.Close,
-                                                contentDescription = "Exit selection",
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-                                        }
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Exit selection",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             )

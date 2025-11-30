@@ -15,6 +15,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.paging.cachedIn
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.ToastType
@@ -41,7 +42,7 @@ class HomeState(
     private val context: Context,
     private val scope: CoroutineScope,
     private val toastManager: ToastManager,
-    private val inPreview: Boolean,
+    inPreview: Boolean,
 ) {
     private val repository = AppRepository.getInstance(context)
 
@@ -161,8 +162,8 @@ class HomeState(
         }
     }
 
-    fun selectAllMatches() {
-        // Paging doesn't support selecting all items across pages
+    fun selectVisibleMatches(matches: List<KeywordMatch>) {
+        selectedMatches.addAll(matches.map { it.id })
     }
 
     fun clearSelection() {
@@ -171,20 +172,30 @@ class HomeState(
 
     fun deleteSelectedMatches() {
         scope.launch {
-            // Paging doesn't support deleting selected items across pages
+            val deletedCount = selectedMatches.size
+            repository.deleteKeywordMatches(selectedMatches.toList())
+            clearSelection()
+            toggleSelectionMode()
             toastManager.show(
-                message = "This feature is not supported with paging",
-                type = ToastType.Error
+                message = context.resources.getQuantityString(
+                    R.plurals.deleted_match,
+                    deletedCount,
+                    deletedCount,
+                ),
+                type = ToastType.Success
             )
         }
     }
 
     fun clearAllMatches() {
         scope.launch {
-            val deletedCount = repository.getMatchesCount()
-            repository.clearMatches()
+            val deletedCount = repository.clearMatches()
             toastManager.show(
-                message = "Cleared all $deletedCount ${if (deletedCount == 1L) "match" else "matches"}",
+                message = context.resources.getQuantityString(
+                    R.plurals.cleared_match,
+                    deletedCount,
+                    deletedCount,
+                ),
                 type = ToastType.Success
             )
         }
