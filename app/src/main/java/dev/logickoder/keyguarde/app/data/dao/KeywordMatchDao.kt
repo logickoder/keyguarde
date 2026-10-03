@@ -31,6 +31,24 @@ interface KeywordMatchDao {
      * Delete a specific KeywordMatch entry from the database.
      */
     /**
+     * Fetch matches by id, e.g. to keep a copy before deleting them so the delete can be undone.
+     */
+    @Query("SELECT * FROM keyword_matches WHERE rowid IN (:ids)")
+    suspend fun getByIds(ids: List<Long>): List<KeywordMatch>
+
+    /**
+     * Fetch every match, e.g. to keep a copy before clearing so it can be undone.
+     */
+    @Query("SELECT * FROM keyword_matches")
+    suspend fun getAll(): List<KeywordMatch>
+
+    /**
+     * Put back matches that were deleted, keeping their original ids.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun restore(matches: List<KeywordMatch>)
+
+    /**
      * Count matches newer than [since], optionally limited to one app.
      */
     @Query("SELECT COUNT(*) FROM keyword_matches WHERE timestamp > :since AND (:app IS NULL OR app = :app)")

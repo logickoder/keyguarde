@@ -19,9 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,8 +49,9 @@ fun KeywordItem(
                 content = {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = keyword.word,
-                        style = MaterialTheme.typography.titleMedium
+                        text = keyword.word.uppercase(),
+                        style = KeywordPillStyle.copy(fontSize = 18.sp, lineHeight = 24.sp),
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Row(
@@ -59,7 +62,7 @@ fun KeywordItem(
                                     Icon(
                                         imageVector = Icons.Default.Edit,
                                         contentDescription = stringResource(R.string.edit),
-                                        tint = MaterialTheme.colorScheme.primary
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             )
@@ -70,7 +73,7 @@ fun KeywordItem(
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = stringResource(R.string.delete),
-                                        tint = MaterialTheme.colorScheme.error
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             )

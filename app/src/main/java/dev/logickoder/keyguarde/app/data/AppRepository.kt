@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -69,6 +70,30 @@ class AppRepository(
     suspend fun markVisited() {
         // Same encoding as the timestamp column (Converters), so comparisons line up.
         localStore.save(LAST_VISIT_AT, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+    }
+
+    /**
+     * The app the Matches list is filtered to, or null for all apps. Kept across launches.
+     */
+    val matchesFilter = localStore.get(MATCHES_FILTER)
+
+    suspend fun saveMatchesFilter(packageName: String?) {
+        localStore.save(MATCHES_FILTER, packageName)
+    }
+
+    /**
+     * Copies of matches, taken before a delete so it can be undone.
+     */
+    suspend fun getMatchesByIds(ids: List<Long>): List<KeywordMatch> =
+        database.keywordMatchDao().getByIds(ids)
+
+    suspend fun getAllMatches(): List<KeywordMatch> = database.keywordMatchDao().getAll()
+
+    /**
+     * Undo a delete: put [matches] back with their original ids.
+     */
+    suspend fun restoreMatches(matches: List<KeywordMatch>) {
+        database.keywordMatchDao().restore(matches)
     }
 
     /**
@@ -266,6 +291,8 @@ class AppRepository(
         private val RECENT_CHATS = stringSetPreferencesKey("recent_chats")
 
         private val LAST_VISIT_AT = longPreferencesKey("last_visit_at")
+
+        private val MATCHES_FILTER = stringPreferencesKey("matches_filter")
 
         // Package names of priority apps
         const val WHATSAPP_PACKAGE_NAME = "com.whatsapp"

@@ -1,7 +1,7 @@
 package dev.logickoder.keyguarde.home.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +63,7 @@ fun MatchRow(
     app: WatchedApp?,
     isNew: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
     isSelected: Boolean? = null,
 ) {
@@ -78,7 +79,7 @@ fun MatchRow(
             .background(
                 if (isSelected == true) MaterialTheme.colorScheme.surfaceContainerHigh else Color.Transparent
             )
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .semantics {
                 if (isSelected != null) selected = isSelected
                 // The dot is visual only; say it for TalkBack too.
@@ -231,6 +232,7 @@ private fun MatchRowPreview() = AppTheme {
                 app = null,
                 isNew = true,
                 onClick = {},
+                onLongClick = {},
             )
             MatchRowDivider()
             MatchRow(
@@ -245,6 +247,7 @@ private fun MatchRowPreview() = AppTheme {
                 app = null,
                 isNew = false,
                 onClick = {},
+                onLongClick = {},
             )
         }
     )

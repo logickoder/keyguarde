@@ -19,16 +19,13 @@ import androidx.paging.insertSeparators
 import androidx.paging.map
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
-import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
-import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
 import dev.logickoder.keyguarde.home.domain.MatchListItem
-import java.time.LocalDateTime
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
@@ -51,6 +48,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 class HomeViewModel(
     private val repository: AppRepository,
@@ -65,35 +63,43 @@ class HomeViewModel(
     // Read once per visit, so the "new" divider holds still while the user scrolls.
     private val lastVisit = MutableStateFlow<LocalDateTime?>(null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val newSinceLastVisit: Flow<Int> = combine(
-        lastVisit,
-        inputs.map { it.filter?.packageName }.distinctUntilChanged(),
-    ) { since, packageName -> since to packageName }
-        .flatMapLatest { (since, packageName) ->
-            when (since) {
-                null -> flowOf(0)
-                else -> repository.countMatchesSince(since, packageName)
-            }
-        }
+    // Copies of the last deleted or cleared matches, so the snackbar's Undo can put them back.
+    private var undoable: List<KeywordMatch> = emptyList()
 
     private val _effects = Channel<HomeEffect>(Channel.BUFFERED)
     val effects: Flow<HomeEffect> = _effects.receiveAsFlow()
 
+    // A saved filter for an app that's no longer watched would show an empty list, so it's ignored.
+    private val effectiveFilter: Flow<String?> = combine(
+        inputs.map { it.filterPackage },
+        repository.watchedApps,
+    ) { packageName, apps ->
+        packageName?.takeIf { name -> apps.any { it.packageName == name } }
+    }.distinctUntilChanged()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val newSinceLastVisit: Flow<Int> = combine(lastVisit, effectiveFilter) { since, packageName ->
+        since to packageName
+    }.flatMapLatest { (since, packageName) ->
+        when (since) {
+            null -> flowOf(0)
+            else -> repository.countMatchesSince(since, packageName)
+        }
+    }
+
     val state: StateFlow<HomeState> = combine(
         inputs,
         repository.watchedApps,
-        repository.recentMatchCount,
         AppListenerService.notificationIntents,
         newSinceLastVisit,
-    ) { inputs, watchedApps, recentCount, intents, newCount ->
+    ) { inputs, watchedApps, intents, newCount ->
         HomeState(
-            filter = inputs.filter,
+            filter = watchedApps.firstOrNull { it.packageName == inputs.filterPackage },
             watchedApps = watchedApps.toImmutableList(),
-            recentCount = recentCount,
             newSinceLastVisit = newCount,
             openableMatchIds = intents.keys.toImmutableSet(),
-            isKeywordDialogVisible = inputs.isKeywordDialogVisible,
+            isFilterSheetVisible = inputs.isFilterSheetVisible,
+            isClearAllConfirmVisible = inputs.isClearAllConfirmVisible,
             isSelectionMode = inputs.isSelectionMode,
             selectedMatches = inputs.selectedMatches,
         )
@@ -105,7 +111,7 @@ class HomeViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val matches: Flow<PagingData<MatchListItem>> = combine(
-        inputs.map { it.filter?.packageName },
+        effectiveFilter,
         snapshotFlow { query },
         lastVisit,
     ) { packageName, query, since -> Triple(packageName, query, since) }
@@ -128,21 +134,25 @@ class HomeViewModel(
 
     init {
         refreshLastVisit()
+        viewModelScope.launch {
+            val saved = repository.matchesFilter.first()
+            inputs.update { it.copy(filterPackage = saved) }
+        }
     }
 
     fun onAction(action: HomeAction) {
         when (action) {
             is HomeAction.SearchQueryChanged -> query = action.query
 
-            is HomeAction.FilterChanged -> inputs.update { it.copy(filter = action.app) }
-
-            HomeAction.ToggleKeywordDialog -> toggleKeywordDialog()
-
-            is HomeAction.SaveKeyword -> saveKeyword(action.word)
-
-            is HomeAction.DeleteMatch -> viewModelScope.launch {
-                repository.deleteKeywordMatch(action.match)
+            is HomeAction.FilterChanged -> {
+                val packageName = action.app?.packageName
+                inputs.update { it.copy(filterPackage = packageName, isFilterSheetVisible = false) }
+                viewModelScope.launch { repository.saveMatchesFilter(packageName) }
             }
+
+            HomeAction.ShowFilterSheet -> inputs.update { it.copy(isFilterSheetVisible = true) }
+
+            HomeAction.DismissFilterSheet -> inputs.update { it.copy(isFilterSheetVisible = false) }
 
             is HomeAction.OpenInApp -> openInApp(action.match)
 
@@ -150,8 +160,16 @@ class HomeViewModel(
 
             HomeAction.RefreshLastVisit -> refreshLastVisit()
 
-            HomeAction.ToggleSelectionMode -> inputs.update {
-                it.copy(isSelectionMode = !it.isSelectionMode, selectedMatches = persistentSetOf())
+            HomeAction.StartSelection -> inputs.update {
+                it.copy(isSelectionMode = true, selectedMatches = persistentSetOf())
+            }
+
+            is HomeAction.StartSelectionWith -> inputs.update {
+                it.copy(isSelectionMode = true, selectedMatches = persistentSetOf(action.matchId))
+            }
+
+            HomeAction.ExitSelection -> inputs.update {
+                it.copy(isSelectionMode = false, selectedMatches = persistentSetOf())
             }
 
             is HomeAction.ToggleMatchSelection -> inputs.update {
@@ -168,36 +186,21 @@ class HomeViewModel(
                 it.copy(selectedMatches = it.selectedMatches.addAll(action.matchIds))
             }
 
-            HomeAction.ClearSelection -> inputs.update {
-                it.copy(selectedMatches = persistentSetOf())
-            }
-
             HomeAction.DeleteSelectedMatches -> deleteSelectedMatches()
 
-            HomeAction.ClearAllMatches -> viewModelScope.launch {
-                _effects.send(HomeEffect.MatchesCleared(repository.clearMatches()))
-            }
+            HomeAction.ShowClearAllConfirm -> inputs.update { it.copy(isClearAllConfirmVisible = true) }
+
+            HomeAction.DismissClearAllConfirm -> inputs.update { it.copy(isClearAllConfirmVisible = false) }
+
+            HomeAction.ClearAllMatches -> clearAllMatches()
+
+            HomeAction.UndoDelete -> undoDelete()
         }
     }
 
     private fun refreshLastVisit() {
         viewModelScope.launch {
             lastVisit.value = repository.lastVisitAt.first()
-        }
-    }
-
-    private fun toggleKeywordDialog() {
-        inputs.update { it.copy(isKeywordDialogVisible = !it.isKeywordDialogVisible) }
-    }
-
-    private fun saveKeyword(word: String) {
-        if (word.isBlank()) {
-            return
-        }
-        viewModelScope.launch {
-            repository.addKeyword(Keyword(word = word))
-        }.invokeOnCompletion {
-            toggleKeywordDialog()
         }
     }
 
@@ -233,17 +236,35 @@ class HomeViewModel(
     }
 
     private fun deleteSelectedMatches() {
-        val selected = inputs.value.selectedMatches
+        val selected = inputs.value.selectedMatches.toList()
+        if (selected.isEmpty()) return
         viewModelScope.launch {
-            repository.deleteKeywordMatches(selected.toList())
+            undoable = repository.getMatchesByIds(selected)
+            repository.deleteKeywordMatches(selected)
             inputs.update { it.copy(isSelectionMode = false, selectedMatches = persistentSetOf()) }
             _effects.send(HomeEffect.MatchesDeleted(selected.size))
         }
     }
 
+    private fun clearAllMatches() {
+        inputs.update { it.copy(isClearAllConfirmVisible = false) }
+        viewModelScope.launch {
+            undoable = repository.getAllMatches()
+            _effects.send(HomeEffect.MatchesCleared(repository.clearMatches()))
+        }
+    }
+
+    private fun undoDelete() {
+        val matches = undoable
+        undoable = emptyList()
+        if (matches.isEmpty()) return
+        viewModelScope.launch { repository.restoreMatches(matches) }
+    }
+
     private data class Inputs(
-        val filter: WatchedApp? = null,
-        val isKeywordDialogVisible: Boolean = false,
+        val filterPackage: String? = null,
+        val isFilterSheetVisible: Boolean = false,
+        val isClearAllConfirmVisible: Boolean = false,
         val isSelectionMode: Boolean = false,
         val selectedMatches: PersistentSet<Long> = persistentSetOf(),
     )

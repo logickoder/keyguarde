@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,13 +13,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,12 +40,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
@@ -53,7 +56,11 @@ import dev.logickoder.keyguarde.app.theme.AppTheme
 fun HomeTopAppBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
-    onSettings: () -> Unit,
+    isFilterActive: Boolean,
+    onFilter: () -> Unit,
+    onSelect: () -> Unit,
+    onResetCounter: () -> Unit,
+    onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isSearchActive by rememberSaveable { mutableStateOf(searchQuery.isNotEmpty()) }
@@ -114,19 +121,84 @@ fun HomeTopAppBar(
                     )
                 }
             )
-            IconButton(
-                onClick = onSettings,
-                content = {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.settings)
-                    )
-                }
-            )
+            FilterButton(isActive = isFilterActive, onClick = onFilter)
+            OverflowMenu(onSelect = onSelect, onResetCounter = onResetCounter, onClearAll = onClearAll)
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
+    )
+}
+
+@Composable
+private fun FilterButton(isActive: Boolean, onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        content = {
+            BadgedBox(
+                badge = {
+                    if (isActive) {
+                        // Neutral, not the default error red: an active filter isn't a problem.
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = MaterialTheme.colorScheme.surface,
+                            // The icon's description already says a filter is on.
+                            content = { Text("1", modifier = Modifier.clearAndSetSemantics {}) }
+                        )
+                    }
+                },
+                content = {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = when (isActive) {
+                            true -> stringResource(R.string.filter_active)
+                            else -> stringResource(R.string.filter)
+                        }
+                    )
+                }
+            )
+        }
+    )
+}
+
+@Composable
+private fun OverflowMenu(
+    onSelect: () -> Unit,
+    onResetCounter: () -> Unit,
+    onClearAll: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(
+        content = {
+            IconButton(
+                onClick = { expanded = true },
+                content = {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.more_options)
+                    )
+                }
+            )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                content = {
+                    listOf(
+                        R.string.select_matches to onSelect,
+                        R.string.reset_counter to onResetCounter,
+                        R.string.clear_all_matches to onClearAll,
+                    ).forEach { (label, onClick) ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(label)) },
+                            onClick = {
+                                expanded = false
+                                onClick()
+                            }
+                        )
+                    }
+                }
+            )
+        }
     )
 }
 
@@ -137,20 +209,12 @@ private fun TitleContent(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         content = {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center,
-                content = {
-                    Icon(
-                        painter = painterResource(R.drawable.logo),
-                        contentDescription = stringResource(R.string.keyguarde_logo),
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+            // Decorative: the app name right after says the same thing.
+            Icon(
+                painter = painterResource(R.drawable.logo),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurface
             )
             Text(text = stringResource(R.string.app_name))
         }
@@ -243,6 +307,10 @@ private fun HomeTopAppBarPreview() = AppTheme {
     HomeTopAppBar(
         searchQuery = query,
         onSearchQueryChange = { query = it },
-        onSettings = {}
+        isFilterActive = true,
+        onFilter = {},
+        onSelect = {},
+        onResetCounter = {},
+        onClearAll = {},
     )
 }

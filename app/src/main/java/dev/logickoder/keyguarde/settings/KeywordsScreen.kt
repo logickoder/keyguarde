@@ -30,7 +30,6 @@ import kotlinx.collections.immutable.persistentListOf
 @Composable
 fun KeywordsScreen(
     modifier: Modifier = Modifier,
-    onBack: () -> Unit,
 ) {
     val viewModel = viewModel<KeywordsViewModel>(
         factory = KeywordsViewModel.factory(LocalContext.current)
@@ -40,7 +39,6 @@ fun KeywordsScreen(
     KeywordsContent(
         modifier = modifier,
         state = state,
-        onBack = onBack,
         onAction = viewModel::onAction,
     )
 }
@@ -49,14 +47,13 @@ fun KeywordsScreen(
 @Composable
 private fun KeywordsContent(
     state: KeywordsState,
-    onBack: () -> Unit,
     onAction: (KeywordsAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar(stringResource(R.string.keyword_filters), onBack)
+            SettingsTopBar(stringResource(R.string.tab_keywords))
         },
         content = { paddingValues ->
             AnimatedContent(
@@ -102,7 +99,8 @@ private fun KeywordsContent(
                         else ->
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp),
+                                // Bottom room so the FAB never covers the last keyword.
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                                 content = {
                                     items(
                                         state.keywords.size,
@@ -126,7 +124,9 @@ private fun KeywordsContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onAction(KeywordsAction.OpenDialog()) },
-                containerColor = MaterialTheme.colorScheme.primary,
+                // Neutral fill: teal stays reserved for matched keywords.
+                containerColor = MaterialTheme.colorScheme.onSurface,
+                contentColor = MaterialTheme.colorScheme.surface,
                 content = {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -153,7 +153,6 @@ private fun KeywordsContentPreview() = AppTheme {
         state = KeywordsState(
             keywords = persistentListOf(Keyword(word = "urgent"), Keyword(word = "meeting")),
         ),
-        onBack = {},
         onAction = {},
     )
 }

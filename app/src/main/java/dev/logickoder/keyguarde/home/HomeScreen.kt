@@ -1,17 +1,23 @@
 package dev.logickoder.keyguarde.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,15 +41,15 @@ import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.components.ToastType
 import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.home.components.ClearAllDialog
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
-import dev.logickoder.keyguarde.home.components.FilterChips
-import dev.logickoder.keyguarde.home.components.HomeHeader
 import dev.logickoder.keyguarde.home.components.HomeTopAppBar
-import dev.logickoder.keyguarde.home.components.KeywordDialog
+import dev.logickoder.keyguarde.home.components.MatchFilterSheet
 import dev.logickoder.keyguarde.home.components.MatchRow
 import dev.logickoder.keyguarde.home.components.MatchRowDivider
-import dev.logickoder.keyguarde.home.components.MatchSummaryCard
 import dev.logickoder.keyguarde.home.components.NewSinceLastVisitHeader
+import dev.logickoder.keyguarde.home.components.SelectionTopBar
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
@@ -52,16 +57,14 @@ import dev.logickoder.keyguarde.home.domain.MatchListItem
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
-fun HomeScreen(
-    modifier: Modifier = Modifier,
-    onSettings: () -> Unit,
-) {
+fun HomeScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val toastManager = LocalToastManager.current
     val viewModel = viewModel<HomeViewModel>(factory = HomeViewModel.factory(context))
     val state by viewModel.state.collectAsStateWithLifecycle()
     val matches = viewModel.matches.collectAsLazyPagingItems()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LifecycleEventEffect(Lifecycle.Event.ON_START) {
         viewModel.onAction(HomeAction.RefreshLastVisit)
@@ -69,32 +72,39 @@ fun HomeScreen(
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
-            when (effect) {
-                is HomeEffect.MatchesDeleted -> toastManager.show(
-                    message = resources.getQuantityString(
-                        R.plurals.deleted_match,
-                        effect.count,
-                        effect.count,
-                    ),
-                    type = ToastType.Success
+            val undoMessage = when (effect) {
+                is HomeEffect.MatchesDeleted -> resources.getQuantityString(
+                    R.plurals.deleted_match,
+                    effect.count,
+                    effect.count,
                 )
 
-                is HomeEffect.MatchesCleared -> toastManager.show(
-                    message = resources.getQuantityString(
-                        R.plurals.cleared_match,
-                        effect.count,
-                        effect.count,
-                    ),
-                    type = ToastType.Success
+                is HomeEffect.MatchesCleared -> resources.getQuantityString(
+                    R.plurals.cleared_match,
+                    effect.count,
+                    effect.count,
                 )
 
-                is HomeEffect.OpenInAppFailed -> toastManager.show(
-                    message = resources.getString(
-                        R.string.open_in_app_failed,
-                        effect.reason ?: resources.getString(R.string.unknown_error),
-                    ),
-                    type = ToastType.Error
+                is HomeEffect.OpenInAppFailed -> {
+                    toastManager.show(
+                        message = resources.getString(
+                            R.string.open_in_app_failed,
+                            effect.reason ?: resources.getString(R.string.unknown_error),
+                        ),
+                        type = ToastType.Error
+                    )
+                    null
+                }
+            }
+            if (undoMessage != null) {
+                val result = snackbarHostState.showSnackbar(
+                    message = undoMessage,
+                    actionLabel = resources.getString(R.string.undo),
+                    duration = SnackbarDuration.Long,
                 )
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.onAction(HomeAction.UndoDelete)
+                }
             }
         }
     }
@@ -104,7 +114,7 @@ fun HomeScreen(
         state = state,
         query = viewModel.query,
         matches = matches,
-        onSettings = onSettings,
+        snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
     )
 }
@@ -114,19 +124,71 @@ private fun HomeContent(
     state: HomeState,
     query: String,
     matches: LazyPagingItems<MatchListItem>,
-    onSettings: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val appsByPackage = remember(state.watchedApps) { state.watchedApps.associateBy { it.packageName } }
 
+    BackHandler(enabled = state.isSelectionMode) {
+        onAction(HomeAction.ExitSelection)
+    }
+
     Scaffold(
         modifier = modifier,
         topBar = {
-            HomeTopAppBar(
-                searchQuery = query,
-                onSearchQueryChange = { onAction(HomeAction.SearchQueryChanged(it)) },
-                onSettings = onSettings
+            when (state.isSelectionMode) {
+                true -> SelectionTopBar(
+                    selectedCount = state.selectedMatches.size,
+                    onExit = { onAction(HomeAction.ExitSelection) },
+                    onSelectAll = {
+                        onAction(
+                            HomeAction.SelectVisibleMatches(
+                                matches.itemSnapshotList.items
+                                    .filterIsInstance<MatchListItem.Match>()
+                                    .map { it.match.id }
+                            )
+                        )
+                    },
+                    onDelete = { onAction(HomeAction.DeleteSelectedMatches) },
+                )
+
+                else -> Column(
+                    content = {
+                        HomeTopAppBar(
+                            searchQuery = query,
+                            onSearchQueryChange = { onAction(HomeAction.SearchQueryChanged(it)) },
+                            isFilterActive = state.filter != null,
+                            onFilter = { onAction(HomeAction.ShowFilterSheet) },
+                            onSelect = { onAction(HomeAction.StartSelection) },
+                            onResetCounter = { onAction(HomeAction.ResetCount) },
+                            onClearAll = { onAction(HomeAction.ShowClearAllConfirm) },
+                        )
+                        state.filter?.let { app ->
+                            InputChip(
+                                selected = true,
+                                onClick = { onAction(HomeAction.FilterChanged(null)) },
+                                label = { Text(stringResource(R.string.filtered_by, app.name)) },
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.clear_filter),
+                                    )
+                                },
+                                modifier = Modifier.padding(horizontal = Spacing.l),
+                            )
+                        }
+                    }
+                )
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { data ->
+                    // The default action colour is teal (inversePrimary); keep it neutral.
+                    Snackbar(snackbarData = data, actionColor = MaterialTheme.colorScheme.inverseOnSurface)
+                }
             )
         },
         content = { scaffoldPadding ->
@@ -134,56 +196,14 @@ private fun HomeContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding),
-                contentPadding = PaddingValues(bottom = 80.dp),
                 content = {
                     item {
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
                             content = {
                                 NotificationPermissionBanner()
                                 NotificationListenerBanner()
                             }
-                        )
-                    }
-
-                    item {
-                        MatchSummaryCard(
-                            matchCount = state.recentCount,
-                            onResetClick = { onAction(HomeAction.ResetCount) }
-                        )
-                    }
-
-                    item {
-                        FilterChips(
-                            selected = state.filter,
-                            apps = state.watchedApps,
-                            onSelected = { onAction(HomeAction.FilterChanged(it)) }
-                        )
-                    }
-
-                    item {
-                        HomeHeader(
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .animateItem(),
-                            hasMatches = matches.itemCount > 0,
-                            selectedMatchesSize = when (state.isSelectionMode) {
-                                true -> state.selectedMatches.size
-                                else -> null
-                            },
-                            toggleSelectionMode = { onAction(HomeAction.ToggleSelectionMode) },
-                            clearAllMatches = { onAction(HomeAction.ClearAllMatches) },
-                            selectVisibleMatches = {
-                                onAction(
-                                    HomeAction.SelectVisibleMatches(
-                                        matches.itemSnapshotList.items
-                                            .filterIsInstance<MatchListItem.Match>()
-                                            .map { it.match.id }
-                                    )
-                                )
-                            },
-                            clearSelection = { onAction(HomeAction.ClearSelection) },
-                            deleteSelectedMatches = { onAction(HomeAction.DeleteSelectedMatches) },
                         )
                     }
 
@@ -226,6 +246,12 @@ private fun HomeContent(
                                                         )
                                                     }
                                                 },
+                                                onLongClick = {
+                                                    when (state.isSelectionMode) {
+                                                        true -> onAction(HomeAction.ToggleMatchSelection(item.match.id))
+                                                        else -> onAction(HomeAction.StartSelectionWith(item.match.id))
+                                                    }
+                                                },
                                             )
                                             MatchRowDivider()
                                         }
@@ -237,26 +263,22 @@ private fun HomeContent(
                 }
             )
 
-            if (state.isKeywordDialogVisible) {
-                KeywordDialog(
-                    onDismiss = { onAction(HomeAction.ToggleKeywordDialog) },
-                    onSave = { onAction(HomeAction.SaveKeyword(it)) }
+            if (state.isFilterSheetVisible) {
+                MatchFilterSheet(
+                    apps = state.watchedApps,
+                    selected = state.filter,
+                    onSelect = { onAction(HomeAction.FilterChanged(it)) },
+                    onDismiss = { onAction(HomeAction.DismissFilterSheet) },
+                )
+            }
+
+            if (state.isClearAllConfirmVisible) {
+                ClearAllDialog(
+                    onConfirm = { onAction(HomeAction.ClearAllMatches) },
+                    onDismiss = { onAction(HomeAction.DismissClearAllConfirm) },
                 )
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onAction(HomeAction.ToggleKeywordDialog) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                content = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add_keyword),
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            )
-        }
     )
 }
 
@@ -264,10 +286,10 @@ private fun HomeContent(
 @Composable
 private fun HomeContentPreview() = AppTheme {
     HomeContent(
-        state = HomeState(recentCount = 3),
+        state = HomeState(),
         query = "",
         matches = flowOf(PagingData.empty<MatchListItem>()).collectAsLazyPagingItems(),
-        onSettings = {},
+        snackbarHostState = remember { SnackbarHostState() },
         onAction = {},
     )
 }

@@ -9,10 +9,10 @@ import kotlinx.collections.immutable.persistentSetOf
 data class HomeState(
     val filter: WatchedApp? = null,
     val watchedApps: ImmutableList<WatchedApp> = persistentListOf(),
-    val recentCount: Int = 0,
     val newSinceLastVisit: Int = 0,
     val openableMatchIds: ImmutableSet<Long> = persistentSetOf(),
-    val isKeywordDialogVisible: Boolean = false,
+    val isFilterSheetVisible: Boolean = false,
+    val isClearAllConfirmVisible: Boolean = false,
     val isSelectionMode: Boolean = false,
     val selectedMatches: ImmutableSet<Long> = persistentSetOf(),
 )

@@ -11,7 +11,6 @@ import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -30,13 +29,12 @@ import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    onBack: () -> Unit,
     onNavigate: (SettingsRoute) -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar(stringResource(R.string.settings), onBack)
+            SettingsTopBar(stringResource(R.string.settings))
         },
         content = { scaffoldPadding ->
             LazyColumn(
@@ -45,17 +43,6 @@ fun SettingsScreen(
                     .padding(scaffoldPadding),
                 contentPadding = PaddingValues(vertical = 8.dp),
                 content = {
-                    item {
-                        SettingsCategory(
-                            title = stringResource(R.string.keyword_filters),
-                            icon = Icons.Rounded.TextFields,
-                            description = stringResource(R.string.keyword_filters_desc),
-                            onClick = {
-                                onNavigate(SettingsRoute.Keywords)
-                            }
-                        )
-                    }
-
                     item {
                         SettingsCategory(
                             title = stringResource(R.string.watched_apps),
@@ -131,7 +118,6 @@ fun SettingsScreen(
 @Composable
 private fun SettingsScreenPreview() = AppTheme {
     SettingsScreen(
-        onBack = {},
         onNavigate = {}
     )
 }

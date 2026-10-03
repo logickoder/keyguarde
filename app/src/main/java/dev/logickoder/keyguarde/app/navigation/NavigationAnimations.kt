@@ -2,8 +2,6 @@ package dev.logickoder.keyguarde.app.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.EaseInCubic
-import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -42,30 +40,6 @@ object NavigationAnimations {
             targetOffsetX = { it },
             animationSpec = tween(300)
         ) + fadeOut(animationSpec = tween(300))
-    }
-
-    val mainTransition: SceneTransition = {
-        fadeIn(animationSpec = tween(300)) +
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseOutCubic)
-                ) togetherWith fadeOut(animationSpec = tween(300)) +
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInCubic)
-                )
-    }
-
-    val mainPopTransition: SceneTransition = {
-        fadeIn(animationSpec = tween(300)) +
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseOutCubic)
-                ) togetherWith fadeOut(animationSpec = tween(300)) +
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInCubic)
-                )
     }
 
     val settingsTransition: SceneTransition = {

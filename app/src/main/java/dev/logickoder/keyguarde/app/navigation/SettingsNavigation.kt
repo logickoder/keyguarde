@@ -14,7 +14,6 @@ import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsTran
 import dev.logickoder.keyguarde.settings.BatterySettingsScreen
 import dev.logickoder.keyguarde.settings.ContactScreen
 import dev.logickoder.keyguarde.settings.FaqScreen
-import dev.logickoder.keyguarde.settings.KeywordsScreen
 import dev.logickoder.keyguarde.settings.NotificationSettingsScreen
 import dev.logickoder.keyguarde.settings.PrivacySettingsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
@@ -24,7 +23,6 @@ import kotlinx.serialization.Serializable
 @Composable
 fun SettingsNavigation(
     modifier: Modifier = Modifier,
-    onBack: () -> Unit,
 ) {
     val backStack = rememberNavBackStack(SettingsRoute.Main)
 
@@ -47,16 +45,9 @@ fun SettingsNavigation(
         entryProvider = entryProvider {
             entry<SettingsRoute.Main> {
                 SettingsScreen(
-                    onBack = onBack,
                     onNavigate = {
                         backStack.add(it)
                     },
-                )
-            }
-
-            entry<SettingsRoute.Keywords> {
-                KeywordsScreen(
-                    onBack = goBack,
                 )
             }
 
@@ -102,9 +93,6 @@ fun SettingsNavigation(
 sealed interface SettingsRoute : NavKey {
     @Serializable
     data object Main : SettingsRoute
-
-    @Serializable
-    data object Keywords : SettingsRoute
 
     @Serializable
     data object Apps : SettingsRoute

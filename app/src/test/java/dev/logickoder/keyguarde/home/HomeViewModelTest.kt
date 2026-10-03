@@ -5,7 +5,10 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.home.domain.HomeAction
+import io.mockk.Runs
+import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -31,8 +34,9 @@ class HomeViewModelTest {
 
     private val repository = mockk<AppRepository> {
         every { watchedApps } returns flowOf(listOf(app1, app2))
-        every { recentMatchCount } returns flowOf(0)
         every { lastVisitAt } returns flowOf(null)
+        every { matchesFilter } returns flowOf(null)
+        coEvery { saveMatchesFilter(any()) } just Runs
         every { getMatches(any(), any()) } returns flowOf(PagingData.empty())
     }
 
