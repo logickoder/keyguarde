@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -110,7 +111,7 @@ fun HomeScreen(
 
                         else -> items(
                             matches.itemCount,
-                            key = { index -> matches[index]?.id ?: 0L },
+                            key = matches.itemKey { it.id },
                             itemContent = {
                                 matches[it]?.let { match ->
                                     MatchItem(
