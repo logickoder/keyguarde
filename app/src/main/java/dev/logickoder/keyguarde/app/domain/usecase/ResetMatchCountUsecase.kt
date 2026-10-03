@@ -6,13 +6,16 @@ import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.settings.SettingsRepository
 import kotlinx.coroutines.flow.first
 
-object ResetMatchCountUsecase {
-    suspend operator fun invoke(context: Context) {
-        val repository = AppRepository.getInstance(context)
+class ResetMatchCountUsecase(
+    private val context: Context,
+    private val repository: AppRepository,
+    private val settings: SettingsRepository,
+) {
+    suspend operator fun invoke() {
         repository.updateRecentMatchCount(0)
         repository.updateRecentChats(emptySet())
 
-        if (SettingsRepository.getInstance(context).usePersistentSilentNotification.first()) {
+        if (settings.usePersistentSilentNotification.first()) {
             NotificationHelper.showPersistentNotification(
                 context,
                 0,

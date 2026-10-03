@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.container
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.onboarding.domain.saveIconToFile
@@ -24,7 +24,7 @@ class WatchedAppsState(
     private val context: Context,
     private val scope: CoroutineScope,
 ) {
-    private val repository = AppRepository.getInstance(context)
+    private val repository = context.container.appRepository
 
     val apps = flow {
         emit(repository.getInstalledApps())

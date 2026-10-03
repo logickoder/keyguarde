@@ -42,34 +42,24 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun keywordMatchDao(): KeywordMatchDao
 
     companion object {
-        @Volatile
-        private var instance: AppDatabase? = null
-
-        fun getInstance(context: Context): AppDatabase {
-            return instance ?: synchronized(this) {
-                instance = buildDatabase(context)
-                instance!!
-            }
-        }
-
-        private fun buildDatabase(context: Context): AppDatabase {
+        fun build(context: Context): AppDatabase {
+            lateinit var database: AppDatabase
             val callback = object : Callback() {
                 override suspend fun onCreate(connection: SQLiteConnection) {
                     super.onCreate(connection)
-                    val db = instance
-                    if (db == null || !BuildConfig.DEBUG) {
+                    if (!BuildConfig.DEBUG) {
                         return
                     }
                     AppScope.launch(Dispatchers.IO) {
                         PrepopulateDatabaseUsecase(
-                            keywordDao = db.keywordDao(),
-                            watchedAppDao = db.watchedAppDao(),
-                            keywordMatchDao = db.keywordMatchDao(),
+                            keywordDao = database.keywordDao(),
+                            watchedAppDao = database.watchedAppDao(),
+                            keywordMatchDao = database.keywordMatchDao(),
                         )()
                     }
                 }
             }
-            return Room.databaseBuilder(
+            database = Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 "${BuildConfig.APPLICATION_ID}.db"
@@ -78,6 +68,7 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_1_2)
                 .addCallback(callback)
                 .build()
+            return database
         }
     }
 }

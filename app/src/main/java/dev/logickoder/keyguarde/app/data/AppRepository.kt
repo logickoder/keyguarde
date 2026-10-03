@@ -13,7 +13,6 @@ import androidx.paging.PagingData
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
-import dev.logickoder.keyguarde.app.domain.SingletonCompanion
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -23,11 +22,11 @@ import kotlinx.coroutines.flow.map
  * This class acts as a single source of truth for accessing and managing data
  * from both the local database (Room) and the local store (DataStore).
  */
-class AppRepository(private val context: Context) {
-
-    private val localStore = AppStore.getInstance(context)
-
-    private val database = AppDatabase.getInstance(context)
+class AppRepository(
+    private val context: Context,
+    private val localStore: AppStore,
+    private val database: AppDatabase,
+) {
 
     /**
      * Check if the onboarding process is complete.
@@ -230,9 +229,7 @@ class AppRepository(private val context: Context) {
         localStore.save(RECENT_CHATS, chats)
     }
 
-    companion object : SingletonCompanion<AppRepository, Context>() {
-        override fun createInstance(dependency: Context) = AppRepository(dependency)
-
+    companion object {
         // Key for storing onboarding completion status in DataStore
         private val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
 

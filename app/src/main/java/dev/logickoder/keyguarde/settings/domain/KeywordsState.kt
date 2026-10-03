@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.container
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -22,7 +22,7 @@ class KeywordsState(
     context: Context,
     private val scope: CoroutineScope,
 ) {
-    private val repository = AppRepository.getInstance(context)
+    private val repository = context.container.appRepository
 
     var edit by mutableStateOf<Keyword?>(null)
         private set

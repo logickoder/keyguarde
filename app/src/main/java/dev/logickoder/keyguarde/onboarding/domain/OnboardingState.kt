@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
+import dev.logickoder.keyguarde.app.container
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
@@ -36,7 +37,7 @@ class OnboardingState(
     private val scope: CoroutineScope,
     private val onDone: () -> Unit,
 ) {
-    private val repository = AppRepository.getInstance(context)
+    private val repository = context.container.appRepository
 
     val currentScreen = snapshotFlow {
         backStack.lastOrNull() as? OnboardingPage ?: OnboardingPage.Welcome

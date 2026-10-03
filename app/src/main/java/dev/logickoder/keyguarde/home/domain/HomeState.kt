@@ -19,11 +19,10 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.ToastType
-import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.container
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
-import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -44,7 +43,7 @@ class HomeState(
     private val toastManager: ToastManager,
     inPreview: Boolean,
 ) {
-    private val repository = AppRepository.getInstance(context)
+    private val repository = context.container.appRepository
 
     var filter by mutableStateOf<WatchedApp?>(null)
         private set
@@ -151,7 +150,7 @@ class HomeState(
 
     fun resetCount() {
         scope.launch {
-            ResetMatchCountUsecase(context)
+            context.container.resetMatchCount()
         }
     }
 

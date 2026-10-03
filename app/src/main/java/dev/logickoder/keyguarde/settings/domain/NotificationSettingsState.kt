@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import dev.logickoder.keyguarde.app.container
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -17,7 +17,7 @@ class NotificationSettingState(
     private val context: Context,
     private val scope: CoroutineScope,
 ) {
-    private val repository = SettingsRepository.getInstance(context)
+    private val repository = context.container.settingsRepository
 
     val usePersistentSilentNotification = repository.usePersistentSilentNotification.stateIn(
         scope = scope,

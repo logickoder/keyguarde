@@ -28,7 +28,7 @@ import androidx.core.graphics.drawable.toBitmap
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.MainActivity
 import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
+import dev.logickoder.keyguarde.app.container
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
@@ -260,7 +260,7 @@ object NotificationHelper {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action == ACTION_RESET_COUNT) {
                     AppScope.launch {
-                        ResetMatchCountUsecase(context)
+                        context.container.resetMatchCount()
                     }
                 }
             }
