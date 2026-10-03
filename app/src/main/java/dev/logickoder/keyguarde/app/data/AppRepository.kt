@@ -170,6 +170,8 @@ class AppRepository(
      */
     suspend fun deleteWatchedApp(packageName: String) {
         database.watchedAppDao().delete(packageName)
+        // Matches cascade with the app, so its cached avatars go too.
+        deleteChatAvatars(context, packageName)
     }
 
     /**
@@ -229,7 +231,9 @@ class AppRepository(
      * @return The number of rows deleted.
      */
     suspend fun clearMatches(): Int {
-        return database.keywordMatchDao().clear()
+        return database.keywordMatchDao().clear().also {
+            deleteChatAvatars(context)
+        }
     }
 
     /**

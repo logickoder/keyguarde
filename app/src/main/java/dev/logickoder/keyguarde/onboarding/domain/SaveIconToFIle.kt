@@ -24,19 +24,23 @@ fun saveIconToFile(icon: Drawable, packageName: String, context: Context): Strin
 
 /**
  * Writes this drawable to [file] as WebP, creating parent folders. Shared by app icons and chat
- * avatars so both use one format.
+ * avatars so both use one format. With [maxSizePx], the image is redrawn no larger than that on
+ * either side, whatever size the source claims.
  */
-internal fun Drawable.writeWebp(file: File) {
+internal fun Drawable.writeWebp(file: File, maxSizePx: Int? = null) {
     file.parentFile?.mkdirs()
 
     val bitmap = run {
-        if (this is BitmapDrawable && bitmap != null) {
+        if (maxSizePx == null && this is BitmapDrawable && bitmap != null) {
             return@run bitmap
         }
 
+        val width = intrinsicWidth.coerceAtLeast(1)
+        val height = intrinsicHeight.coerceAtLeast(1)
+        val scale = maxSizePx?.let { minOf(1f, it.toFloat() / maxOf(width, height)) } ?: 1f
         val bitmap = createBitmap(
-            intrinsicWidth.coerceAtLeast(1),
-            intrinsicHeight.coerceAtLeast(1)
+            (width * scale).toInt().coerceAtLeast(1),
+            (height * scale).toInt().coerceAtLeast(1)
         )
 
         val canvas = Canvas(bitmap)
