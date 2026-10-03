@@ -150,12 +150,12 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="py-20 bg-gradient-to-br from-primary-container to-secondary-container">
+      <section className="py-20 bg-linear-to-br from-primary-container to-secondary-container">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-on-background">
             Smart Chat Alerts
           </h1>
-          <p className="text-xl md:text-2xl text-muted max-w-4xl mx-auto mb-10 leading-relaxed">
+          <p className="text-xl md:text-2xl text-muted max-w-4xl mx-auto mb-10 leading-relaxed md:leading-8">
             Filter noisy chat notifications and get alerted only when keywords that matter to you
             appear. All processing happens locally on your device.
           </p>
@@ -297,7 +297,7 @@ export default function HomePage() {
 
       <section
         id="download"
-        className="py-20 bg-gradient-to-br from-primary to-blue-600 text-on-primary"
+        className="py-20 bg-linear-to-br from-primary to-blue-600 text-on-primary"
       >
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6">Get Keyguarde Today</h2>

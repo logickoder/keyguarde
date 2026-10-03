@@ -41,7 +41,7 @@ export default function ContactPage() {
   return (
     <div className="bg-background min-h-screen font-sans text-on-background">
       {/* Contact Header */}
-      <section className="py-20 bg-gradient-to-br from-primary-container to-secondary-container">
+      <section className="py-20 bg-linear-to-br from-primary-container to-secondary-container">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl font-bold mb-6 text-on-background">Get In Touch</h1>
           <p className="text-xl text-muted max-w-3xl mx-auto leading-relaxed">
@@ -107,19 +107,19 @@ export default function ContactPage() {
                   </p>
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                      <Check size={18} className="text-success mr-3 mt-0.5 flex-shrink-0" />
+                      <Check size={18} className="text-success mr-3 mt-0.5 shrink-0" />
                       <span className="text-on-surface">
                         Please include details about your device model and Android version
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check size={18} className="text-success mr-3 mt-0.5 flex-shrink-0" />
+                      <Check size={18} className="text-success mr-3 mt-0.5 shrink-0" />
                       <span className="text-on-surface">
                         Screenshots of any issues help me diagnose problems faster
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check size={18} className="text-success mr-3 mt-0.5 flex-shrink-0" />
+                      <Check size={18} className="text-success mr-3 mt-0.5 shrink-0" />
                       <span className="text-on-surface">
                         For bug reports, using the GitHub issue tracker is preferred
                       </span>
@@ -133,19 +133,19 @@ export default function ContactPage() {
                   </p>
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                      <Check size={18} className="text-secondary mr-3 mt-0.5 flex-shrink-0" />
+                      <Check size={18} className="text-secondary mr-3 mt-0.5 shrink-0" />
                       <span className="text-on-surface">
                         Describe the problem you&#39;re trying to solve
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check size={18} className="text-secondary mr-3 mt-0.5 flex-shrink-0" />
+                      <Check size={18} className="text-secondary mr-3 mt-0.5 shrink-0" />
                       <span className="text-on-surface">
                         Explain how your suggested feature would work
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <Check size={18} className="text-secondary mr-3 mt-0.5 flex-shrink-0" />
+                      <Check size={18} className="text-secondary mr-3 mt-0.5 shrink-0" />
                       <span className="text-on-surface">
                         Consider opening a feature request on GitHub
                       </span>
@@ -266,7 +266,7 @@ export default function ContactPage() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-br from-secondary-container to-primary-container">
+      <section className="py-20 bg-linear-to-br from-secondary-container to-primary-container">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6 text-on-background">
             Join the Keyguarde Community

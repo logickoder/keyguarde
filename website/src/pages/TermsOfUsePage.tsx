@@ -2,7 +2,7 @@ export default function TermsOfUsePage() {
   return (
     <div className="bg-background min-h-screen font-sans text-on-background">
       {/* Header */}
-      <section className="py-16 bg-gradient-to-br from-primary-container to-secondary-container">
+      <section className="py-16 bg-linear-to-br from-primary-container to-secondary-container">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-4 text-on-background">Terms of Use</h1>
           <p className="text-lg text-muted max-w-2xl mx-auto">
@@ -27,8 +27,8 @@ export default function TermsOfUsePage() {
                 </h2>
                 <div className="bg-primary-container p-6 rounded-xl mb-8">
                   <p className="text-on-surface">
-                    By downloading, installing, or using the Keyguarde application ("App"), you
-                    agree to be bound by these Terms of Use ("Terms"). If you do not agree to these
+                    By downloading, installing, or using the Keyguarde application (“App”), you
+                    agree to be bound by these Terms of Use (“Terms”). If you do not agree to these
                     Terms, do not use the App.
                   </p>
                 </div>
@@ -71,7 +71,7 @@ export default function TermsOfUsePage() {
                   <ul className="list-disc pl-6 space-y-2 text-on-surface">
                     <li>Use the App for any illegal purpose</li>
                     <li>Attempt to reverse engineer, decompile, or disassemble the App</li>
-                    <li>Use the App to infringe on others' privacy</li>
+                    <li>Use the App to infringe on others’ privacy</li>
                     <li>
                       Use the App to monitor communications without proper consent where required by
                       law
@@ -145,7 +145,7 @@ export default function TermsOfUsePage() {
                   Limitation of Liability
                 </h3>
                 <p className="mb-8">
-                  The App is provided "as is" without warranties of any kind. I shall not be liable
+                  The App is provided “as is” without warranties of any kind. I shall not be liable
                   for any damages arising from the use or inability to use the App.
                 </p>
 

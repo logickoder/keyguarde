@@ -2,7 +2,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="bg-background min-h-screen font-sans text-on-background">
       {/* Header */}
-      <section className="py-16 bg-gradient-to-br from-primary-container to-secondary-container">
+      <section className="py-16 bg-linear-to-br from-primary-container to-secondary-container">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-4 text-on-background">Privacy Policy</h1>
           <p className="text-lg text-muted max-w-2xl mx-auto">

@@ -7,7 +7,7 @@ export default function Navbar() {
   const handleClick = useSmoothScroll('/');
 
   return (
-    <nav className="bg-surface shadow-sm">
+    <nav className="bg-surface shadow-xs">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center">
           <ReactSVG src={Logo} className="text-primary h-6 w-6 mr-2" />
