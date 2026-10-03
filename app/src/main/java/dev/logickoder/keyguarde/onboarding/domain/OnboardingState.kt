@@ -8,9 +8,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberNavBackStack
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
@@ -24,22 +26,20 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class OnboardingState(
     private val context: Context,
-    val controller: NavHostController,
+    val backStack: NavBackStack<NavKey>,
     private val scope: CoroutineScope,
     private val onDone: () -> Unit,
 ) {
     private val repository = AppRepository.getInstance(context)
 
-    val currentScreen = controller.currentBackStackEntryFlow.map { entry ->
-        OnboardingPage.entries.firstOrNull { it.name == entry.destination.route }
-            ?: OnboardingPage.Welcome
+    val currentScreen = snapshotFlow {
+        backStack.lastOrNull() as? OnboardingPage ?: OnboardingPage.Welcome
     }.stateIn(
         scope = scope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -124,11 +124,11 @@ class OnboardingState(
 fun rememberOnboardingState(onDone: () -> Unit): OnboardingState {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val controller = rememberNavController()
+    val backStack = rememberNavBackStack(OnboardingPage.Welcome)
     return remember {
         OnboardingState(
             context = context,
-            controller = controller,
+            backStack = backStack,
             scope = scope,
             onDone = onDone,
         )

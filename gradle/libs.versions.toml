@@ -3,6 +3,7 @@ agp = "9.4.1"
 compose = "2026.09.00"
 firebase = "34.19.0"
 kotlin = "2.4.20"
+navigation3 = "1.2.0"
 paging = "3.5.1"
 room3 = "3.0.3"
 
@@ -25,7 +26,6 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-androidx-navigation = "androidx.navigation:navigation-compose:2.10.2"
 # Coil
 coil = "io.coil-kt.coil3:coil-compose:3.6.3"
 # Datastore
@@ -41,6 +41,9 @@ junit = "junit:junit:4.13.2"
 kotlin-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.2"
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-serialization = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"
+# Navigation 3
+navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
+navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 # Napier
 napier = "io.github.aakira:napier:2.7.1"
 # Paging
@@ -61,7 +64,6 @@ firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.
 firebase-performance = { id = "com.google.firebase.firebase-perf", version = "2.0.2" }
 gms = { id = "com.google.gms.google-services", version = "4.5.0" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version = "2.3.12" }
 room3 = { id = "androidx.room3", version.ref = "room3" }

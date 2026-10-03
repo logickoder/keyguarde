@@ -1,12 +1,10 @@
 package dev.logickoder.keyguarde.onboarding.domain
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-@Parcelize
 @Serializable
-enum class OnboardingPage : Parcelable {
+enum class OnboardingPage : NavKey {
     Welcome,
     HowItWorks,
     Permissions,

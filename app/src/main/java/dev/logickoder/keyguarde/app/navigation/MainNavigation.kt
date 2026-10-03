@@ -1,63 +1,50 @@
 package dev.logickoder.keyguarde.app.navigation
 
-import android.os.Parcelable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import dev.logickoder.keyguarde.app.components.BannerAd
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.mainEnterTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.mainExitTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.mainPopEnterTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.mainPopExitTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.mainPopTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.mainTransition
 import dev.logickoder.keyguarde.home.HomeScreen
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 @Composable
 fun MainNavigation(modifier: Modifier = Modifier) {
-    val navController = rememberNavController()
+    val backStack = rememberNavBackStack(MainRoute.Home)
 
     Column(
         modifier = modifier,
         content = {
-            NavHost(
+            NavDisplay(
                 modifier = Modifier.weight(1f),
-                navController = navController,
-                startDestination = MainRoute.Home,
-                builder = {
-                    composable<MainRoute.Home>(
-                        enterTransition = mainPopEnterTransition,
-                        exitTransition = mainExitTransition,
-                        popEnterTransition = mainPopEnterTransition,
-                        popExitTransition = mainPopExitTransition,
-                        content = {
-                            HomeScreen(
-                                onSettings = {
-                                    navController.navigate(MainRoute.Settings)
-                                }
-                            )
-                        }
-                    )
+                backStack = backStack,
+                transitionSpec = mainTransition,
+                popTransitionSpec = mainPopTransition,
+                predictivePopTransitionSpec = { mainPopTransition() },
+                entryProvider = entryProvider {
+                    entry<MainRoute.Home> {
+                        HomeScreen(
+                            onSettings = {
+                                backStack.add(MainRoute.Settings)
+                            }
+                        )
+                    }
 
-                    composable<MainRoute.Settings>(
-                        enterTransition = mainEnterTransition,
-                        exitTransition = mainPopExitTransition,
-                        popEnterTransition = null,
-                        popExitTransition = null,
-                        content = {
-                            SettingsNavigation(
-                                onBack = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-                    )
+                    entry<MainRoute.Settings> {
+                        SettingsNavigation(
+                            onBack = {
+                                backStack.removeLastOrNull()
+                            }
+                        )
+                    }
                 }
             )
 
@@ -66,12 +53,10 @@ fun MainNavigation(modifier: Modifier = Modifier) {
     )
 }
 
-sealed interface MainRoute : Parcelable {
+sealed interface MainRoute : NavKey {
     @Serializable
-    @Parcelize
     data object Home : MainRoute
 
     @Serializable
-    @Parcelize
     data object Settings : MainRoute
 }

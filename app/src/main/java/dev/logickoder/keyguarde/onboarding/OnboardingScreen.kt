@@ -1,6 +1,5 @@
 package dev.logickoder.keyguarde.onboarding
 
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -11,13 +10,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingEnterTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingExitTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingWelcomeEnterTransition
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingPopTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingTransition
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
@@ -41,41 +37,31 @@ fun OnboardingScreen(
     Scaffold(
         modifier = modifier,
         content = { innerPadding ->
-            NavHost(
-                state.controller,
-                startDestination = OnboardingPage.Welcome.name,
+            NavDisplay(
                 modifier = Modifier.padding(innerPadding),
-                builder = {
-                    screen(OnboardingPage.Welcome) {
-                        WelcomePage()
-                    }
+                backStack = state.backStack,
+                transitionSpec = onboardingTransition,
+                popTransitionSpec = onboardingPopTransition,
+                predictivePopTransitionSpec = { onboardingPopTransition() },
+                entryProvider = entryProvider {
+                    entry<OnboardingPage> { page ->
+                        when (page) {
+                            OnboardingPage.Welcome -> WelcomePage()
+                            OnboardingPage.HowItWorks -> HowItWorksPage()
+                            OnboardingPage.Permissions -> PermissionsPage(state.permissionGranted)
+                            OnboardingPage.AppSelection -> AppSelectionPage(
+                                apps = remember(state.apps) {
+                                    state.apps.toImmutableList()
+                                },
+                                state.selectedApps
+                            )
 
-                    screen(OnboardingPage.HowItWorks) {
-                        HowItWorksPage()
-                    }
-
-                    screen(OnboardingPage.Permissions) {
-                        PermissionsPage(state.permissionGranted)
-                    }
-
-                    screen(OnboardingPage.AppSelection) {
-                        AppSelectionPage(
-                            apps = remember(state.apps) {
-                                state.apps.toImmutableList()
-                            },
-                            state.selectedApps
-                        )
-                    }
-
-                    screen(OnboardingPage.KeywordSetup) {
-                        KeywordSetupPage(state.keywords)
-                    }
-
-                    screen(OnboardingPage.ReadyScreen) {
-                        ReadyPage(
-                            isSaving = state.isSaving,
-                            onFinish = state::save
-                        )
+                            OnboardingPage.KeywordSetup -> KeywordSetupPage(state.keywords)
+                            OnboardingPage.ReadyScreen -> ReadyPage(
+                                isSaving = state.isSaving,
+                                onFinish = state::save
+                            )
+                        }
                     }
                 }
             )
@@ -88,8 +74,8 @@ fun OnboardingScreen(
                     OnboardingBottomBar(
                         currentPage = currentScreen,
                         onPrevious = {
-                            if (state.controller.previousBackStackEntry != null) {
-                                state.controller.popBackStack()
+                            if (state.backStack.size > 1) {
+                                state.backStack.removeLastOrNull()
                             }
                         },
                         nextEnabled = when (currentScreen) {
@@ -99,8 +85,8 @@ fun OnboardingScreen(
                             else -> true
                         },
                         onNext = {
-                            state.controller.navigate(
-                                OnboardingPage.entries[currentScreen.ordinal + 1].name
+                            state.backStack.add(
+                                OnboardingPage.entries[currentScreen.ordinal + 1]
                             )
                         }
                     )
@@ -109,23 +95,6 @@ fun OnboardingScreen(
         },
     )
 }
-
-private fun NavGraphBuilder.screen(
-    page: OnboardingPage,
-    content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit)
-) = composable(
-    route = page.name,
-    enterTransition = when (page) {
-        OnboardingPage.Welcome -> onboardingWelcomeEnterTransition
-        else -> onboardingEnterTransition
-    },
-    exitTransition = when (page) {
-        OnboardingPage.ReadyScreen -> null
-        else -> onboardingExitTransition
-    },
-    content = content
-)
-
 
 @Preview(showBackground = true)
 @Composable

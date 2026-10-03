@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.firebase.performance) apply false
     alias(libs.plugins.gms) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    alias(libs.plugins.kotlin.parcelize) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.room3) apply false

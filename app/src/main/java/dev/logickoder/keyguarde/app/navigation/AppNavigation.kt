@@ -1,13 +1,13 @@
 package dev.logickoder.keyguarde.app.navigation
 
-import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.appTransition
 import dev.logickoder.keyguarde.onboarding.OnboardingScreen
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 @Composable
@@ -15,37 +15,34 @@ fun AppNavigation(
     start: AppRoute,
     modifier: Modifier = Modifier,
 ) {
-    val navController = rememberNavController()
+    val backStack = rememberNavBackStack(start)
 
-    NavHost(
+    NavDisplay(
         modifier = modifier,
-        navController = navController,
-        startDestination = start,
-        builder = {
-            composable<AppRoute.Onboarding> { _ ->
+        backStack = backStack,
+        transitionSpec = appTransition,
+        popTransitionSpec = appTransition,
+        predictivePopTransitionSpec = { appTransition() },
+        entryProvider = entryProvider {
+            entry<AppRoute.Onboarding> {
                 OnboardingScreen(
                     onDone = {
-                        navController.navigate(AppRoute.Main) {
-                            popUpTo(AppRoute.Onboarding) {
-                                inclusive = true
-                            }
-                        }
+                        backStack.add(AppRoute.Main)
+                        backStack.remove(AppRoute.Onboarding)
                     }
                 )
             }
-            composable<AppRoute.Main> { _ ->
+            entry<AppRoute.Main> {
                 MainNavigation()
             }
         }
     )
 }
 
-sealed interface AppRoute : Parcelable {
+sealed interface AppRoute : NavKey {
     @Serializable
-    @Parcelize
     data object Onboarding : AppRoute
 
     @Serializable
-    @Parcelize
     data object Main : AppRoute
 }
