@@ -81,8 +81,16 @@
     <string name="keyword_match_notification_title">Keywords matched: %1$s</string>
     <string name="keyword_match_notification_content">From: %1$s</string>
     <string name="settings">Settings</string>
-    <string name="search_matches">Search matches...</string>
+    <string name="search_matches">Search matches…</string>
     <string name="search">Search</string>
+    <string name="selected_count">%1$d selected</string>
+    <string name="recent_matches">Recent Matches</string>
+    <string name="select_matches">Select matches</string>
+    <string name="clear_all_matches">Clear all matches</string>
+    <string name="select_visible">Select Visible</string>
+    <string name="clear">Clear</string>
+    <string name="delete">Delete</string>
+    <string name="exit_selection">Exit selection</string>
     <plurals name="keyword_match_notification_title_plural">
         <item quantity="one">Keyword matched: %1$s</item>
         <item quantity="other">Keywords matched: %1$s</item>
