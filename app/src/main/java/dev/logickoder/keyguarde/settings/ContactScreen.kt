@@ -15,10 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.ContactItemCard
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
@@ -31,30 +34,30 @@ fun ContactScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     val items = remember {
         listOf(
             ContactItem(
-                title = "Send Feedback",
-                description = "Share your thoughts, suggestions, or report issues",
+                title = R.string.send_feedback,
+                description = R.string.send_feedback_desc,
                 icon = Icons.Outlined.Email
             ) {
                 val intent = Intent(Intent.ACTION_SENDTO).apply {
                     data = "mailto:".toUri()
                     putExtra(Intent.EXTRA_EMAIL, arrayOf("jeffery@logickoder.dev"))
-                    putExtra(Intent.EXTRA_SUBJECT, "Keyguarde Feedback")
+                    putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.feedback_email_subject))
                     putExtra(
                         Intent.EXTRA_TEXT,
-                        "Hi Keyguarde team,\n\n" +
-                                "App Version: ${
-                                    context.packageManager.getPackageInfo(
-                                        context.packageName,
-                                        0
-                                    ).versionName
-                                }\n" +
-                                "Android Version: ${Build.VERSION.RELEASE}\n" +
-                                "Device: ${Build.MANUFACTURER} ${Build.MODEL}\n\n" +
-                                "Feedback:\n"
+                        resources.getString(
+                            R.string.feedback_email_body,
+                            context.packageManager.getPackageInfo(
+                                context.packageName,
+                                0
+                            ).versionName,
+                            Build.VERSION.RELEASE,
+                            "${Build.MANUFACTURER} ${Build.MODEL}",
+                        )
                     )
                 }
                 if (intent.resolveActivity(context.packageManager) != null) {
@@ -62,8 +65,8 @@ fun ContactScreen(
                 }
             },
             ContactItem(
-                title = "Rate the App",
-                description = "Help others discover Keyguarde by leaving a review",
+                title = R.string.rate_app,
+                description = R.string.rate_app_desc,
                 icon = Icons.Outlined.Star
             ) {
                 val intent = Intent(
@@ -83,8 +86,8 @@ fun ContactScreen(
                 }
             },
             ContactItem(
-                title = "Visit Website",
-                description = "Learn more about Keyguarde and privacy policy",
+                title = R.string.visit_website,
+                description = R.string.visit_website_desc,
                 icon = Icons.Outlined.Language
             ) {
                 context.startActivity(
@@ -95,8 +98,8 @@ fun ContactScreen(
                 )
             },
             ContactItem(
-                title = "Open Source",
-                description = "View the source code and contribute on GitHub",
+                title = R.string.open_source,
+                description = R.string.open_source_desc,
                 icon = Icons.Outlined.Code
             ) {
                 context.startActivity(
@@ -112,7 +115,7 @@ fun ContactScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Contact & Feedback", onBack)
+            SettingsTopBar(stringResource(R.string.contact_feedback), onBack)
         },
         content = { scaffoldPadding ->
             LazyColumn(
@@ -124,7 +127,7 @@ fun ContactScreen(
                 content = {
                     item {
                         Text(
-                            text = "We'd love to hear from you! Your feedback helps us improve Keyguarde.",
+                            text = stringResource(R.string.contact_feedback_desc),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -152,14 +155,14 @@ fun ContactScreen(
                                         .padding(16.dp),
                                     content = {
                                         Text(
-                                            text = "Privacy First",
+                                            text = stringResource(R.string.privacy_first),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
-                                            text = "Your feedback emails won't include any notification data or personal information. We only collect what you choose to share.",
+                                            text = stringResource(R.string.privacy_first_desc),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.4

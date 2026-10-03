@@ -15,10 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.AppList
 import dev.logickoder.keyguarde.settings.components.InfoCard
@@ -58,7 +60,7 @@ private fun WatchedAppsContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Watched Apps", onBack)
+            SettingsTopBar(stringResource(R.string.watched_apps), onBack)
         },
         content = { scaffoldPadding ->
             Column(
@@ -68,7 +70,7 @@ private fun WatchedAppsContent(
                     .padding(16.dp),
                 content = {
                     Text(
-                        text = "Select which apps to monitor for keywords",
+                        text = stringResource(R.string.watched_apps_desc),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -86,8 +88,8 @@ private fun WatchedAppsContent(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     InfoCard(
-                        title = "Coming Soon",
-                        body = "Support for more messaging apps will be added in future updates.",
+                        title = stringResource(R.string.coming_soon),
+                        body = stringResource(R.string.coming_soon_desc),
                         icon = Icons.Outlined.Update
                     )
                 }

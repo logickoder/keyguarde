@@ -17,8 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 
 @Composable
 fun MatchSummaryCard(
@@ -51,12 +54,16 @@ fun MatchSummaryCard(
                         modifier = Modifier.Companion.weight(1f),
                         content = {
                             Text(
-                                text = "$matchCount matches since last opened",
+                                text = pluralStringResource(
+                                    R.plurals.matches_since_last_opened,
+                                    matchCount,
+                                    matchCount,
+                                ),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Companion.Medium
                             )
                             Text(
-                                text = "Tap to reset counter",
+                                text = stringResource(R.string.tap_to_reset_counter),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -65,7 +72,7 @@ fun MatchSummaryCard(
                     FilledTonalButton(
                         onClick = onResetClick,
                         content = {
-                            Text("Reset")
+                            Text(stringResource(R.string.action_reset))
                         }
                     )
                 }

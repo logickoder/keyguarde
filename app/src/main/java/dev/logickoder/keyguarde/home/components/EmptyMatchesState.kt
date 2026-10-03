@@ -9,8 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 
 @Composable
 fun EmptyMatchesState(
@@ -24,11 +26,11 @@ fun EmptyMatchesState(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         content = {
             Text(
-                text = "No matches found",
+                text = stringResource(R.string.no_matches_found),
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = "When messages with your keywords arrive, they'll appear here",
+                text = stringResource(R.string.no_matches_found_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

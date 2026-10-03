@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
@@ -142,7 +144,9 @@ fun MatchItem(
                                             } else {
                                                 Icons.Outlined.RadioButtonUnchecked
                                             },
-                                            contentDescription = if (isChecked) "Selected" else "Not selected",
+                                            contentDescription = stringResource(
+                                                if (isChecked) R.string.match_selected else R.string.match_not_selected
+                                            ),
                                             tint = if (isChecked) {
                                                 MaterialTheme.colorScheme.primary
                                             } else {
@@ -193,9 +197,7 @@ fun MatchItem(
                         verticalAlignment = Alignment.CenterVertically,
                         content = {
                             Text(
-                                text = remember(match.timestamp) {
-                                    formatTime(match.timestamp)
-                                },
+                                text = formatTime(match.timestamp),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -206,7 +208,7 @@ fun MatchItem(
                                     content = {
                                         Icon(
                                             imageVector = Icons.Default.MoreHoriz,
-                                            contentDescription = "Actions",
+                                            contentDescription = stringResource(R.string.actions),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
@@ -271,7 +273,7 @@ private fun ActionMenu(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = "Open in app",
+                                text = stringResource(R.string.open_in_app),
                                 style = MaterialTheme.typography.labelLarge
                             )
                         },
@@ -293,7 +295,7 @@ private fun ActionMenu(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = "Delete match",
+                        text = stringResource(R.string.delete_match),
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
@@ -314,14 +316,15 @@ private fun ActionMenu(
 }
 
 
+@Composable
 private fun formatTime(timestamp: LocalDateTime): String {
     val now = LocalDateTime.now()
     val minutes = ChronoUnit.MINUTES.between(timestamp, now)
 
     return when {
-        minutes < 1 -> "Just now"
-        minutes < 60 -> "$minutes min ago"
-        minutes < 24 * 60 -> "${minutes / 60} hr ago"
+        minutes < 1 -> stringResource(R.string.just_now)
+        minutes < 60 -> stringResource(R.string.minutes_ago, minutes)
+        minutes < 24 * 60 -> stringResource(R.string.hours_ago, minutes / 60)
         else -> timestamp.format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))
     }
 }

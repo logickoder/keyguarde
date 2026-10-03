@@ -146,7 +146,7 @@ private fun TitleContent(modifier: Modifier = Modifier) {
                 content = {
                     Icon(
                         painter = painterResource(R.drawable.logo),
-                        contentDescription = "Keyguarde Logo",
+                        contentDescription = stringResource(R.string.keyguarde_logo),
                         modifier = Modifier.size(24.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -174,7 +174,7 @@ private fun SearchInput(
                 content = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.back)
                     )
                 }
             )
@@ -208,7 +208,7 @@ private fun SearchInput(
                         content = {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear search"
+                                contentDescription = stringResource(R.string.clear_search)
                             )
                         }
                     )

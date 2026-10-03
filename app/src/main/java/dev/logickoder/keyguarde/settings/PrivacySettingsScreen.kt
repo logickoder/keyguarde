@@ -11,8 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.settings.components.SettingsCard
 import dev.logickoder.keyguarde.settings.components.SettingsIconText
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
@@ -39,7 +41,7 @@ fun PrivacySettingsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Privacy", onBack)
+            SettingsTopBar(stringResource(R.string.privacy), onBack)
         },
         content = { scaffoldPadding ->
             Column(
@@ -53,7 +55,7 @@ fun PrivacySettingsScreen(
                         content = {
                             SettingsIconText(
                                 icon = Icons.Rounded.Security,
-                                text = "Local Processing Only",
+                                text = stringResource(R.string.local_processing_only),
                                 iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
                                 textColor = MaterialTheme.colorScheme.onSecondaryContainer
                             )
@@ -61,7 +63,7 @@ fun PrivacySettingsScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "Keyguarde processes all notifications locally on your device. No message data is ever stored externally or transmitted to any server.",
+                                text = stringResource(R.string.local_processing_only_desc),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
@@ -76,14 +78,14 @@ fun PrivacySettingsScreen(
                         content = {
                             SettingsIconText(
                                 icon = Icons.Outlined.Visibility,
-                                text = "What We Access",
+                                text = stringResource(R.string.what_we_access),
                                 iconTint = MaterialTheme.colorScheme.primary,
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "Keyguarde only reads notification content to check for keywords. We never access your messages, contacts, or other personal data directly.",
+                                text = stringResource(R.string.what_we_access_desc),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -100,7 +102,7 @@ fun PrivacySettingsScreen(
                                 contentDescription = null
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Privacy Policy")
+                            Text(stringResource(R.string.privacy_policy))
                         }
                     )
                 }

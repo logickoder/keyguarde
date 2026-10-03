@@ -22,10 +22,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -66,7 +68,7 @@ private fun NotificationSettingsContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Notification Settings", onBack)
+            SettingsTopBar(stringResource(R.string.notification_settings), onBack)
         },
         content = { scaffoldPadding ->
             Column(
@@ -85,8 +87,8 @@ private fun NotificationSettingsContent(
                     )
 
                     SettingsSwitchItem(
-                        title = "Use persistent silent notification",
-                        subtitle = "Shows count of matches in the notification bar",
+                        title = stringResource(R.string.use_persistent_notification),
+                        subtitle = stringResource(R.string.use_persistent_notification_desc),
                         checked = state.usePersistentSilentNotification,
                         onCheckedChange = {
                             onAction(NotificationSettingsAction.TogglePersistentSilentNotification)
@@ -94,15 +96,15 @@ private fun NotificationSettingsContent(
                     )
 
                     SettingsSwitchItem(
-                        title = "Show heads-up alerts for matches",
-                        subtitle = "Display a pop-up when keywords are detected",
+                        title = stringResource(R.string.show_heads_up_alerts),
+                        subtitle = stringResource(R.string.show_heads_up_alerts_desc),
                         checked = state.showHeadsUpAlert,
                         onCheckedChange = { onAction(NotificationSettingsAction.ToggleHeadsUpAlert) }
                     )
 
                     SettingsSwitchItem(
-                        title = "Reset match count when app opens",
-                        subtitle = "Clear the counter each time you open Keyguarde",
+                        title = stringResource(R.string.reset_count_on_open),
+                        subtitle = stringResource(R.string.reset_count_on_open_desc),
                         checked = state.resetMatchCountOnAppOpen,
                         onCheckedChange = {
                             onAction(NotificationSettingsAction.ToggleResetMatchCountOnAppOpen)
@@ -121,15 +123,15 @@ private fun NotificationSettingsContent(
                                 contentDescription = null
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Test Notification")
+                            Text(stringResource(R.string.test_notification))
                         }
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
 
                     InfoCard(
-                        title = "How Notifications Work",
-                        body = "Keyguarde uses a silent notification to show how many keywords have been detected since you last opened the app. This helps you stay aware without being interrupted.",
+                        title = stringResource(R.string.how_notifications_work),
+                        body = stringResource(R.string.how_notifications_work_desc),
                         icon = Icons.Outlined.Info
                     )
                 }

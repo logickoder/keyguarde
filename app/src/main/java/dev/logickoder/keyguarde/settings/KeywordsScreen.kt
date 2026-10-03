@@ -12,10 +12,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.KeywordDialog
@@ -54,7 +56,7 @@ private fun KeywordsContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Keyword Filters", onBack)
+            SettingsTopBar(stringResource(R.string.keyword_filters), onBack)
         },
         content = { paddingValues ->
             AnimatedContent(
@@ -81,7 +83,7 @@ private fun KeywordsContent(
                                 Spacer(modifier = Modifier.height(16.dp))
 
                                 Text(
-                                    text = "No keywords added yet",
+                                    text = stringResource(R.string.no_keywords_added),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -89,7 +91,7 @@ private fun KeywordsContent(
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 Text(
-                                    text = "Add keywords to get alerts when they appear in messages",
+                                    text = stringResource(R.string.no_keywords_added_desc),
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
@@ -128,7 +130,7 @@ private fun KeywordsContent(
                 content = {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Add Keyword"
+                        contentDescription = stringResource(R.string.add_keyword)
                     )
                 }
             )

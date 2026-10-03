@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.settings.SettingsRepository
@@ -62,8 +63,11 @@ class NotificationSettingsViewModel(
         if (state.showHeadsUpAlert) {
             NotificationHelper.showKeywordMatchNotification(
                 context,
-                setOf("test 1", "test 2"),
-                "test app",
+                setOf(
+                    context.getString(R.string.test_notification_keyword_1),
+                    context.getString(R.string.test_notification_keyword_2),
+                ),
+                context.getString(R.string.test_notification_app),
             )
         }
     }

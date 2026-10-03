@@ -24,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import kotlinx.collections.immutable.ImmutableList
 
@@ -59,7 +61,7 @@ fun AppList(
                     .padding(horizontal = 16.dp),
                 placeholder = {
                     Text(
-                        text = "Search apps...",
+                        text = stringResource(R.string.search_apps),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -67,7 +69,7 @@ fun AppList(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Search,
-                        contentDescription = "Search",
+                        contentDescription = stringResource(R.string.search),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
@@ -99,7 +101,7 @@ fun AppList(
                                 modifier = Modifier.fillMaxSize(),
                                 content = {
                                     Text(
-                                        text = "No apps found matching \"$searchQuery\"",
+                                        text = stringResource(R.string.no_apps_found, searchQuery),
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.align(Alignment.Center)

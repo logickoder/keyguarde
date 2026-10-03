@@ -12,8 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.settings.components.InfoCard
 import dev.logickoder.keyguarde.settings.components.SettingsCard
 import dev.logickoder.keyguarde.settings.components.SettingsIconText
@@ -44,7 +46,7 @@ fun BatterySettingsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Battery & Background", onBack)
+            SettingsTopBar(stringResource(R.string.battery_background), onBack)
         },
         content = { scaffoldPadding ->
             Column(
@@ -57,7 +59,7 @@ fun BatterySettingsScreen(
                         content = {
                             SettingsIconText(
                                 icon = Icons.Rounded.BatteryChargingFull,
-                                text = "Battery Optimization",
+                                text = stringResource(R.string.battery_optimization),
                                 iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 textColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -65,7 +67,7 @@ fun BatterySettingsScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "For Keyguarde to work reliably, you need to disable battery optimization for this app. This ensures notifications are monitored even when your device is idle.",
+                                text = stringResource(R.string.battery_optimization_desc),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -79,7 +81,7 @@ fun BatterySettingsScreen(
                                     contentColor = MaterialTheme.colorScheme.primaryContainer
                                 ),
                                 content = {
-                                    Text("Open Battery Settings")
+                                    Text(stringResource(R.string.open_battery_settings))
                                 }
                             )
                         }
@@ -88,8 +90,8 @@ fun BatterySettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     InfoCard(
-                        title = "Why This Matters",
-                        body = "Modern Android systems can restrict background apps to save battery. For Keyguarde to monitor notifications reliably, it needs to be exempt from these restrictions.",
+                        title = stringResource(R.string.why_this_matters),
+                        body = stringResource(R.string.why_this_matters_desc),
                         icon = Icons.Outlined.Info
                     )
 
@@ -100,14 +102,14 @@ fun BatterySettingsScreen(
                         content = {
                             SettingsIconText(
                                 icon = Icons.Outlined.AutoAwesome,
-                                text = "Auto-start Settings",
+                                text = stringResource(R.string.auto_start_settings),
                                 iconTint = MaterialTheme.colorScheme.primary,
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "Some devices (especially Xiaomi, Huawei, Samsung) have additional restrictions for auto-starting apps. You may need to enable auto-start permission for Keyguarde in your device settings.",
+                                text = stringResource(R.string.auto_start_settings_desc),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }

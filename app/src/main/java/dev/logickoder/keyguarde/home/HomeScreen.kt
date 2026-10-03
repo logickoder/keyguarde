@@ -17,6 +17,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,6 +52,7 @@ fun HomeScreen(
     onSettings: () -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val toastManager = LocalToastManager.current
     val viewModel = viewModel<HomeViewModel>(factory = HomeViewModel.factory(context))
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -59,7 +62,7 @@ fun HomeScreen(
         viewModel.effects.collect { effect ->
             when (effect) {
                 is HomeEffect.MatchesDeleted -> toastManager.show(
-                    message = context.resources.getQuantityString(
+                    message = resources.getQuantityString(
                         R.plurals.deleted_match,
                         effect.count,
                         effect.count,
@@ -68,7 +71,7 @@ fun HomeScreen(
                 )
 
                 is HomeEffect.MatchesCleared -> toastManager.show(
-                    message = context.resources.getQuantityString(
+                    message = resources.getQuantityString(
                         R.plurals.cleared_match,
                         effect.count,
                         effect.count,
@@ -77,7 +80,10 @@ fun HomeScreen(
                 )
 
                 is HomeEffect.OpenInAppFailed -> toastManager.show(
-                    message = "Failed to open app: ${effect.reason ?: "Unknown error"}",
+                    message = resources.getString(
+                        R.string.open_in_app_failed,
+                        effect.reason ?: resources.getString(R.string.unknown_error),
+                    ),
                     type = ToastType.Error
                 )
             }
@@ -218,7 +224,7 @@ private fun HomeContent(
                 content = {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Add Keyword",
+                        contentDescription = stringResource(R.string.add_keyword),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }

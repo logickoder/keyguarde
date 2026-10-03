@@ -1,6 +1,8 @@
 package dev.logickoder.keyguarde.settings.domain
 
+import androidx.annotation.StringRes
+
 data class FaqItem(
-    val question: String,
-    val answer: String
+    @param:StringRes val question: Int,
+    @param:StringRes val answer: Int,
 )

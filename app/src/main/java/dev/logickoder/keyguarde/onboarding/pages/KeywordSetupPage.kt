@@ -28,9 +28,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.KeywordDialog
@@ -54,7 +56,7 @@ fun KeywordSetupPage(
         horizontalAlignment = Alignment.CenterHorizontally,
         content = {
             Text(
-                text = "Set Up Your Keywords",
+                text = stringResource(R.string.set_up_keywords),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -62,7 +64,7 @@ fun KeywordSetupPage(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Add keywords that matter to you. Keyguarde will alert you when these words appear in notifications.",
+                text = stringResource(R.string.set_up_keywords_desc),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
@@ -75,7 +77,7 @@ fun KeywordSetupPage(
                 modifier = Modifier.fillMaxWidth(),
                 content = {
                     Text(
-                        text = "Add Keyword",
+                        text = stringResource(R.string.add_keyword),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -98,7 +100,7 @@ fun KeywordSetupPage(
                             contentAlignment = Alignment.Center,
                             content = {
                                 Text(
-                                    text = "No keywords added yet",
+                                    text = stringResource(R.string.no_keywords_added),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                                 )
@@ -129,7 +131,7 @@ fun KeywordSetupPage(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Examples: urgent, meeting, deadline, ASAP",
+                text = stringResource(R.string.keyword_examples),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
@@ -180,7 +182,7 @@ private fun KeywordItem(
                         content = {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
-                                contentDescription = "Delete",
+                                contentDescription = stringResource(R.string.delete),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }

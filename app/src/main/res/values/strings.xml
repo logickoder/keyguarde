@@ -1,7 +1,31 @@
 <resources>
+    <!-- Common -->
     <string name="app_name">Keyguarde</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="settings">Settings</string>
+    <string name="search">Search</string>
+    <string name="clear">Clear</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="navigate">Navigate</string>
+    <string name="collapse">Collapse</string>
+    <string name="expand">Expand</string>
+    <string name="success">Success</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="keyword">Keyword</string>
+    <string name="add_keyword">Add Keyword</string>
+    <string name="all">All</string>
+    <string name="actions">Actions</string>
+    <string name="match_selected">Selected</string>
+    <string name="match_not_selected">Not selected</string>
+    <string name="coming_soon">Coming Soon</string>
+
+    <!-- Onboarding -->
     <string name="welcome_to_app">Welcome to Keyguarde</string>
     <string name="never_miss_important_messages_again">Never miss important messages again</string>
     <string name="what_app_does">Keyguarde watches for keywords in your notifications so you\'ll know when something
@@ -16,6 +40,7 @@
     <string name="privacy_focused_desc">Everything happens locally on your device, no data is sent anywhere</string>
     <string name="battery_efficient">Battery Efficient</string>
     <string name="battery_efficient_desc">Designed to use minimal resources while protecting your privacy</string>
+    <string name="permissions_needed">Required Permissions</string>
     <string name="notification_access">Notification Access</string>
     <string name="notifications_access_desc">This is necessary to scan for your keywords. Your privacy is our priority -
         all processing happens on your device and no data leaves it.
@@ -29,23 +54,54 @@
     <string name="notifications_access_desc_2">We take your privacy seriously. All processing happens locally on your
         device and no data is stored or transmitted elsewhere.
     </string>
-    <string name="select_apps_to_monitor">Select Apps to Monitor</string>
-    <string name="select_apps_to_monitor_desc">Choose which apps Keyguarde should watch for your keywords</string>
-    <string name="you_can_change_selections_later">You can change these selections later in Settings</string>
-    <string name="permissions_needed">Required Permissions</string>
     <string name="post_notifications">Post Notifications</string>
     <string name="post_notifications_desc">Allow Keyguarde to show you alerts when keywords are detected</string>
     <string name="why_are_these_needed">Why are these needed?</string>
     <string name="post_notification_desc_details">The persistent notification lets Keyguarde run reliably in the
         background and show you alerts when your keywords are detected.
     </string>
+    <string name="select_apps_to_monitor">Select Apps to Monitor</string>
+    <string name="select_apps_to_monitor_desc">Choose which apps Keyguarde should watch for your keywords</string>
+    <string name="you_can_change_selections_later">You can change these selections later in Settings</string>
+    <string name="set_up_keywords">Set Up Your Keywords</string>
+    <string name="set_up_keywords_desc">Add keywords that matter to you. Keyguarde will alert you when these words appear in notifications.</string>
+    <string name="keyword_examples">Examples: urgent, meeting, deadline, ASAP</string>
+    <string name="all_set">All Set!</string>
+    <string name="ready_desc">Keyguarde is now ready to monitor your notifications</string>
+    <string name="ready_desc_details">You\'ll see a small notification showing the number of keyword matches. This is how you\'ll know Keyguarde is working for you.</string>
+    <string name="start_using_app">Start Using Keyguarde</string>
+
+    <!-- Permission banners -->
     <string name="notification_permission_banner_message">
         Notifications are currently disabled. Tap here to enable.
     </string>
     <string name="notification_listener_banner_message">
         Enable notification access for full functionality.
     </string>
-    <string name="dismiss">Dismiss</string>
+
+    <!-- Home -->
+    <string name="keyguarde_logo">Keyguarde Logo</string>
+    <string name="search_matches">Search matches…</string>
+    <string name="clear_search">Clear search</string>
+    <string name="recent_matches">Recent Matches</string>
+    <string name="select_matches">Select matches</string>
+    <string name="clear_all_matches">Clear all matches</string>
+    <string name="select_visible">Select Visible</string>
+    <string name="exit_selection">Exit selection</string>
+    <string name="selected_count">%1$d selected</string>
+    <string name="no_matches_found">No matches found</string>
+    <string name="no_matches_found_desc">When messages with your keywords arrive, they\'ll appear here</string>
+    <string name="tap_to_reset_counter">Tap to reset counter</string>
+    <plurals name="matches_since_last_opened">
+        <item quantity="one">%1$d match since last opened</item>
+        <item quantity="other">%1$d matches since last opened</item>
+    </plurals>
+    <string name="open_in_app">Open in app</string>
+    <string name="delete_match">Delete match</string>
+    <string name="open_in_app_failed">Failed to open app: %1$s</string>
+    <string name="just_now">Just now</string>
+    <string name="minutes_ago">%1$d min ago</string>
+    <string name="hours_ago">%1$d hr ago</string>
     <plurals name="deleted_match">
         <item quantity="one">Deleted 1 match</item>
         <item quantity="other">Deleted %1$d matches</item>
@@ -55,7 +111,100 @@
         <item quantity="other">Cleared all %1$d matches</item>
     </plurals>
 
-    <!-- Notification Channel Names -->
+    <!-- Keyword dialog -->
+    <string name="add_new_keyword">Add New Keyword</string>
+    <string name="edit_keyword">Edit Keyword</string>
+    <string name="keyword_too_short">Keyword must be at least 2 characters</string>
+
+    <!-- Settings -->
+    <string name="keyword_filters">Keyword Filters</string>
+    <string name="keyword_filters_desc">Manage words to watch for in messages</string>
+    <string name="watched_apps">Watched Apps</string>
+    <string name="watched_apps_desc">Select which apps to monitor for keywords</string>
+    <string name="notification_settings">Notification Settings</string>
+    <string name="notification_settings_desc">Control how you\'re alerted about matches</string>
+    <string name="battery_background">Battery &amp; Background</string>
+    <string name="battery_background_desc">Optimize for reliable background operation</string>
+    <string name="privacy">Privacy</string>
+    <string name="privacy_desc">How your data is handled</string>
+    <string name="faq">FAQ</string>
+    <string name="faq_desc_short">Frequently asked questions</string>
+    <string name="contact_support">Contact Support</string>
+    <string name="contact_support_desc">Get help from our support team</string>
+
+    <!-- Keyword filters -->
+    <string name="no_keywords_added">No keywords added yet</string>
+    <string name="no_keywords_added_desc">Add keywords to get alerts when they appear in messages</string>
+
+    <!-- Watched apps -->
+    <string name="search_apps">Search apps…</string>
+    <string name="no_apps_found">No apps found matching \"%1$s\"</string>
+    <string name="coming_soon_desc">Support for more messaging apps will be added in future updates.</string>
+
+    <!-- Notification settings -->
+    <string name="use_persistent_notification">Use persistent silent notification</string>
+    <string name="use_persistent_notification_desc">Shows count of matches in the notification bar</string>
+    <string name="show_heads_up_alerts">Show heads-up alerts for matches</string>
+    <string name="show_heads_up_alerts_desc">Display a pop-up when keywords are detected</string>
+    <string name="reset_count_on_open">Reset match count when app opens</string>
+    <string name="reset_count_on_open_desc">Clear the counter each time you open Keyguarde</string>
+    <string name="test_notification">Test Notification</string>
+    <string name="how_notifications_work">How Notifications Work</string>
+    <string name="how_notifications_work_desc">Keyguarde uses a silent notification to show how many keywords have been detected since you last opened the app. This helps you stay aware without being interrupted.</string>
+
+    <!-- Battery settings -->
+    <string name="battery_optimization">Battery Optimization</string>
+    <string name="battery_optimization_desc">For Keyguarde to work reliably, you need to disable battery optimization for this app. This ensures notifications are monitored even when your device is idle.</string>
+    <string name="open_battery_settings">Open Battery Settings</string>
+    <string name="why_this_matters">Why This Matters</string>
+    <string name="why_this_matters_desc">Modern Android systems can restrict background apps to save battery. For Keyguarde to monitor notifications reliably, it needs to be exempt from these restrictions.</string>
+    <string name="auto_start_settings">Auto-start Settings</string>
+    <string name="auto_start_settings_desc">Some devices (especially Xiaomi, Huawei, Samsung) have additional restrictions for auto-starting apps. You may need to enable auto-start permission for Keyguarde in your device settings.</string>
+
+    <!-- Privacy settings -->
+    <string name="local_processing_only">Local Processing Only</string>
+    <string name="local_processing_only_desc">Keyguarde processes all notifications locally on your device. No message data is ever stored externally or transmitted to any server.</string>
+    <string name="what_we_access">What We Access</string>
+    <string name="what_we_access_desc">Keyguarde only reads notification content to check for keywords. We never access your messages, contacts, or other personal data directly.</string>
+    <string name="privacy_policy">Privacy Policy</string>
+
+    <!-- FAQ -->
+    <string name="faq_title">Frequently Asked Questions</string>
+    <string name="faq_desc">Find answers to common questions about Keyguarde</string>
+    <string name="faq_notification_access_q">Why does Keyguarde need notification access?</string>
+    <string name="faq_notification_access_a">Keyguarde needs notification access to read the content of your notifications and match them against your keywords. This permission is essential for the app to function, but all processing happens locally on your device.</string>
+    <string name="faq_reads_messages_q">Does it read my messages?</string>
+    <string name="faq_reads_messages_a">Keyguarde only reads the text content of notifications as they appear. It does not access your message history, media, or any other data within your messaging apps. All processing is done locally on your device.</string>
+    <string name="faq_battery_q">Will it drain my battery?</string>
+    <string name="faq_battery_a">Keyguarde is designed to be lightweight and battery-efficient. It only activates when new notifications arrive, and uses minimal resources while running in the background. The app has been optimized to have negligible impact on your device\'s battery life.</string>
+    <string name="faq_no_matches_q">I\'m not getting matches after installing. What should I do?</string>
+    <string name="faq_no_matches_a">If you\'re not receiving keyword matches after setup, try restarting your device. This ensures the notification listener service starts properly and can monitor your notifications. Also make sure you\'ve granted notification access permission and selected the apps you want to monitor.</string>
+    <string name="faq_manage_keywords_q">How do I add or remove keywords?</string>
+    <string name="faq_manage_keywords_a">You can manage your keywords from the home screen by tapping the \'+\' button to add new keywords. To remove keywords, go to Settings > Keyword Filters where you can view and delete existing keywords.</string>
+    <string name="faq_select_apps_q">Can I select which apps to monitor?</string>
+    <string name="faq_select_apps_a">Yes! Go to Settings > Watched Apps to choose which messaging apps Keyguarde should monitor. By default, WhatsApp and Telegram are selected, but you can add or remove apps as needed.</string>
+    <string name="faq_privacy_q">Is my data private and secure?</string>
+    <string name="faq_privacy_a">Absolutely. All notification processing happens locally on your device. No messages, notification data, or personal information is stored externally or transmitted to any servers. Your privacy is our top priority.</string>
+    <string name="faq_matching_q">How do keyword matches work?</string>
+    <string name="faq_matching_a">Keyguarde matches whole words only and is case-insensitive. For example, \'react\' will match \'React\' but not \'reacted\'. Multiple keywords can be matched in the same message, and you\'ll be notified when any of your keywords appear.</string>
+
+    <!-- Contact -->
+    <string name="contact_feedback">Contact &amp; Feedback</string>
+    <string name="contact_feedback_desc">We\'d love to hear from you! Your feedback helps us improve Keyguarde.</string>
+    <string name="send_feedback">Send Feedback</string>
+    <string name="send_feedback_desc">Share your thoughts, suggestions, or report issues</string>
+    <string name="feedback_email_subject">Keyguarde Feedback</string>
+    <string name="feedback_email_body">Hi Keyguarde team,\n\nApp Version: %1$s\nAndroid Version: %2$s\nDevice: %3$s\n\nFeedback:\n</string>
+    <string name="rate_app">Rate the App</string>
+    <string name="rate_app_desc">Help others discover Keyguarde by leaving a review</string>
+    <string name="visit_website">Visit Website</string>
+    <string name="visit_website_desc">Learn more about Keyguarde and privacy policy</string>
+    <string name="open_source">Open Source</string>
+    <string name="open_source_desc">View the source code and contribute on GitHub</string>
+    <string name="privacy_first">Privacy First</string>
+    <string name="privacy_first_desc">Your feedback emails won\'t include any notification data or personal information. We only collect what you choose to share.</string>
+
+    <!-- Notification channel names -->
     <string name="channel_background_name">Background Notifications</string>
     <string name="channel_background_description">
         Silent notifications showing Keyguarde status and match counts
@@ -63,34 +212,22 @@
     <string name="channel_match_alerts_name">Match Alerts</string>
     <string name="channel_match_alerts_description">Alerts when your important keywords are detected</string>
 
-    <!-- Persistent Notification Content -->
+    <!-- Persistent notification content -->
     <string name="persistent_notification_title">Keyword Matches</string>
     <string name="persistent_notification_content_no_matches">Monitoring for keyword matches</string>
     <plurals name="persistent_notification_matches">
         <item quantity="one">%1$d new match found in %2$d chat</item>
         <item quantity="other">%1$d new matches found in %2$d chats</item>
     </plurals>
-
     <plurals name="persistent_notification_matches_multiple_chats">
         <item quantity="one">%1$d new match found in %2$d chats</item>
         <item quantity="other">%1$d new matches found in %2$d chats</item>
     </plurals>
     <string name="action_reset">Reset</string>
 
-    <!-- Keyword Match Notification Content -->
+    <!-- Keyword match notification content -->
     <string name="keyword_match_notification_title">Keywords matched: %1$s</string>
     <string name="keyword_match_notification_content">From: %1$s</string>
-    <string name="settings">Settings</string>
-    <string name="search_matches">Search matches…</string>
-    <string name="search">Search</string>
-    <string name="selected_count">%1$d selected</string>
-    <string name="recent_matches">Recent Matches</string>
-    <string name="select_matches">Select matches</string>
-    <string name="clear_all_matches">Clear all matches</string>
-    <string name="select_visible">Select Visible</string>
-    <string name="clear">Clear</string>
-    <string name="delete">Delete</string>
-    <string name="exit_selection">Exit selection</string>
     <plurals name="keyword_match_notification_title_plural">
         <item quantity="one">Keyword matched: %1$s</item>
         <item quantity="other">Keywords matched: %1$s</item>
@@ -99,4 +236,9 @@
         <item quantity="one">%1$d keyword matched</item>
         <item quantity="other">%1$d keywords matched</item>
     </plurals>
+
+    <!-- Test notification -->
+    <string name="test_notification_keyword_1">test 1</string>
+    <string name="test_notification_keyword_2">test 2</string>
+    <string name="test_notification_app">test app</string>
 </resources>

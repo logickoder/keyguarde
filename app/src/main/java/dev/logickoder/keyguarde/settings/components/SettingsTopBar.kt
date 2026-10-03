@@ -4,6 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import dev.logickoder.keyguarde.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,7 +21,7 @@ fun SettingsTopBar(
             IconButton(
                 onClick = onBack,
                 content = {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                 }
             )
         }

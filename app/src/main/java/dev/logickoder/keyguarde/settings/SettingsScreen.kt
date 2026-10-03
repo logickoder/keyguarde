@@ -16,8 +16,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.navigation.SettingsRoute
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.SettingsCategory
@@ -34,7 +36,7 @@ fun SettingsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Settings", onBack)
+            SettingsTopBar(stringResource(R.string.settings), onBack)
         },
         content = { scaffoldPadding ->
             LazyColumn(
@@ -45,9 +47,9 @@ fun SettingsScreen(
                 content = {
                     item {
                         SettingsCategory(
-                            title = "Keyword Filters",
+                            title = stringResource(R.string.keyword_filters),
                             icon = Icons.Rounded.TextFields,
-                            description = "Manage words to watch for in messages",
+                            description = stringResource(R.string.keyword_filters_desc),
                             onClick = {
                                 onNavigate(SettingsRoute.Keywords)
                             }
@@ -56,9 +58,9 @@ fun SettingsScreen(
 
                     item {
                         SettingsCategory(
-                            title = "Watched Apps",
+                            title = stringResource(R.string.watched_apps),
                             icon = Icons.Rounded.Apps,
-                            description = "Select which apps to monitor for keywords",
+                            description = stringResource(R.string.watched_apps_desc),
                             onClick = {
                                 onNavigate(SettingsRoute.Apps)
                             }
@@ -67,9 +69,9 @@ fun SettingsScreen(
 
                     item {
                         SettingsCategory(
-                            title = "Notification Settings",
+                            title = stringResource(R.string.notification_settings),
                             icon = Icons.Rounded.Notifications,
-                            description = "Control how you're alerted about matches",
+                            description = stringResource(R.string.notification_settings_desc),
                             onClick = {
                                 onNavigate(SettingsRoute.Notifications)
                             }
@@ -78,9 +80,9 @@ fun SettingsScreen(
 
                     item {
                         SettingsCategory(
-                            title = "Battery & Background",
+                            title = stringResource(R.string.battery_background),
                             icon = Icons.Rounded.BatteryChargingFull,
-                            description = "Optimize for reliable background operation",
+                            description = stringResource(R.string.battery_background_desc),
                             onClick = {
                                 onNavigate(SettingsRoute.Battery)
                             }
@@ -89,9 +91,9 @@ fun SettingsScreen(
 
                     item {
                         SettingsCategory(
-                            title = "Privacy",
+                            title = stringResource(R.string.privacy),
                             icon = Icons.Rounded.Security,
-                            description = "How your data is handled",
+                            description = stringResource(R.string.privacy_desc),
                             onClick = {
                                 onNavigate(SettingsRoute.Privacy)
                             }
@@ -100,9 +102,9 @@ fun SettingsScreen(
 
                     item {
                         SettingsCategory(
-                            title = "FAQ",
+                            title = stringResource(R.string.faq),
                             icon = Icons.AutoMirrored.Rounded.HelpOutline,
-                            description = "Frequently asked questions",
+                            description = stringResource(R.string.faq_desc_short),
                             onClick = {
                                 onNavigate(SettingsRoute.Faqs)
                             }
@@ -111,9 +113,9 @@ fun SettingsScreen(
 
                     item {
                         SettingsCategory(
-                            title = "Contact Support",
+                            title = stringResource(R.string.contact_support),
                             icon = Icons.AutoMirrored.Rounded.ContactSupport,
-                            description = "Get help from our support team",
+                            description = stringResource(R.string.contact_support_desc),
                             onClick = {
                                 onNavigate(SettingsRoute.Contact)
                             }

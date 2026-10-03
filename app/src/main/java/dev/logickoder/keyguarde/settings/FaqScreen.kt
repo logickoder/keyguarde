@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.FaqItemCard
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
@@ -29,36 +31,36 @@ fun FaqScreen(
     val faqs = remember {
         listOf(
             FaqItem(
-                question = "Why does Keyguarde need notification access?",
-                answer = "Keyguarde needs notification access to read the content of your notifications and match them against your keywords. This permission is essential for the app to function, but all processing happens locally on your device."
+                question = R.string.faq_notification_access_q,
+                answer = R.string.faq_notification_access_a
             ),
             FaqItem(
-                question = "Does it read my messages?",
-                answer = "Keyguarde only reads the text content of notifications as they appear. It does not access your message history, media, or any other data within your messaging apps. All processing is done locally on your device."
+                question = R.string.faq_reads_messages_q,
+                answer = R.string.faq_reads_messages_a
             ),
             FaqItem(
-                question = "Will it drain my battery?",
-                answer = "Keyguarde is designed to be lightweight and battery-efficient. It only activates when new notifications arrive, and uses minimal resources while running in the background. The app has been optimized to have negligible impact on your device's battery life."
+                question = R.string.faq_battery_q,
+                answer = R.string.faq_battery_a
             ),
             FaqItem(
-                question = "I'm not getting matches after installing. What should I do?",
-                answer = "If you're not receiving keyword matches after setup, try restarting your device. This ensures the notification listener service starts properly and can monitor your notifications. Also make sure you've granted notification access permission and selected the apps you want to monitor."
+                question = R.string.faq_no_matches_q,
+                answer = R.string.faq_no_matches_a
             ),
             FaqItem(
-                question = "How do I add or remove keywords?",
-                answer = "You can manage your keywords from the home screen by tapping the '+' button to add new keywords. To remove keywords, go to Settings > Keyword Filters where you can view and delete existing keywords."
+                question = R.string.faq_manage_keywords_q,
+                answer = R.string.faq_manage_keywords_a
             ),
             FaqItem(
-                question = "Can I select which apps to monitor?",
-                answer = "Yes! Go to Settings > Watched Apps to choose which messaging apps Keyguarde should monitor. By default, WhatsApp and Telegram are selected, but you can add or remove apps as needed."
+                question = R.string.faq_select_apps_q,
+                answer = R.string.faq_select_apps_a
             ),
             FaqItem(
-                question = "Is my data private and secure?",
-                answer = "Absolutely. All notification processing happens locally on your device. No messages, notification data, or personal information is stored externally or transmitted to any servers. Your privacy is our top priority."
+                question = R.string.faq_privacy_q,
+                answer = R.string.faq_privacy_a
             ),
             FaqItem(
-                question = "How do keyword matches work?",
-                answer = "Keyguarde matches whole words only and is case-insensitive. For example, 'react' will match 'React' but not 'reacted'. Multiple keywords can be matched in the same message, and you'll be notified when any of your keywords appear."
+                question = R.string.faq_matching_q,
+                answer = R.string.faq_matching_a
             )
         )
     }
@@ -66,7 +68,7 @@ fun FaqScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar("Frequently Asked Questions", onBack)
+            SettingsTopBar(stringResource(R.string.faq_title), onBack)
         },
         content = { scaffoldPadding ->
             LazyColumn(
@@ -78,7 +80,7 @@ fun FaqScreen(
                 content = {
                     item {
                         Text(
-                            text = "Find answers to common questions about Keyguarde",
+                            text = stringResource(R.string.faq_desc),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 8.dp)

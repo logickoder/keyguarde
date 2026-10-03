@@ -25,11 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.data.model.Keyword
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,7 +72,7 @@ fun KeywordDialog(
                         content = {
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
-                                text = if (initialKeyword == null) "Add New Keyword" else "Edit Keyword",
+                                text = if (initialKeyword == null) stringResource(R.string.add_new_keyword) else stringResource(R.string.edit_keyword),
                                 style = MaterialTheme.typography.titleLarge,
                                 textAlign = TextAlign.Center,
                             )
@@ -80,11 +82,11 @@ fun KeywordDialog(
                                     .focusRequester(focusRequester),
                                 value = word,
                                 onValueChange = { word = it },
-                                label = { Text("Keyword") },
+                                label = { Text(stringResource(R.string.keyword)) },
                                 singleLine = true,
                                 isError = !isValid,
                                 supportingText = if (!isValid) {
-                                    { Text("Keyword must be at least 2 characters") }
+                                    { Text(stringResource(R.string.keyword_too_short)) }
                                 } else null,
                             )
 
@@ -96,7 +98,7 @@ fun KeywordDialog(
                                     TextButton(
                                         onClick = onDismiss,
                                         content = {
-                                            Text("Cancel")
+                                            Text(stringResource(R.string.cancel))
                                         }
                                     )
 
@@ -112,7 +114,7 @@ fun KeywordDialog(
                                         },
                                         enabled = trimmedWord.isNotEmpty(),
                                         content = {
-                                            Text("Save")
+                                            Text(stringResource(R.string.save))
                                         }
                                     )
                                 }

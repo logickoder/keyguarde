@@ -23,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.settings.domain.FaqItem
 
 @Composable
@@ -52,7 +54,7 @@ fun FaqItemCard(
                         verticalAlignment = Alignment.CenterVertically,
                         content = {
                             Text(
-                                text = faq.question,
+                                text = stringResource(faq.question),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface,
@@ -65,7 +67,7 @@ fun FaqItemCard(
                                 content = {
                                     Icon(
                                         imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                        contentDescription = if (isExpanded) "Collapse" else "Expand",
+                                        contentDescription = if (isExpanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -77,7 +79,7 @@ fun FaqItemCard(
                         content = {
                             Text(
                                 modifier = Modifier.padding(top = 12.dp),
-                                text = faq.answer,
+                                text = stringResource(faq.answer),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.4

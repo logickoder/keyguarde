@@ -18,9 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 
 @Composable
@@ -38,7 +40,7 @@ fun ReadyPage(
         content = {
             Icon(
                 imageVector = Icons.Outlined.CheckCircle,
-                contentDescription = "Success",
+                contentDescription = stringResource(R.string.success),
                 modifier = Modifier.size(120.dp),
                 tint = MaterialTheme.colorScheme.secondary
             )
@@ -46,7 +48,7 @@ fun ReadyPage(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "All Set!",
+                text = stringResource(R.string.all_set),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
@@ -54,7 +56,7 @@ fun ReadyPage(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Keyguarde is now ready to monitor your notifications",
+                text = stringResource(R.string.ready_desc),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
@@ -63,7 +65,7 @@ fun ReadyPage(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "You'll see a small notification showing the number of keyword matches. This is how you'll know Keyguarde is working for you.",
+                text = stringResource(R.string.ready_desc_details),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
@@ -78,7 +80,7 @@ fun ReadyPage(
                 contentPadding = PaddingValues(vertical = 16.dp),
                 content = {
                     Text(
-                        text = "Start Using Keyguarde",
+                        text = stringResource(R.string.start_using_app),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
