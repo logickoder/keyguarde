@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import dev.logickoder.keyguarde.app.components.BannerAd
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.mainPopTransition
@@ -26,6 +28,10 @@ fun MainNavigation(modifier: Modifier = Modifier) {
             NavDisplay(
                 modifier = Modifier.weight(1f),
                 backStack = backStack,
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
                 transitionSpec = mainTransition,
                 popTransitionSpec = mainPopTransition,
                 predictivePopTransitionSpec = { mainPopTransition() },

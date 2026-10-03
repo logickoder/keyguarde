@@ -8,11 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.MobileAds
+import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastContainer
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.globalToastManager
-import dev.logickoder.keyguarde.app.container
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.navigation.AppNavigation
 import dev.logickoder.keyguarde.app.navigation.AppRoute
@@ -25,7 +25,7 @@ import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     private val settings by lazy {
-        container.settingsRepository
+        AppContainer.from(this@MainActivity).settingsRepository
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val isOnboardingComplete = runBlocking {
-            container.appRepository.onboardingComplete.first()
+            AppContainer.from(this@MainActivity).appRepository.onboardingComplete.first()
         }
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             if (settings.resetMatchCountOnAppOpen.first()) {
-                container.resetMatchCount()
+                AppContainer.from(this@MainActivity).resetMatchCount()
             }
         }
     }

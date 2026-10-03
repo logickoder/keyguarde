@@ -26,8 +26,12 @@ class AppContainer(context: Context) {
     val resetMatchCount by lazy {
         ResetMatchCountUsecase(appContext, appRepository, settingsRepository)
     }
-}
 
-// Compose previews don't run App, so they get a throwaway container.
-val Context.container: AppContainer
-    get() = (applicationContext as? App)?.container ?: AppContainer(applicationContext)
+    companion object {
+        // Compose previews don't run App, so they get a throwaway container.
+        fun from(context: Context): AppContainer {
+            val appContext = context.applicationContext
+            return (appContext as? App)?.container ?: AppContainer(appContext)
+        }
+    }
+}

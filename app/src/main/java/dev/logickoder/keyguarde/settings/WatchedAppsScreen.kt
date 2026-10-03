@@ -14,25 +14,47 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.AppList
 import dev.logickoder.keyguarde.settings.components.InfoCard
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
-import dev.logickoder.keyguarde.settings.domain.rememberWatchedAppsState
+import dev.logickoder.keyguarde.onboarding.domain.AppInfo
+import dev.logickoder.keyguarde.settings.domain.WatchedAppsState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchedAppsScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
 ) {
-    val state = rememberWatchedAppsState()
-    val apps by state.apps.collectAsStateWithLifecycle()
-    val watchedApps by state.watchedApps.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val viewModel = viewModel<WatchedAppsViewModel>(
+        factory = WatchedAppsViewModel.factory(context)
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
+    WatchedAppsContent(
+        modifier = modifier,
+        state = state,
+        onBack = onBack,
+        onAddApp = { viewModel.addApp(context, it) },
+        onRemoveApp = viewModel::removeApp,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WatchedAppsContent(
+    state: WatchedAppsState,
+    onBack: () -> Unit,
+    onAddApp: (AppInfo) -> Unit,
+    onRemoveApp: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -55,12 +77,10 @@ fun WatchedAppsScreen(
 
                     AppList(
                         modifier = Modifier.weight(1f),
-                        apps = apps,
-                        isSelected = { packageName ->
-                            watchedApps.find { it.packageName == packageName } != null
-                        },
-                        addItem = state::addApp,
-                        removeItem = state::removeApp
+                        apps = state.apps,
+                        isSelected = { packageName -> packageName in state.watchedPackages },
+                        addItem = onAddApp,
+                        removeItem = onRemoveApp
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -78,8 +98,11 @@ fun WatchedAppsScreen(
 
 @PreviewLightDark
 @Composable
-private fun WatchedAppsScreenPreview() = AppTheme {
-    WatchedAppsScreen(
-        onBack = {}
+private fun WatchedAppsContentPreview() = AppTheme {
+    WatchedAppsContent(
+        state = WatchedAppsState(),
+        onBack = {},
+        onAddApp = {},
+        onRemoveApp = {},
     )
 }

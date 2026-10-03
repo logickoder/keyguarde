@@ -23,11 +23,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -36,11 +34,15 @@ import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.KeywordDialog
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeywordSetupPage(
-    keywords: SnapshotStateList<Keyword>,
+    keywords: ImmutableList<Keyword>,
+    onAdd: (String) -> Unit,
+    onRemove: (Keyword) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
@@ -113,7 +115,7 @@ fun KeywordSetupPage(
                                     KeywordItem(
                                         keyword = keyword.word,
                                         onDelete = {
-                                            keywords.remove(keyword)
+                                            onRemove(keyword)
                                         }
                                     )
                                 }
@@ -139,7 +141,7 @@ fun KeywordSetupPage(
         KeywordDialog(
             onDismiss = { showAddDialog = false },
             onSave = { word ->
-                keywords.add(Keyword(word = word))
+                onAdd(word)
                 showAddDialog = false
             }
         )
@@ -193,12 +195,12 @@ private fun KeywordItem(
 @Composable
 private fun KeywordSetupPagePreview() = AppTheme {
     KeywordSetupPage(
-        keywords = remember {
-            mutableStateListOf(
-                Keyword(word = "urgent"),
-                Keyword(word = "meeting"),
-                Keyword(word = "deadline"),
-            )
-        }
+        keywords = persistentListOf(
+            Keyword(word = "urgent"),
+            Keyword(word = "meeting"),
+            Keyword(word = "deadline"),
+        ),
+        onAdd = {},
+        onRemove = {},
     )
 }

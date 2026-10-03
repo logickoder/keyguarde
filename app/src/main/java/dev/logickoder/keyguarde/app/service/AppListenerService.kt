@@ -9,7 +9,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import dev.logickoder.keyguarde.app.container
+import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
@@ -31,8 +31,8 @@ import java.time.ZoneId
 
 class AppListenerService : NotificationListenerService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val repository by lazy { container.appRepository }
-    private val settings by lazy { container.settingsRepository }
+    private val repository by lazy { AppContainer.from(this).appRepository }
+    private val settings by lazy { AppContainer.from(this).settingsRepository }
 
     private var watchedPackages = emptySet<String>()
     private var keywords = emptyList<Pair<String, Regex>>()

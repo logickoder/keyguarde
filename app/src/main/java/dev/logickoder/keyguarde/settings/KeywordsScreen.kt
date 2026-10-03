@@ -11,22 +11,46 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.logickoder.keyguarde.app.data.model.Keyword
+import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.KeywordDialog
 import dev.logickoder.keyguarde.settings.components.KeywordItem
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
-import dev.logickoder.keyguarde.settings.domain.rememberKeywordsState
+import dev.logickoder.keyguarde.settings.domain.KeywordsAction
+import dev.logickoder.keyguarde.settings.domain.KeywordsState
+import kotlinx.collections.immutable.persistentListOf
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeywordsScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
 ) {
-    val state = rememberKeywordsState()
-    val keywords by state.keywords.collectAsStateWithLifecycle()
+    val viewModel = viewModel<KeywordsViewModel>(
+        factory = KeywordsViewModel.factory(LocalContext.current)
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
+    KeywordsContent(
+        modifier = modifier,
+        state = state,
+        onBack = onBack,
+        onAction = viewModel::onAction,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun KeywordsContent(
+    state: KeywordsState,
+    onBack: () -> Unit,
+    onAction: (KeywordsAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -37,7 +61,7 @@ fun KeywordsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                targetState = keywords.isEmpty(),
+                targetState = state.keywords.isEmpty(),
                 content = { isEmpty ->
                     when (isEmpty) {
                         true -> Column(
@@ -79,15 +103,15 @@ fun KeywordsScreen(
                                 contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp),
                                 content = {
                                     items(
-                                        keywords.size,
-                                        key = { keywords[it].word },
+                                        state.keywords.size,
+                                        key = { state.keywords[it].word },
                                         itemContent = {
-                                            val keyword = keywords[it]
+                                            val keyword = state.keywords[it]
                                             KeywordItem(
                                                 modifier = Modifier.animateItem(),
                                                 keyword = keyword,
-                                                onEdit = { state.toggleDialog(keyword) },
-                                                onDelete = { state.deleteKeyword(keyword) }
+                                                onEdit = { onAction(KeywordsAction.OpenDialog(keyword)) },
+                                                onDelete = { onAction(KeywordsAction.Delete(keyword)) }
                                             )
                                         }
                                     )
@@ -99,7 +123,7 @@ fun KeywordsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = state::toggleDialog,
+                onClick = { onAction(KeywordsAction.OpenDialog()) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 content = {
                     Icon(
@@ -113,9 +137,21 @@ fun KeywordsScreen(
 
     if (state.isDialogVisible) {
         KeywordDialog(
-            initialKeyword = state.edit,
-            onDismiss = state::toggleDialog,
-            onSave = state::saveKeyword
+            initialKeyword = state.editing,
+            onDismiss = { onAction(KeywordsAction.DismissDialog) },
+            onSave = { onAction(KeywordsAction.Save(it)) }
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun KeywordsContentPreview() = AppTheme {
+    KeywordsContent(
+        state = KeywordsState(
+            keywords = persistentListOf(Keyword(word = "urgent"), Keyword(word = "meeting")),
+        ),
+        onBack = {},
+        onAction = {},
+    )
 }

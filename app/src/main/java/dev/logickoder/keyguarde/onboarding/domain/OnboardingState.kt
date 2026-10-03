@@ -1,137 +1,33 @@
 package dev.logickoder.keyguarde.onboarding.domain
 
-import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.rememberNavBackStack
-import dev.logickoder.keyguarde.app.container
-import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.Keyword
-import dev.logickoder.keyguarde.app.data.model.WatchedApp
-import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 
-class OnboardingState(
-    private val context: Context,
-    val backStack: NavBackStack<NavKey>,
-    private val scope: CoroutineScope,
-    private val onDone: () -> Unit,
+data class OnboardingState(
+    val backStack: ImmutableList<OnboardingPage> = persistentListOf(OnboardingPage.Welcome),
+    val apps: ImmutableList<AppInfo> = persistentListOf(),
+    val selectedApps: ImmutableSet<String> = persistentSetOf(
+        WHATSAPP_PACKAGE_NAME,
+        TELEGRAM_PACKAGE_NAME,
+    ),
+    val keywords: ImmutableList<Keyword> = persistentListOf(),
+    val permissionGranted: Boolean = false,
+    val isSaving: Boolean = false,
+    val isComplete: Boolean = false,
 ) {
-    private val repository = context.container.appRepository
+    val currentPage: OnboardingPage
+        get() = backStack.last()
 
-    val currentScreen = snapshotFlow {
-        backStack.lastOrNull() as? OnboardingPage ?: OnboardingPage.Welcome
-    }.stateIn(
-        scope = scope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = OnboardingPage.Welcome,
-    )
-
-    val selectedApps = mutableStateListOf(WHATSAPP_PACKAGE_NAME, TELEGRAM_PACKAGE_NAME)
-
-    val keywords = mutableStateListOf<Keyword>()
-
-    val apps = mutableStateListOf<AppInfo>()
-
-    var permissionGranted by mutableStateOf(false)
-        private set
-
-    var isSaving by mutableStateOf(false)
-        private set
-
-    init {
-        var loadAppsJob: Job? = null
-        scope.launch(Dispatchers.Default) {
-            loadAppsJob = launch {
-                apps.addAll(repository.getInstalledApps())
-            }
-            launch {
-                currentScreen.collectLatest { screen ->
-                    when {
-                        screen == OnboardingPage.Permissions -> {
-                            while (isActive) {
-                                permissionGranted = isListenerServiceEnabled(context)
-                                delay(1_000)
-                            }
-                        }
-
-                        screen == OnboardingPage.AppSelection && apps.isEmpty() -> {
-                            if (loadAppsJob?.isActive != true) {
-                                loadAppsJob = launch {
-                                    apps.addAll(repository.getInstalledApps())
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    val nextEnabled: Boolean
+        get() = when (currentPage) {
+            OnboardingPage.Permissions -> permissionGranted
+            OnboardingPage.AppSelection -> selectedApps.isNotEmpty()
+            OnboardingPage.KeywordSetup -> keywords.isNotEmpty()
+            else -> true
         }
-    }
-
-    fun save() {
-        if (isSaving) {
-            return
-        }
-
-        scope.launch {
-            repository.onboardingCompleted()
-
-            repository.addKeyword(*keywords.toTypedArray())
-
-            val watchedApps = apps.filter { selectedApps.contains(it.packageName) }.map { app ->
-                WatchedApp(
-                    packageName = app.packageName,
-                    name = app.name,
-                    icon = saveIconToFile(
-                        app.icon,
-                        app.packageName,
-                        context
-                    )
-                )
-            }
-            repository.addWatchedApp(*watchedApps.toTypedArray())
-
-            NotificationHelper.startListenerService(context)
-            NotificationHelper.requestListenerServiceRebind(context)
-
-            onDone()
-        }.invokeOnCompletion {
-            isSaving = false
-        }
-    }
-}
-
-@Composable
-fun rememberOnboardingState(onDone: () -> Unit): OnboardingState {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val backStack = rememberNavBackStack(OnboardingPage.Welcome)
-    return remember {
-        OnboardingState(
-            context = context,
-            backStack = backStack,
-            scope = scope,
-            onDone = onDone,
-        )
-    }
 }

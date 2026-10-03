@@ -9,9 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,12 +23,16 @@ import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.settings.components.AppList
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 
 @Composable
 fun AppSelectionPage(
     apps: ImmutableList<AppInfo>,
-    selected: SnapshotStateList<String>,
+    selected: ImmutableSet<String>,
+    onAdd: (String) -> Unit,
+    onRemove: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -58,9 +59,9 @@ fun AppSelectionPage(
             AppList(
                 modifier = Modifier.weight(1f),
                 apps = apps,
-                isSelected = { selected.contains(it) },
-                addItem = { selected.add(it.packageName) },
-                removeItem = { selected.remove(it) }
+                isSelected = { it in selected },
+                addItem = { onAdd(it.packageName) },
+                removeItem = onRemove
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -91,11 +92,8 @@ private fun AppSelectionPagePreview() = AppTheme {
                 icon = Color.TRANSPARENT.toDrawable()
             )
         ),
-        selected = remember {
-            mutableStateListOf(
-                WHATSAPP_PACKAGE_NAME,
-                TELEGRAM_PACKAGE_NAME
-            )
-        }
+        selected = persistentSetOf(WHATSAPP_PACKAGE_NAME, TELEGRAM_PACKAGE_NAME),
+        onAdd = {},
+        onRemove = {},
     )
 }

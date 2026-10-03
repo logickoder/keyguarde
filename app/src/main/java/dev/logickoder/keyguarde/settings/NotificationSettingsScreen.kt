@@ -21,24 +21,47 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
+import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.components.InfoCard
 import dev.logickoder.keyguarde.settings.components.SettingsSwitchItem
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
-import dev.logickoder.keyguarde.settings.domain.rememberNotificationSettingState
+import dev.logickoder.keyguarde.settings.domain.NotificationSettingsAction
+import dev.logickoder.keyguarde.settings.domain.NotificationSettingsState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationSettingsScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
 ) {
-    val state = rememberNotificationSettingState()
-    val usePersistentSilentNotification by state.usePersistentSilentNotification.collectAsStateWithLifecycle()
-    val showHeadsUpAlert by state.showHeadsUpAlert.collectAsStateWithLifecycle()
+    val viewModel = viewModel<NotificationSettingsViewModel>(
+        factory = NotificationSettingsViewModel.factory(LocalContext.current)
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    NotificationSettingsContent(
+        modifier = modifier,
+        state = state,
+        onBack = onBack,
+        onAction = viewModel::onAction,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NotificationSettingsContent(
+    state: NotificationSettingsState,
+    onBack: () -> Unit,
+    onAction: (NotificationSettingsAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
 
     Scaffold(
         modifier = modifier,
@@ -64,30 +87,34 @@ fun NotificationSettingsScreen(
                     SettingsSwitchItem(
                         title = "Use persistent silent notification",
                         subtitle = "Shows count of matches in the notification bar",
-                        checked = usePersistentSilentNotification,
-                        onCheckedChange = { state.toggleUsePersistentSilentNotification() }
+                        checked = state.usePersistentSilentNotification,
+                        onCheckedChange = {
+                            onAction(NotificationSettingsAction.TogglePersistentSilentNotification)
+                        }
                     )
 
                     SettingsSwitchItem(
                         title = "Show heads-up alerts for matches",
                         subtitle = "Display a pop-up when keywords are detected",
-                        checked = showHeadsUpAlert,
-                        onCheckedChange = { state.toggleShowHeadsUpAlert() }
+                        checked = state.showHeadsUpAlert,
+                        onCheckedChange = { onAction(NotificationSettingsAction.ToggleHeadsUpAlert) }
                     )
 
                     SettingsSwitchItem(
                         title = "Reset match count when app opens",
                         subtitle = "Clear the counter each time you open Keyguarde",
-                        checked = state.resetMatchCountOnAppOpen.collectAsStateWithLifecycle().value,
-                        onCheckedChange = { state.toggleResetMatchCountOnAppOpen() }
+                        checked = state.resetMatchCountOnAppOpen,
+                        onCheckedChange = {
+                            onAction(NotificationSettingsAction.ToggleResetMatchCountOnAppOpen)
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = state::testNotification,
+                        onClick = { onAction(NotificationSettingsAction.TestNotification(context)) },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = usePersistentSilentNotification || showHeadsUpAlert,
+                        enabled = state.canTestNotification,
                         content = {
                             Icon(
                                 imageVector = Icons.Rounded.NotificationsActive,
@@ -108,5 +135,18 @@ fun NotificationSettingsScreen(
                 }
             )
         }
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun NotificationSettingsContentPreview() = AppTheme {
+    NotificationSettingsContent(
+        state = NotificationSettingsState(
+            usePersistentSilentNotification = true,
+            showHeadsUpAlert = true,
+        ),
+        onBack = {},
+        onAction = {},
     )
 }

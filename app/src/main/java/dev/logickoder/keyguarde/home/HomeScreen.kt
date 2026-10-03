@@ -13,15 +13,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
+import dev.logickoder.keyguarde.app.components.ToastType
+import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
 import dev.logickoder.keyguarde.home.components.FilterChips
@@ -30,25 +39,76 @@ import dev.logickoder.keyguarde.home.components.HomeTopAppBar
 import dev.logickoder.keyguarde.home.components.KeywordDialog
 import dev.logickoder.keyguarde.home.components.MatchItem
 import dev.logickoder.keyguarde.home.components.MatchSummaryCard
-import dev.logickoder.keyguarde.home.domain.rememberHomeState
+import dev.logickoder.keyguarde.home.domain.HomeAction
+import dev.logickoder.keyguarde.home.domain.HomeEffect
+import dev.logickoder.keyguarde.home.domain.HomeState
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onSettings: () -> Unit,
 ) {
-    val state = rememberHomeState()
-    val watchedApps by state.watchedApps.collectAsStateWithLifecycle()
-    val matches = state.matches.collectAsLazyPagingItems()
-    val recentCount by state.recentCount.collectAsStateWithLifecycle()
-    val openInAppIntents by state.openInAppIntents.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val toastManager = LocalToastManager.current
+    val viewModel = viewModel<HomeViewModel>(factory = HomeViewModel.factory(context))
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val matches = viewModel.matches.collectAsLazyPagingItems()
 
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is HomeEffect.MatchesDeleted -> toastManager.show(
+                    message = context.resources.getQuantityString(
+                        R.plurals.deleted_match,
+                        effect.count,
+                        effect.count,
+                    ),
+                    type = ToastType.Success
+                )
+
+                is HomeEffect.MatchesCleared -> toastManager.show(
+                    message = context.resources.getQuantityString(
+                        R.plurals.cleared_match,
+                        effect.count,
+                        effect.count,
+                    ),
+                    type = ToastType.Success
+                )
+
+                is HomeEffect.OpenInAppFailed -> toastManager.show(
+                    message = "Failed to open app: ${effect.reason ?: "Unknown error"}",
+                    type = ToastType.Error
+                )
+            }
+        }
+    }
+
+    HomeContent(
+        modifier = modifier,
+        state = state,
+        query = viewModel.query,
+        matches = matches,
+        onSettings = onSettings,
+        onAction = viewModel::onAction,
+    )
+}
+
+@Composable
+private fun HomeContent(
+    state: HomeState,
+    query: String,
+    matches: LazyPagingItems<KeywordMatch>,
+    onSettings: () -> Unit,
+    onAction: (HomeAction) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
             HomeTopAppBar(
-                searchQuery = state.query,
-                onSearchQueryChange = state::onSearchQueryChange,
+                searchQuery = query,
+                onSearchQueryChange = { onAction(HomeAction.SearchQueryChanged(it)) },
                 onSettings = onSettings
             )
         },
@@ -71,16 +131,16 @@ fun HomeScreen(
 
                     item {
                         MatchSummaryCard(
-                            matchCount = recentCount,
-                            onResetClick = state::resetCount
+                            matchCount = state.recentCount,
+                            onResetClick = { onAction(HomeAction.ResetCount) }
                         )
                     }
 
                     item {
                         FilterChips(
                             selected = state.filter,
-                            apps = watchedApps,
-                            onSelected = state::changeFilter
+                            apps = state.watchedApps,
+                            onSelected = { onAction(HomeAction.FilterChanged(it)) }
                         )
                     }
 
@@ -94,13 +154,17 @@ fun HomeScreen(
                                 true -> state.selectedMatches.size
                                 else -> null
                             },
-                            toggleSelectionMode = state::toggleSelectionMode,
-                            clearAllMatches = state::clearAllMatches,
+                            toggleSelectionMode = { onAction(HomeAction.ToggleSelectionMode) },
+                            clearAllMatches = { onAction(HomeAction.ClearAllMatches) },
                             selectVisibleMatches = {
-                                state.selectVisibleMatches(matches.itemSnapshotList.items)
+                                onAction(
+                                    HomeAction.SelectVisibleMatches(
+                                        matches.itemSnapshotList.items.map { it.id }
+                                    )
+                                )
                             },
-                            clearSelection = state::clearSelection,
-                            deleteSelectedMatches = state::deleteSelectedMatches,
+                            clearSelection = { onAction(HomeAction.ClearSelection) },
+                            deleteSelectedMatches = { onAction(HomeAction.DeleteSelectedMatches) },
                         )
                     }
 
@@ -117,20 +181,20 @@ fun HomeScreen(
                                     MatchItem(
                                         modifier = Modifier.animateItem(),
                                         match = match,
-                                        apps = watchedApps,
-                                        showOpenInApp = openInAppIntents.containsKey(match.id),
+                                        apps = state.watchedApps,
+                                        showOpenInApp = match.id in state.openableMatchIds,
                                         isSelected = when (state.isSelectionMode) {
-                                            true -> state.selectedMatches.contains(match.id)
+                                            true -> match.id in state.selectedMatches
                                             else -> null
                                         },
                                         onDeleteMatch = {
-                                            state.deleteMatch(match)
+                                            onAction(HomeAction.DeleteMatch(match))
                                         },
                                         onOpenInApp = {
-                                            state.openInApp(match)
+                                            onAction(HomeAction.OpenInApp(match))
                                         },
                                         onToggleSelection = {
-                                            state.toggleMatchSelection(match.id)
+                                            onAction(HomeAction.ToggleMatchSelection(match.id))
                                         }
                                     )
                                 }
@@ -142,14 +206,14 @@ fun HomeScreen(
 
             if (state.isKeywordDialogVisible) {
                 KeywordDialog(
-                    onDismiss = state::toggleKeywordDialog,
-                    onSave = state::saveKeyword
+                    onDismiss = { onAction(HomeAction.ToggleKeywordDialog) },
+                    onSave = { onAction(HomeAction.SaveKeyword(it)) }
                 )
             }
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = state::toggleKeywordDialog,
+                onClick = { onAction(HomeAction.ToggleKeywordDialog) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 content = {
                     Icon(
@@ -165,6 +229,12 @@ fun HomeScreen(
 
 @Preview(showBackground = true)
 @Composable
-private fun HomeScreenPreview() = AppTheme {
-    HomeScreen {}
+private fun HomeContentPreview() = AppTheme {
+    HomeContent(
+        state = HomeState(recentCount = 3),
+        query = "",
+        matches = flowOf(PagingData.empty<KeywordMatch>()).collectAsLazyPagingItems(),
+        onSettings = {},
+        onAction = {},
+    )
 }
