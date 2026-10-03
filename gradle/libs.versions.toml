@@ -4,7 +4,7 @@ compose = "2026.09.00"
 firebase = "34.19.0"
 kotlin = "2.4.20"
 paging = "3.5.1"
-room = "2.8.5"
+room3 = "3.0.3"
 
 [libraries]
 # Android
@@ -48,11 +48,12 @@ paging-runtime = { module = "androidx.paging:paging-runtime-ktx", version.ref = 
 paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 # Play Services
 play-services-ads = "com.google.android.gms:play-services-ads:25.5.0"
-# Room
-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
-room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
+# Room 3
+room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+room3-paging = { module = "androidx.room3:room3-paging", version.ref = "room3" }
+# SQLite
+sqlite-bundled = "androidx.sqlite:sqlite-bundled:2.7.1"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -63,3 +64,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version = "2.3.12" }
+room3 = { id = "androidx.room3", version.ref = "room3" }

@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room3)
 }
 
 val keystoreProperties = Properties()
@@ -41,10 +42,6 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
     }
 
     signingConfigs {
@@ -90,6 +87,10 @@ kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }
+}
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
@@ -144,9 +145,11 @@ dependencies {
     // Play Services
     implementation(libs.play.services.ads)
 
-    // Room
-    ksp(libs.room.compiler)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    implementation(libs.room.paging)
+    // Room 3
+    ksp(libs.room3.compiler)
+    implementation(libs.room3.runtime)
+    implementation(libs.room3.paging)
+
+    // SQLite
+    implementation(libs.sqlite.bundled)
 }

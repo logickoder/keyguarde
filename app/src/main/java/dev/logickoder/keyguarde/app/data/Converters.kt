@@ -1,25 +1,25 @@
 package dev.logickoder.keyguarde.app.data
 
-import androidx.room.TypeConverter
+import androidx.room3.ColumnTypeConverter
 import kotlinx.serialization.json.Json
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 object Converters {
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromLocalDateTime(value: LocalDateTime?) = value?.toEpochSecond(ZoneOffset.UTC)
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun toLocalDateTime(value: Long?) = value?.let {
         LocalDateTime.ofEpochSecond(it, 0, ZoneOffset.UTC)
     }
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromStringSet(value: Set<String>?): String? {
         return Json.encodeToString(value)
     }
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun toStringSet(value: String?): Set<String>? {
         return value?.let {
             Json.decodeFromString<Set<String>>(it)

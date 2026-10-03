@@ -1,11 +1,14 @@
 package dev.logickoder.keyguarde.app.data
 
 import android.content.Context
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room3.ColumnTypeConverters
+import androidx.room3.DaoReturnTypeConverters
+import androidx.room3.Database
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.app.data.dao.KeywordDao
 import dev.logickoder.keyguarde.app.data.dao.KeywordMatchDao
@@ -19,7 +22,8 @@ import dev.logickoder.keyguarde.app.domain.usecase.PrepopulateDatabaseUsecase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@TypeConverters(Converters::class)
+@ColumnTypeConverters(Converters::class)
+@DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 @Database(
     entities = [
         Keyword::class,
@@ -50,8 +54,8 @@ abstract class AppDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context): AppDatabase {
             val callback = object : Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
+                override suspend fun onCreate(connection: SQLiteConnection) {
+                    super.onCreate(connection)
                     val db = instance
                     if (db == null || !BuildConfig.DEBUG) {
                         return
@@ -69,7 +73,11 @@ abstract class AppDatabase : RoomDatabase() {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "${BuildConfig.APPLICATION_ID}.db"
-            ).addMigrations(MIGRATION_1_2).addCallback(callback).build()
+            ).setDriver(BundledSQLiteDriver())
+                .setQueryCoroutineContext(Dispatchers.IO)
+                .addMigrations(MIGRATION_1_2)
+                .addCallback(callback)
+                .build()
         }
     }
 }

@@ -1,11 +1,11 @@
 package dev.logickoder.keyguarde.app.data.dao
 
 import androidx.paging.PagingSource
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room3.Dao
+import androidx.room3.Delete
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
+import androidx.room3.Query
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import kotlinx.coroutines.flow.Flow
 
