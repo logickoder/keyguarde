@@ -28,5 +28,6 @@ class AppContainer(context: Context) {
     }
 }
 
+// Compose previews don't run App, so they get a throwaway container.
 val Context.container: AppContainer
-    get() = (applicationContext as App).container
+    get() = (applicationContext as? App)?.container ?: AppContainer(applicationContext)
