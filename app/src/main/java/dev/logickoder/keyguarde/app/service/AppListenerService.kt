@@ -14,6 +14,7 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
+import dev.logickoder.keyguarde.app.data.saveChatAvatar
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import kotlinx.coroutines.withContext
 
 class AppListenerService : NotificationListenerService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -232,6 +234,8 @@ class AppListenerService : NotificationListenerService() {
                 return@launch
             }
 
+            cacheChatAvatar(notification, title)
+
             // Create a pending intent for the notification
             _notificationIntents.update { prev ->
                 val pendingIntent = notification.notification.contentIntent
@@ -252,6 +256,22 @@ class AppListenerService : NotificationListenerService() {
                     sourceName = title.ifBlank { appName },
                     showHeadsUp = true
                 )
+            }
+        }
+    }
+
+    /**
+     * Keeps the sender's or group's picture (the notification's large icon) for the Matches list.
+     */
+    private suspend fun cacheChatAvatar(notification: StatusBarNotification, chat: String) {
+        val icon = notification.notification.getLargeIcon() ?: return
+        withContext(Dispatchers.IO) {
+            try {
+                icon.loadDrawable(this@AppListenerService)?.let { drawable ->
+                    saveChatAvatar(this@AppListenerService, notification.packageName, chat, drawable)
+                }
+            } catch (e: Exception) {
+                Napier.w(e) { "Could not cache chat avatar" }
             }
         }
     }

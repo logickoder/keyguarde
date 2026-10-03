@@ -40,6 +40,9 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 firebase-performance = { group = "com.google.firebase", name = "firebase-perf" }
 # Junit
 junit = "junit:junit:4.13.2"
+# Test
+mockk = "io.mockk:mockk:1.14.11"
+kotlin-coroutines-test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0"
 # Kotlin
 kotlin-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.2"
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }

@@ -129,6 +129,8 @@ dependencies {
 
     // Junit
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlin.coroutines.test)
 
     // Kotlin
     implementation(libs.kotlin.immutable)

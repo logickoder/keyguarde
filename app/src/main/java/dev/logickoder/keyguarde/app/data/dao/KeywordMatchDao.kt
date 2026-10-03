@@ -8,6 +8,7 @@ import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
 
 @Dao
 interface KeywordMatchDao {
@@ -29,6 +30,12 @@ interface KeywordMatchDao {
     /**
      * Delete a specific KeywordMatch entry from the database.
      */
+    /**
+     * Count matches newer than [since], optionally limited to one app.
+     */
+    @Query("SELECT COUNT(*) FROM keyword_matches WHERE timestamp > :since AND (:app IS NULL OR app = :app)")
+    fun countSince(since: LocalDateTime, app: String?): Flow<Int>
+
     @Query("DELETE FROM keyword_matches WHERE rowid IN (:ids)")
     suspend fun delete(ids: List<Long>)
 

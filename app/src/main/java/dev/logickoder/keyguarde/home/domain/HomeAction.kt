@@ -18,6 +18,9 @@ sealed interface HomeAction {
 
     data object ResetCount : HomeAction
 
+    /** The screen became visible; re-read when the user last left so "new" is measured from then. */
+    data object RefreshLastVisit : HomeAction
+
     data object ToggleSelectionMode : HomeAction
 
     data class ToggleMatchSelection(val matchId: Long) : HomeAction

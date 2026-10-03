@@ -13,6 +13,7 @@ import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastContainer
 import dev.logickoder.keyguarde.app.components.ToastManager
 import dev.logickoder.keyguarde.app.components.globalToastManager
+import dev.logickoder.keyguarde.app.domain.AppScope
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.navigation.AppNavigation
 import dev.logickoder.keyguarde.app.navigation.AppRoute
@@ -74,6 +75,15 @@ class MainActivity : ComponentActivity() {
             if (settings.resetMatchCountOnAppOpen.first()) {
                 AppContainer.from(this@MainActivity).resetMatchCount()
             }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // A rotation isn't leaving; marking it would wipe the "new since last visit" divider.
+        if (!isChangingConfigurations) {
+            val repository = AppContainer.from(this).appRepository
+            AppScope.launch { repository.markVisited() }
         }
     }
 

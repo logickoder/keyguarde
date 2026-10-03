@@ -15,12 +15,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.PagingData
@@ -32,18 +35,20 @@ import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
 import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
 import dev.logickoder.keyguarde.app.components.ToastType
-import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
 import dev.logickoder.keyguarde.home.components.FilterChips
 import dev.logickoder.keyguarde.home.components.HomeHeader
 import dev.logickoder.keyguarde.home.components.HomeTopAppBar
 import dev.logickoder.keyguarde.home.components.KeywordDialog
-import dev.logickoder.keyguarde.home.components.MatchItem
+import dev.logickoder.keyguarde.home.components.MatchRow
+import dev.logickoder.keyguarde.home.components.MatchRowDivider
 import dev.logickoder.keyguarde.home.components.MatchSummaryCard
+import dev.logickoder.keyguarde.home.components.NewSinceLastVisitHeader
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
+import dev.logickoder.keyguarde.home.domain.MatchListItem
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -57,6 +62,10 @@ fun HomeScreen(
     val viewModel = viewModel<HomeViewModel>(factory = HomeViewModel.factory(context))
     val state by viewModel.state.collectAsStateWithLifecycle()
     val matches = viewModel.matches.collectAsLazyPagingItems()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        viewModel.onAction(HomeAction.RefreshLastVisit)
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
@@ -104,11 +113,13 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeState,
     query: String,
-    matches: LazyPagingItems<KeywordMatch>,
+    matches: LazyPagingItems<MatchListItem>,
     onSettings: () -> Unit,
     onAction: (HomeAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val appsByPackage = remember(state.watchedApps) { state.watchedApps.associateBy { it.packageName } }
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -165,7 +176,9 @@ private fun HomeContent(
                             selectVisibleMatches = {
                                 onAction(
                                     HomeAction.SelectVisibleMatches(
-                                        matches.itemSnapshotList.items.map { it.id }
+                                        matches.itemSnapshotList.items
+                                            .filterIsInstance<MatchListItem.Match>()
+                                            .map { it.match.id }
                                     )
                                 )
                             },
@@ -181,26 +194,40 @@ private fun HomeContent(
 
                         else -> items(
                             matches.itemCount,
-                            key = matches.itemKey { it.id },
-                            itemContent = {
-                                matches[it]?.let { match ->
-                                    MatchItem(
+                            key = matches.itemKey { it.key },
+                            itemContent = { index ->
+                                when (val item = matches[index]) {
+                                    null -> Unit
+
+                                    MatchListItem.NewDivider -> NewSinceLastVisitHeader(
+                                        count = state.newSinceLastVisit,
                                         modifier = Modifier.animateItem(),
-                                        match = match,
-                                        apps = state.watchedApps,
-                                        showOpenInApp = match.id in state.openableMatchIds,
-                                        isSelected = when (state.isSelectionMode) {
-                                            true -> match.id in state.selectedMatches
-                                            else -> null
-                                        },
-                                        onDeleteMatch = {
-                                            onAction(HomeAction.DeleteMatch(match))
-                                        },
-                                        onOpenInApp = {
-                                            onAction(HomeAction.OpenInApp(match))
-                                        },
-                                        onToggleSelection = {
-                                            onAction(HomeAction.ToggleMatchSelection(match.id))
+                                    )
+
+                                    is MatchListItem.Match -> Column(
+                                        modifier = Modifier.animateItem(),
+                                        content = {
+                                            MatchRow(
+                                                match = item.match,
+                                                app = appsByPackage[item.match.app],
+                                                isNew = item.isNew,
+                                                isSelected = when (state.isSelectionMode) {
+                                                    true -> item.match.id in state.selectedMatches
+                                                    else -> null
+                                                },
+                                                onClick = {
+                                                    when {
+                                                        state.isSelectionMode -> onAction(
+                                                            HomeAction.ToggleMatchSelection(item.match.id)
+                                                        )
+
+                                                        item.match.id in state.openableMatchIds -> onAction(
+                                                            HomeAction.OpenInApp(item.match)
+                                                        )
+                                                    }
+                                                },
+                                            )
+                                            MatchRowDivider()
                                         }
                                     )
                                 }
@@ -239,7 +266,7 @@ private fun HomeContentPreview() = AppTheme {
     HomeContent(
         state = HomeState(recentCount = 3),
         query = "",
-        matches = flowOf(PagingData.empty<KeywordMatch>()).collectAsLazyPagingItems(),
+        matches = flowOf(PagingData.empty<MatchListItem>()).collectAsLazyPagingItems(),
         onSettings = {},
         onAction = {},
     )

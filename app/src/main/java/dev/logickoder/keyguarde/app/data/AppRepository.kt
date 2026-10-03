@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -16,6 +17,8 @@ import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 /**
  * Repository for managing Keyguarde data.
@@ -52,6 +55,27 @@ class AppRepository(
      * Get the recent chats from the local store.
      */
     val recentChats = localStore.get(RECENT_CHATS).map { it ?: emptySet() }
+
+    /**
+     * When the user last left the app, or null before the first visit ends.
+     */
+    val lastVisitAt = localStore.get(LAST_VISIT_AT).map { seconds ->
+        seconds?.let { LocalDateTime.ofEpochSecond(it, 0, ZoneOffset.UTC) }
+    }
+
+    /**
+     * Record that the user is leaving the app now, so the next visit can tell what's new.
+     */
+    suspend fun markVisited() {
+        // Same encoding as the timestamp column (Converters), so comparisons line up.
+        localStore.save(LAST_VISIT_AT, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+    }
+
+    /**
+     * Count matches newer than [since], optionally limited to one app.
+     */
+    fun countMatchesSince(since: LocalDateTime, packageName: String?): Flow<Int> =
+        database.keywordMatchDao().countSince(since, packageName?.takeIf { it.isNotBlank() })
 
     /**
      * Get all installed apps that can post notifications on the device.
@@ -236,6 +260,8 @@ class AppRepository(
         private val RECENT_MATCH_COUNT = intPreferencesKey("recent_match_count")
 
         private val RECENT_CHATS = stringSetPreferencesKey("recent_chats")
+
+        private val LAST_VISIT_AT = longPreferencesKey("last_visit_at")
 
         // Package names of priority apps
         const val WHATSAPP_PACKAGE_NAME = "com.whatsapp"

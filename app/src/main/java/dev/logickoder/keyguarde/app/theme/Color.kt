@@ -34,3 +34,9 @@ internal val Red300 = Color(0xFFF97066)
 internal val Red700 = Color(0xFFB42318)
 internal val Red800 = Color(0xFF7A271A)
 internal val Red950 = Color(0xFF55160C)
+
+// Fallback avatar backgrounds. Neutral on purpose; initials stay at least 9.5:1 on every tone.
+internal val AvatarTonesLight = listOf(Grey150, Grey200, Grey300)
+internal val AvatarInkLight = Grey800
+internal val AvatarTonesDark = listOf(Grey800, Grey750, Grey700)
+internal val AvatarInkDark = Grey100

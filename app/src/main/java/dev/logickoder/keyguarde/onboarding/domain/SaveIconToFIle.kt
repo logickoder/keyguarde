@@ -13,27 +13,35 @@ import java.io.File
 import java.io.FileOutputStream
 
 fun saveIconToFile(icon: Drawable, packageName: String, context: Context): String {
-    val destination = getIconFile(context, packageName)
+    val file = getIconFile(context, packageName)
+    icon.writeWebp(file)
+    return FileProvider.getUriForFile(
+        context,
+        context.provider,
+        file
+    ).toString()
+}
 
-    // store the icon in the apps cache directory
-    val file = destination.apply {
-        parentFile?.mkdirs()
-        createNewFile()
-    }
+/**
+ * Writes this drawable to [file] as WebP, creating parent folders. Shared by app icons and chat
+ * avatars so both use one format.
+ */
+internal fun Drawable.writeWebp(file: File) {
+    file.parentFile?.mkdirs()
 
     val bitmap = run {
-        if (icon is BitmapDrawable && icon.bitmap != null) {
-            return@run icon.bitmap
+        if (this is BitmapDrawable && bitmap != null) {
+            return@run bitmap
         }
 
         val bitmap = createBitmap(
-            icon.intrinsicWidth.coerceAtLeast(1),
-            icon.intrinsicHeight.coerceAtLeast(1)
+            intrinsicWidth.coerceAtLeast(1),
+            intrinsicHeight.coerceAtLeast(1)
         )
 
         val canvas = Canvas(bitmap)
-        icon.setBounds(0, 0, canvas.width, canvas.height)
-        icon.draw(canvas)
+        setBounds(0, 0, canvas.width, canvas.height)
+        draw(canvas)
         return@run bitmap
     }
 
@@ -48,11 +56,6 @@ fun saveIconToFile(icon: Drawable, packageName: String, context: Context): Strin
             output
         )
     }
-    return FileProvider.getUriForFile(
-        context,
-        context.provider,
-        file
-    ).toString()
 }
 
 
