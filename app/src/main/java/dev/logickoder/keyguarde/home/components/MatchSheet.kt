@@ -115,10 +115,17 @@ private fun MatchSheetContent(
                     .padding(horizontal = Spacing.xl),
                 verticalArrangement = Arrangement.spacedBy(Spacing.l),
                 content = {
+                    // Top-aligned so the delete icon stays level with the first pill row when pills wrap.
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.Top,
                         content = {
-                            KeywordPills(keywords = match.keywords, modifier = Modifier.weight(1f))
+                            KeywordPills(
+                                keywords = match.keywords,
+                                // Centres a 28dp pill row on the 48dp icon button.
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(top = 10.dp),
+                            )
                             IconButton(
                                 onClick = onDelete,
                                 content = {

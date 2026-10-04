@@ -115,7 +115,7 @@
     <string name="open_in_app_failed">Failed to open app: %1$s</string>
     <string name="launch_app_failed">Can\'t open this app. It isn\'t installed, or it has no main screen. Find the chat in the app directly.</string>
     <string name="match_open_in">Open in %1$s</string>
-    <string name="match_open_app">Open %1$s</string>
+    <string name="match_open_app">Open %1$s app</string>
     <string name="match_expired">This notification expired, so Keyguarde can\'t jump to the chat.</string>
     <string name="delete_match">Delete match</string>
     <string name="match_source_time">%1$s · %2$s</string>
