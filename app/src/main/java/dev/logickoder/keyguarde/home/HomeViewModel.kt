@@ -101,6 +101,7 @@ class HomeViewModel(
             watchedApps = watchedApps.toImmutableList(),
             matchCounts = counts.toImmutableMap(),
             filterDraft = inputs.filterDraft,
+            openMatch = inputs.openMatch,
             newSinceLastVisit = newCount,
             openableMatchIds = intents.keys.toImmutableSet(),
             isFilterSheetVisible = inputs.isFilterSheetVisible,
@@ -177,7 +178,18 @@ class HomeViewModel(
                 saveFilter()
             }
 
+            is HomeAction.OpenMatch -> inputs.update { it.copy(openMatch = action.match) }
+
+            HomeAction.DismissMatch -> inputs.update { it.copy(openMatch = null) }
+
             is HomeAction.OpenInApp -> openInApp(action.match)
+
+            is HomeAction.LaunchApp -> {
+                inputs.update { it.copy(openMatch = null) }
+                _effects.trySend(HomeEffect.LaunchApp(action.packageName))
+            }
+
+            is HomeAction.DeleteMatch -> deleteMatches(listOf(action.match.id))
 
             HomeAction.ResetCount -> viewModelScope.launch { resetMatchCount() }
 
@@ -258,6 +270,7 @@ class HomeViewModel(
                     intent.send()
                 }
             }
+            inputs.update { it.copy(openMatch = null) }
         } catch (e: Exception) {
             _effects.trySend(HomeEffect.OpenInAppFailed(e.message))
         }
@@ -266,11 +279,17 @@ class HomeViewModel(
     private fun deleteSelectedMatches() {
         val selected = inputs.value.selectedMatches.toList()
         if (selected.isEmpty()) return
+        inputs.update { it.copy(isSelectionMode = false, selectedMatches = persistentSetOf()) }
+        deleteMatches(selected)
+    }
+
+    private fun deleteMatches(ids: List<Long>) {
+        if (ids.isEmpty()) return
+        inputs.update { it.copy(openMatch = null) }
         viewModelScope.launch {
-            undoable = repository.getMatchesByIds(selected)
-            repository.deleteKeywordMatches(selected)
-            inputs.update { it.copy(isSelectionMode = false, selectedMatches = persistentSetOf()) }
-            _effects.send(HomeEffect.MatchesDeleted(selected.size))
+            undoable = repository.getMatchesByIds(ids)
+            repository.deleteKeywordMatches(ids)
+            _effects.send(HomeEffect.MatchesDeleted(ids.size))
         }
     }
 
@@ -296,6 +315,7 @@ class HomeViewModel(
         val isClearAllConfirmVisible: Boolean = false,
         val isSelectionMode: Boolean = false,
         val selectedMatches: PersistentSet<Long> = persistentSetOf(),
+        val openMatch: KeywordMatch? = null,
     )
 
     companion object {

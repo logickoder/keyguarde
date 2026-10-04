@@ -2,9 +2,11 @@ package dev.logickoder.keyguarde.home
 
 import androidx.paging.PagingData
 import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.home.domain.HomeAction
+import dev.logickoder.keyguarde.home.domain.HomeEffect
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -24,9 +26,11 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -34,6 +38,14 @@ class HomeViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val app1 = WatchedApp("com.example.app1", "App 1", "")
     private val app2 = WatchedApp("com.example.app2", "App 2", "")
+    private val match = KeywordMatch(
+        id = 7,
+        keywords = setOf("rent"),
+        message = "Rent is due",
+        chat = "Landlord",
+        app = app1.packageName,
+        timestamp = LocalDateTime.of(2026, 10, 1, 9, 0),
+    )
 
     private val repository = mockk<AppRepository> {
         every { watchedApps } returns flowOf(listOf(app1, app2))
@@ -117,6 +129,54 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         assertEquals(5, viewModel.state.value.matchCounts[app2.packageName])
+    }
+
+    @Test
+    fun `opening a match shows it and dismissing closes it`() = runTest(dispatcher) {
+        backgroundScope.launch { viewModel.state.collect {} }
+
+        viewModel.onAction(HomeAction.OpenMatch(match))
+        advanceUntilIdle()
+        assertEquals(match, viewModel.state.value.openMatch)
+
+        viewModel.onAction(HomeAction.DismissMatch)
+        advanceUntilIdle()
+        assertNull(viewModel.state.value.openMatch)
+    }
+
+    @Test
+    fun `deleting from the sheet closes it and offers undo`() = runTest(dispatcher) {
+        coEvery { repository.getMatchesByIds(listOf(match.id)) } returns listOf(match)
+        coEvery { repository.deleteKeywordMatches(any()) } just Runs
+        coEvery { repository.restoreMatches(any()) } just Runs
+        backgroundScope.launch { viewModel.state.collect {} }
+        val effects = mutableListOf<HomeEffect>()
+        backgroundScope.launch { viewModel.effects.collect { effects += it } }
+
+        viewModel.onAction(HomeAction.OpenMatch(match))
+        viewModel.onAction(HomeAction.DeleteMatch(match))
+        advanceUntilIdle()
+
+        assertNull(viewModel.state.value.openMatch)
+        assertEquals(listOf<HomeEffect>(HomeEffect.MatchesDeleted(1)), effects)
+
+        viewModel.onAction(HomeAction.UndoDelete)
+        advanceUntilIdle()
+        coVerify { repository.restoreMatches(listOf(match)) }
+    }
+
+    @Test
+    fun `launching the app closes the sheet and hands the launch to the screen`() = runTest(dispatcher) {
+        backgroundScope.launch { viewModel.state.collect {} }
+        val effects = mutableListOf<HomeEffect>()
+        backgroundScope.launch { viewModel.effects.collect { effects += it } }
+
+        viewModel.onAction(HomeAction.OpenMatch(match))
+        viewModel.onAction(HomeAction.LaunchApp(app1.packageName))
+        advanceUntilIdle()
+
+        assertNull(viewModel.state.value.openMatch)
+        assertEquals(listOf<HomeEffect>(HomeEffect.LaunchApp(app1.packageName)), effects)
     }
 
     @Test

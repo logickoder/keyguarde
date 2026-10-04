@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.home.domain
 
+import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
@@ -18,6 +19,8 @@ data class HomeState(
     val filterDraft: ImmutableSet<String> = persistentSetOf(),
     val newSinceLastVisit: Int = 0,
     val openableMatchIds: ImmutableSet<Long> = persistentSetOf(),
+    /** The match shown in the detail sheet, or null when it's closed. */
+    val openMatch: KeywordMatch? = null,
     val isFilterSheetVisible: Boolean = false,
     val isClearAllConfirmVisible: Boolean = false,
     val isSelectionMode: Boolean = false,

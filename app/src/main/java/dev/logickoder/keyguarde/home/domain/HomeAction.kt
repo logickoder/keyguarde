@@ -23,7 +23,19 @@ sealed interface HomeAction {
     /** Show every app's matches again. */
     data object ClearFilter : HomeAction
 
+    /** Show [match] in the detail sheet. */
+    data class OpenMatch(val match: KeywordMatch) : HomeAction
+
+    data object DismissMatch : HomeAction
+
+    /** Jump to the chat through the notification's own intent, while it's still alive. */
     data class OpenInApp(val match: KeywordMatch) : HomeAction
+
+    /** Fallback when the notification expired: open the source app's main screen. */
+    data class LaunchApp(val packageName: String) : HomeAction
+
+    /** Delete one match from the detail sheet, with undo. */
+    data class DeleteMatch(val match: KeywordMatch) : HomeAction
 
     data object ResetCount : HomeAction
 

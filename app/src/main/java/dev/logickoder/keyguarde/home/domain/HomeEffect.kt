@@ -10,4 +10,7 @@ sealed interface HomeEffect {
     data class MatchesCleared(val count: Int) : HomeEffect
 
     data class OpenInAppFailed(val reason: String?) : HomeEffect
+
+    /** Starting an activity needs a Context, so the screen does it. */
+    data class LaunchApp(val packageName: String) : HomeEffect
 }

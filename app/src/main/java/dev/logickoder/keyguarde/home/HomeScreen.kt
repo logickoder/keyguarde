@@ -48,6 +48,7 @@ import dev.logickoder.keyguarde.home.components.EmptyMatchesState
 import dev.logickoder.keyguarde.home.components.HomeTopAppBar
 import dev.logickoder.keyguarde.home.components.MatchFilterSheet
 import dev.logickoder.keyguarde.home.components.MatchRow
+import dev.logickoder.keyguarde.home.components.MatchSheet
 import dev.logickoder.keyguarde.home.components.MatchRowDivider
 import dev.logickoder.keyguarde.home.components.NewSinceLastVisitHeader
 import dev.logickoder.keyguarde.home.components.SelectionTopBar
@@ -85,6 +86,19 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     effect.count,
                     effect.count,
                 )
+
+                is HomeEffect.LaunchApp -> {
+                    val intent = context.packageManager.getLaunchIntentForPackage(effect.packageName)
+                    when (intent) {
+                        null -> toastManager.show(
+                            message = resources.getString(R.string.launch_app_failed),
+                            type = ToastType.Error,
+                        )
+
+                        else -> context.startActivity(intent)
+                    }
+                    null
+                }
 
                 is HomeEffect.OpenInAppFailed -> {
                     toastManager.show(
@@ -249,9 +263,7 @@ private fun HomeContent(
                                                             HomeAction.ToggleMatchSelection(item.match.id)
                                                         )
 
-                                                        item.match.id in state.openableMatchIds -> onAction(
-                                                            HomeAction.OpenInApp(item.match)
-                                                        )
+                                                        else -> onAction(HomeAction.OpenMatch(item.match))
                                                     }
                                                 },
                                                 onLongClick = {
@@ -270,6 +282,18 @@ private fun HomeContent(
                     }
                 }
             )
+
+            state.openMatch?.let { match ->
+                MatchSheet(
+                    match = match,
+                    app = appsByPackage[match.app],
+                    canOpenInApp = match.id in state.openableMatchIds,
+                    onOpenInApp = { onAction(HomeAction.OpenInApp(match)) },
+                    onLaunchApp = { onAction(HomeAction.LaunchApp(match.app)) },
+                    onDelete = { onAction(HomeAction.DeleteMatch(match)) },
+                    onDismiss = { onAction(HomeAction.DismissMatch) },
+                )
+            }
 
             if (state.isFilterSheetVisible) {
                 MatchFilterSheet(
