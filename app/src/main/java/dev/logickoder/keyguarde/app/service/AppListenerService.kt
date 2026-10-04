@@ -22,14 +22,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import kotlinx.coroutines.withContext
 
 class AppListenerService : NotificationListenerService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -68,6 +69,7 @@ class AppListenerService : NotificationListenerService() {
     override fun onListenerConnected() {
         super.onListenerConnected()
         Napier.i { "Listener connected" }
+        _isConnected.update { true }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -101,6 +103,7 @@ class AppListenerService : NotificationListenerService() {
         super.onListenerDisconnected()
 
         Napier.i { "Listener disconnected" }
+        _isConnected.update { false }
 
         if (componentName == null) {
             componentName = ComponentName(this, this::class.java)
@@ -305,5 +308,14 @@ class AppListenerService : NotificationListenerService() {
         private val _notificationIntents = MutableStateFlow(emptyMap<Long, PendingIntent>())
         val notificationIntents: StateFlow<Map<Long, PendingIntent>>
             get() = _notificationIntents
+
+        private val _isConnected = MutableStateFlow(false)
+
+        /**
+         * Whether the system has bound this listener in the current process. A process killed to
+         * save battery gets no disconnect callback, so this starts false and only the connect
+         * callback can make it true.
+         */
+        val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
     }
 }

@@ -1,15 +1,24 @@
 package dev.logickoder.keyguarde.home
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -38,35 +47,41 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.LocalToastManager
-import dev.logickoder.keyguarde.app.components.NotificationListenerBanner
-import dev.logickoder.keyguarde.app.components.NotificationPermissionBanner
+import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.components.ToastType
+import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.components.ClearAllDialog
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
 import dev.logickoder.keyguarde.home.components.HomeTopAppBar
+import dev.logickoder.keyguarde.home.components.LoadingMatchRows
 import dev.logickoder.keyguarde.home.components.MatchFilterSheet
 import dev.logickoder.keyguarde.home.components.MatchRow
-import dev.logickoder.keyguarde.home.components.MatchSheet
 import dev.logickoder.keyguarde.home.components.MatchRowDivider
+import dev.logickoder.keyguarde.home.components.MatchSheet
 import dev.logickoder.keyguarde.home.components.NewSinceLastVisitHeader
 import dev.logickoder.keyguarde.home.components.SelectionTopBar
 import dev.logickoder.keyguarde.home.components.rememberLastWhile
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
+import dev.logickoder.keyguarde.home.domain.ListenerIssue
 import dev.logickoder.keyguarde.home.domain.MatchListItem
 import kotlinx.coroutines.flow.flowOf
 
+/**
+ * @param onOpenKeywords switches to the Keywords tab, from the empty state.
+ */
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(onOpenKeywords: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val toastManager = LocalToastManager.current
@@ -77,6 +92,23 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
     LifecycleEventEffect(Lifecycle.Event.ON_START) {
         viewModel.onAction(HomeAction.RefreshLastVisit)
+    }
+
+    val checkPermissions = {
+        viewModel.onAction(
+            HomeAction.PermissionsChecked(
+                hasListenerAccess = NotificationHelper.isListenerServiceEnabled(context),
+                notificationsAllowed = NotificationHelper.isNotificationPermissionGranted(context),
+            )
+        )
+    }
+    // Both can change in system settings while the app is in the background.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { checkPermissions() }
+
+    val notificationPermission = NotificationHelper.requestNotificationPermissionLauncher { granted ->
+        checkPermissions()
+        // Android stops showing the prompt after repeated denials; settings is the only way left.
+        if (!granted) context.startActivitySafely(appNotificationSettings(context))
     }
 
     LaunchedEffect(viewModel) {
@@ -138,6 +170,23 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         matches = matches,
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
+        onOpenKeywords = onOpenKeywords,
+        onOpenListenerSettings = { NotificationHelper.launchListenerSettings(context) },
+        onRestartListener = {
+            NotificationHelper.startListenerService(context)
+            NotificationHelper.requestListenerServiceRebind(context)
+            viewModel.onAction(HomeAction.ListenerRestartRequested)
+        },
+        onOpenBatterySettings = {
+            context.startActivitySafely(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        },
+        onEnableNotifications = {
+            if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
+                notificationPermission.launch(NotificationHelper.PERMISSION)
+            } else {
+                context.startActivitySafely(appNotificationSettings(context))
+            }
+        },
     )
 }
 
@@ -148,6 +197,11 @@ private fun HomeContent(
     matches: LazyPagingItems<MatchListItem>,
     snackbarHostState: SnackbarHostState,
     onAction: (HomeAction) -> Unit,
+    onOpenKeywords: () -> Unit,
+    onOpenListenerSettings: () -> Unit,
+    onRestartListener: () -> Unit,
+    onOpenBatterySettings: () -> Unit,
+    onEnableNotifications: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val appsByPackage = remember(state.watchedApps) { state.watchedApps.associateBy { it.packageName } }
@@ -233,73 +287,99 @@ private fun HomeContent(
             )
         },
         content = { scaffoldPadding ->
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding),
                 content = {
-                    item {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                            content = {
-                                NotificationPermissionBanner()
-                                NotificationListenerBanner()
-                            }
-                        )
-                    }
+                    // Above the list, not in it: a warning that matches could be missed stays in view
+                    // however far the user scrolls, and opening it pushes the list down instead of
+                    // growing off-screen above the first row.
+                    StatusBanners(
+                        listenerIssue = state.listenerIssue,
+                        notificationsAllowed = state.notificationsAllowed,
+                        onOpenListenerSettings = onOpenListenerSettings,
+                        onRestartListener = onRestartListener,
+                        onOpenBatterySettings = onOpenBatterySettings,
+                        onEnableNotifications = onEnableNotifications,
+                    )
 
-                    // Row callbacks capture this, not the whole state, so opening a sheet or other
-                    // state changes don't recompose every visible row.
-                    val isSelectionMode = state.isSelectionMode
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        content = {
 
-                    when (matches.itemCount) {
-                        0 -> item {
-                            EmptyMatchesState(modifier = Modifier.animateItem())
-                        }
+                            // Row callbacks capture this, not the whole state, so opening a sheet or other
+                            // state changes don't recompose every visible row.
+                            val isSelectionMode = state.isSelectionMode
 
-                        else -> items(
-                            matches.itemCount,
-                            key = matches.itemKey { it.key },
-                            itemContent = { index ->
-                                when (val item = matches[index]) {
-                                    null -> Unit
+                            val refresh = matches.loadState.refresh
+                            // Before the first page arrives, the list reports "not loading" with nothing
+                            // in it; only a finished, empty load means there's really nothing to show.
+                            val isLoaded = refresh is LoadState.NotLoading && matches.loadState.append.endOfPaginationReached
 
-                                    MatchListItem.NewDivider -> NewSinceLastVisitHeader(
-                                        count = state.newSinceLastVisit,
+                            when {
+                                matches.itemCount == 0 && !isLoaded -> item(key = "loading") {
+                                    LoadingMatchRows(modifier = Modifier.animateItem())
+                                }
+
+                                matches.itemCount == 0 -> item(key = "empty") {
+                                    EmptyMatchesState(
+                                        query = query,
+                                        filterNames = state.filter.takeIf { it.isNotEmpty() }?.joinToString { it.name },
+                                        onReviewKeywords = onOpenKeywords,
+                                        onClearSearch = { onAction(HomeAction.SearchQueryChanged("")) },
+                                        onClearFilter = { onAction(HomeAction.ClearFilter) },
                                         modifier = Modifier.animateItem(),
-                                    )
-
-                                    is MatchListItem.Match -> Column(
-                                        modifier = Modifier.animateItem(),
-                                        content = {
-                                            MatchRow(
-                                                match = item.match,
-                                                app = appsByPackage[item.match.app],
-                                                isNew = item.isNew,
-                                                isSelected = when (isSelectionMode) {
-                                                    true -> item.match.id in state.selectedMatches
-                                                    else -> null
-                                                },
-                                                onClick = {
-                                                    when (isSelectionMode) {
-                                                        true -> onAction(HomeAction.ToggleMatchSelection(item.match.id))
-                                                        else -> onAction(HomeAction.OpenMatch(item.match))
-                                                    }
-                                                },
-                                                onLongClick = {
-                                                    when (isSelectionMode) {
-                                                        true -> onAction(HomeAction.ToggleMatchSelection(item.match.id))
-                                                        else -> onAction(HomeAction.StartSelectionWith(item.match.id))
-                                                    }
-                                                },
-                                            )
-                                            MatchRowDivider()
-                                        }
                                     )
                                 }
+
+                                else -> items(
+                                    matches.itemCount,
+                                    key = matches.itemKey { it.key },
+                                    itemContent = { index ->
+                                        when (val item = matches[index]) {
+                                            null -> Unit
+
+                                            MatchListItem.NewDivider -> NewSinceLastVisitHeader(
+                                                count = state.newSinceLastVisit,
+                                                modifier = Modifier.animateItem(),
+                                            )
+
+                                            is MatchListItem.Match -> Column(
+                                                modifier = Modifier.animateItem(),
+                                                content = {
+                                                    MatchRow(
+                                                        match = item.match,
+                                                        app = appsByPackage[item.match.app],
+                                                        isNew = item.isNew,
+                                                        isSelected = when (isSelectionMode) {
+                                                            true -> item.match.id in state.selectedMatches
+                                                            else -> null
+                                                        },
+                                                        onClick = {
+                                                            when (isSelectionMode) {
+                                                                true -> onAction(HomeAction.ToggleMatchSelection(item.match.id))
+                                                                else -> onAction(HomeAction.OpenMatch(item.match))
+                                                            }
+                                                        },
+                                                        onLongClick = {
+                                                            when (isSelectionMode) {
+                                                                true -> onAction(HomeAction.ToggleMatchSelection(item.match.id))
+                                                                else -> onAction(HomeAction.StartSelectionWith(item.match.id))
+                                                            }
+                                                        },
+                                                    )
+                                                    MatchRowDivider()
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             )
 
@@ -346,5 +426,98 @@ private fun HomeContentPreview() = AppTheme {
         matches = flowOf(PagingData.empty<MatchListItem>()).collectAsLazyPagingItems(),
         snackbarHostState = remember { SnackbarHostState() },
         onAction = {},
+        onOpenKeywords = {},
+        onOpenListenerSettings = {},
+        onRestartListener = {},
+        onOpenBatterySettings = {},
+        onEnableNotifications = {},
     )
+}
+
+/**
+ * The warnings that mean matches could be missed: at most one listener problem, plus blocked
+ * alerts. Animated in and out like the rest of the list.
+ */
+@Composable
+private fun StatusBanners(
+    listenerIssue: ListenerIssue,
+    notificationsAllowed: Boolean,
+    onOpenListenerSettings: () -> Unit,
+    onRestartListener: () -> Unit,
+    onOpenBatterySettings: () -> Unit,
+    onEnableNotifications: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = Spacing.l),
+        content = {
+            AnimatedVisibility(
+                visible = listenerIssue == ListenerIssue.AccessOff,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+                content = {
+                    StatusBanner(
+                        message = stringResource(R.string.banner_access_off),
+                        actions = listOf(stringResource(R.string.banner_turn_on_access) to onOpenListenerSettings),
+                        modifier = Modifier.padding(top = Spacing.s),
+                    )
+                }
+            )
+            AnimatedVisibility(
+                visible = listenerIssue == ListenerIssue.Stopped,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+                content = {
+                    StatusBanner(
+                        message = stringResource(R.string.banner_listener_stopped),
+                        actions = listOf(
+                            stringResource(R.string.banner_battery_settings) to onOpenBatterySettings,
+                            stringResource(R.string.banner_restart) to onRestartListener,
+                        ),
+                        modifier = Modifier.padding(top = Spacing.s),
+                    )
+                }
+            )
+            AnimatedVisibility(
+                visible = listenerIssue == ListenerIssue.StillStopped,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+                content = {
+                    StatusBanner(
+                        message = stringResource(R.string.banner_listener_still_stopped),
+                        actions = listOf(
+                            stringResource(R.string.banner_battery_settings) to onOpenBatterySettings,
+                            stringResource(R.string.banner_open_access) to onOpenListenerSettings,
+                        ),
+                        modifier = Modifier.padding(top = Spacing.s),
+                    )
+                }
+            )
+            AnimatedVisibility(
+                visible = !notificationsAllowed,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+                content = {
+                    StatusBanner(
+                        message = stringResource(R.string.banner_notifications_off),
+                        actions = listOf(stringResource(R.string.banner_turn_on) to onEnableNotifications),
+                        modifier = Modifier.padding(top = Spacing.s),
+                    )
+                }
+            )
+        }
+    )
+}
+
+private fun appNotificationSettings(context: Context) =
+    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+
+// Some OEM builds drop settings screens; fall back to the app's own details page.
+private fun Context.startActivitySafely(intent: Intent) {
+    try {
+        startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+        startActivity(
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
+        )
+    }
 }

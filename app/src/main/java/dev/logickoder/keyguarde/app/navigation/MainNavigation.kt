@@ -78,7 +78,7 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                         content = { current ->
                             tabStates.SaveableStateProvider(current.name) {
                                 when (current) {
-                                    MainTab.Matches -> HomeScreen()
+                                    MainTab.Matches -> HomeScreen(onOpenKeywords = { tab = MainTab.Keywords })
                                     MainTab.Keywords -> KeywordsScreen()
                                     MainTab.Settings -> SettingsNavigation()
                                 }
