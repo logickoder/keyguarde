@@ -1,6 +1,12 @@
 package dev.logickoder.keyguarde.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,6 +58,7 @@ import dev.logickoder.keyguarde.home.components.MatchSheet
 import dev.logickoder.keyguarde.home.components.MatchRowDivider
 import dev.logickoder.keyguarde.home.components.NewSinceLastVisitHeader
 import dev.logickoder.keyguarde.home.components.SelectionTopBar
+import dev.logickoder.keyguarde.home.components.rememberLastWhile
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
@@ -152,56 +159,68 @@ private fun HomeContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            when (state.isSelectionMode) {
-                true -> SelectionTopBar(
-                    selectedCount = state.selectedMatches.size,
-                    onExit = { onAction(HomeAction.ExitSelection) },
-                    onSelectAll = {
-                        onAction(
-                            HomeAction.SelectVisibleMatches(
-                                matches.itemSnapshotList.items
-                                    .filterIsInstance<MatchListItem.Match>()
-                                    .map { it.match.id }
+            val selectedCount = rememberLastWhile(state.isSelectionMode, state.selectedMatches.size)
+            // Fade through, like the search bar's swap, so entering and leaving selection doesn't jump.
+            AnimatedContent(
+                targetState = state.isSelectionMode,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(durationMillis = 220, delayMillis = 90)) togetherWith
+                        fadeOut(animationSpec = tween(durationMillis = 90)) using
+                        SizeTransform(clip = false)
+                },
+                label = "HomeTopBar",
+            ) { isSelecting ->
+                when (isSelecting) {
+                    true -> SelectionTopBar(
+                        selectedCount = selectedCount,
+                        onExit = { onAction(HomeAction.ExitSelection) },
+                        onSelectAll = {
+                            onAction(
+                                HomeAction.SelectVisibleMatches(
+                                    matches.itemSnapshotList.items
+                                        .filterIsInstance<MatchListItem.Match>()
+                                        .map { it.match.id }
+                                )
                             )
-                        )
-                    },
-                    onDelete = { onAction(HomeAction.DeleteSelectedMatches) },
-                )
+                        },
+                        onDelete = { onAction(HomeAction.DeleteSelectedMatches) },
+                    )
 
-                else -> Column(
-                    content = {
-                        HomeTopAppBar(
-                            searchQuery = query,
-                            onSearchQueryChange = { onAction(HomeAction.SearchQueryChanged(it)) },
-                            filterCount = state.filter.size,
-                            onFilter = { onAction(HomeAction.ShowFilterSheet) },
-                            onSelect = { onAction(HomeAction.StartSelection) },
-                            onResetCounter = { onAction(HomeAction.ResetCount) },
-                            onClearAll = { onAction(HomeAction.ShowClearAllConfirm) },
-                        )
-                        if (state.filter.isNotEmpty()) {
-                            val names = remember(state.filter) { state.filter.joinToString { it.name } }
-                            InputChip(
-                                selected = true,
-                                onClick = { onAction(HomeAction.ClearFilter) },
-                                label = {
-                                    Text(
-                                        text = stringResource(R.string.filtered_by, names),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                },
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.clear_filter),
-                                    )
-                                },
-                                modifier = Modifier.padding(horizontal = Spacing.l),
+                    else -> Column(
+                        content = {
+                            HomeTopAppBar(
+                                searchQuery = query,
+                                onSearchQueryChange = { onAction(HomeAction.SearchQueryChanged(it)) },
+                                filterCount = state.filter.size,
+                                onFilter = { onAction(HomeAction.ShowFilterSheet) },
+                                onSelect = { onAction(HomeAction.StartSelection) },
+                                onResetCounter = { onAction(HomeAction.ResetCount) },
+                                onClearAll = { onAction(HomeAction.ShowClearAllConfirm) },
                             )
+                            if (state.filter.isNotEmpty()) {
+                                val names = remember(state.filter) { state.filter.joinToString { it.name } }
+                                InputChip(
+                                    selected = true,
+                                    onClick = { onAction(HomeAction.ClearFilter) },
+                                    label = {
+                                        Text(
+                                            text = stringResource(R.string.filtered_by, names),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = stringResource(R.string.clear_filter),
+                                        )
+                                    },
+                                    modifier = Modifier.padding(horizontal = Spacing.l),
+                                )
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         },
         snackbarHost = {

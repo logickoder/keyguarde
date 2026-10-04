@@ -1,6 +1,12 @@
 package dev.logickoder.keyguarde.home.components
 
 import android.text.format.DateFormat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +26,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,13 +83,19 @@ fun MatchRow(
     val snippet = remember(match.id, match.message, match.keywords, keywordColor) {
         snippetText(match, keywordColor)
     }
+    val isSelectable = isSelected != null
+    // Keeps the box ticked while it slides out, instead of unticking mid-animation.
+    val isChecked = rememberLastWhile(isSelectable, isSelected == true)
+    val selectedColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    val background by animateColorAsState(
+        targetValue = if (isSelected == true) selectedColor else selectedColor.copy(alpha = 0f),
+        label = "MatchRowBackground",
+    )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(
-                if (isSelected == true) MaterialTheme.colorScheme.surfaceContainerHigh else Color.Transparent
-            )
+            .background(background)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .semantics {
                 if (isSelected != null) selected = isSelected
@@ -93,20 +106,24 @@ fun MatchRow(
             .padding(horizontal = Spacing.l, vertical = Spacing.m),
         verticalAlignment = Alignment.Top,
         content = {
-            if (isSelected != null) {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = null,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.onSurface,
-                        checkmarkColor = MaterialTheme.colorScheme.surface,
-                        uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = Spacing.m),
-                )
-            }
+            AnimatedVisibility(
+                visible = isSelectable,
+                modifier = Modifier.align(Alignment.CenterVertically),
+                enter = fadeIn() + expandHorizontally(),
+                exit = fadeOut() + shrinkHorizontally(),
+                content = {
+                    Checkbox(
+                        checked = isChecked,
+                        onCheckedChange = null,
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colorScheme.onSurface,
+                            checkmarkColor = MaterialTheme.colorScheme.surface,
+                            uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                        modifier = Modifier.padding(end = Spacing.m),
+                    )
+                }
+            )
 
             ChatAvatar(
                 chat = match.chat,
