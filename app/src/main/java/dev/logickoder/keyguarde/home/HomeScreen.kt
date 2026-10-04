@@ -229,6 +229,10 @@ private fun HomeContent(
                         )
                     }
 
+                    // Row callbacks capture this, not the whole state, so opening a sheet or other
+                    // state changes don't recompose every visible row.
+                    val isSelectionMode = state.isSelectionMode
+
                     when (matches.itemCount) {
                         0 -> item {
                             EmptyMatchesState(modifier = Modifier.animateItem())
@@ -253,21 +257,18 @@ private fun HomeContent(
                                                 match = item.match,
                                                 app = appsByPackage[item.match.app],
                                                 isNew = item.isNew,
-                                                isSelected = when (state.isSelectionMode) {
+                                                isSelected = when (isSelectionMode) {
                                                     true -> item.match.id in state.selectedMatches
                                                     else -> null
                                                 },
                                                 onClick = {
-                                                    when {
-                                                        state.isSelectionMode -> onAction(
-                                                            HomeAction.ToggleMatchSelection(item.match.id)
-                                                        )
-
+                                                    when (isSelectionMode) {
+                                                        true -> onAction(HomeAction.ToggleMatchSelection(item.match.id))
                                                         else -> onAction(HomeAction.OpenMatch(item.match))
                                                     }
                                                 },
                                                 onLongClick = {
-                                                    when (state.isSelectionMode) {
+                                                    when (isSelectionMode) {
                                                         true -> onAction(HomeAction.ToggleMatchSelection(item.match.id))
                                                         else -> onAction(HomeAction.StartSelectionWith(item.match.id))
                                                     }

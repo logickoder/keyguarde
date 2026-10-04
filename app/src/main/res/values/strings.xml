@@ -118,6 +118,8 @@
     <string name="match_open_app">Open %1$s app</string>
     <string name="match_expired">This notification expired, so Keyguarde can\'t jump to the chat.</string>
     <string name="delete_match">Delete match</string>
+    <string name="copy_message">Copy message</string>
+    <string name="message_copied">Message copied</string>
     <string name="match_source_time">%1$s · %2$s</string>
     <string name="match_today_at">Today, %1$s</string>
     <string name="match_yesterday_at">Yesterday, %1$s</string>

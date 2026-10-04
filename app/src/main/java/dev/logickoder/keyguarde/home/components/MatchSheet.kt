@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.home.components
 
+import android.content.ClipData
 import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -29,6 +29,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Check
 import java.time.LocalDate
 import dev.logickoder.keyguarde.home.domain.keywordsByFirstMention
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -138,6 +149,7 @@ private fun MatchSheetContent(
                             .weight(1f)
                             .padding(top = 10.dp),
                     )
+                    CopyButton(text = match.message)
                     IconButton(
                         onClick = onDelete,
                         content = {
@@ -240,13 +252,47 @@ private fun MessageBody(match: KeywordMatch) {
     val text = remember(match.message, match.keywords, keywordColor, linkColor) {
         highlightedMessage(match, keywordColor, linkColor)
     }
-    // Selectable so a code, address or number can be copied out.
-    SelectionContainer(
+    // Not selectable: the copy button covers copying, links are tappable, and selection
+    // handling on a long message slowed the sheet's opening.
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
+}
+
+// How long the copy button shows a tick after copying.
+private const val CopiedFeedbackMillis = 2_000L
+
+/**
+ * Copies the whole message. The icon turns into a tick for a moment, because a toast or snackbar
+ * would sit behind the sheet, and Android before 13 shows no clipboard confirmation of its own.
+ */
+@Composable
+private fun CopyButton(text: String) {
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    var copied by remember { mutableStateOf(false) }
+
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(CopiedFeedbackMillis)
+            copied = false
+        }
+    }
+
+    IconButton(
+        onClick = {
+            scope.launch {
+                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, text)))
+                copied = true
+            }
+        },
         content = {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+            Icon(
+                imageVector = if (copied) Icons.Outlined.Check else Icons.Outlined.ContentCopy,
+                contentDescription = stringResource(if (copied) R.string.message_copied else R.string.copy_message),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     )
