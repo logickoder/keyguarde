@@ -57,4 +57,21 @@ class MessageSpansTest {
         assertEquals(starts.sorted(), starts)
         assertEquals(3, starts.size)
     }
+
+    @Test
+    fun `keywords are ordered by where they first appear`() {
+        val ordered = keywordsByFirstMention(
+            "The meeting is urgent, call me after the meeting",
+            setOf("call me", "urgent", "meeting"),
+        )
+
+        assertEquals(listOf("meeting", "urgent", "call me"), ordered)
+    }
+
+    @Test
+    fun `keywords missing from the message go last, alphabetically`() {
+        val ordered = keywordsByFirstMention("rent is due", setOf("zebra", "rent", "apple"))
+
+        assertEquals(listOf("rent", "apple", "zebra"), ordered)
+    }
 }

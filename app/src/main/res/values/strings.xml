@@ -119,6 +119,8 @@
     <string name="match_expired">This notification expired, so Keyguarde can\'t jump to the chat.</string>
     <string name="delete_match">Delete match</string>
     <string name="match_source_time">%1$s · %2$s</string>
+    <string name="match_today_at">Today, %1$s</string>
+    <string name="match_yesterday_at">Yesterday, %1$s</string>
     <string name="just_now">Just now</string>
     <string name="match_new">New</string>
     <string name="minutes_ago">%1$d min ago</string>

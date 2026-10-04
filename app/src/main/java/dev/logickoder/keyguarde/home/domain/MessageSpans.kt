@@ -48,3 +48,14 @@ fun messageSpans(message: String, keywords: Collection<String>): List<MessageSpa
 }
 
 private fun IntRange.overlaps(other: IntRange) = first <= other.last && other.first <= last
+
+/**
+ * [keywords] in the order they first appear in [message], so the pills read like the message does.
+ * Keywords that no longer appear (edited messages, changed rules) go last, alphabetically.
+ */
+fun keywordsByFirstMention(message: String, keywords: Collection<String>): List<String> =
+    keywords.sortedWith(
+        compareBy<String> { keyword ->
+            keywordRegex(listOf(keyword))?.find(message)?.range?.first ?: Int.MAX_VALUE
+        }.thenBy { it }
+    )

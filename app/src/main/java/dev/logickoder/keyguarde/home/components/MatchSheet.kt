@@ -29,6 +29,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import java.time.LocalDate
+import dev.logickoder.keyguarde.home.domain.keywordsByFirstMention
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -93,6 +98,10 @@ fun MatchSheet(
     )
 }
 
+// Leaves the list visible behind the sheet, so it reads as a peek, not a new screen.
+private const val MaxHeightFraction = 0.75f
+private val DragHandleHeight = 48.dp
+
 @Composable
 private fun MatchSheetContent(
     match: KeywordMatch,
@@ -104,43 +113,54 @@ private fun MatchSheetContent(
     modifier: Modifier = Modifier,
 ) {
     val appName = app?.name ?: match.app
+    val scrollState = rememberScrollState()
+    val windowHeight = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.height.toDp() }
+    // The drag handle sits above this content, so it comes out of the budget.
+    val maxHeight = windowHeight * MaxHeightFraction - DragHandleHeight
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = maxHeight),
         content = {
-            Column(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.xl),
-                verticalArrangement = Arrangement.spacedBy(Spacing.l),
+            // Pinned so delete stays in reach while a long message scrolls.
+            // Top-aligned so the delete icon stays level with the first pill row when pills wrap.
+            Row(
+                modifier = Modifier.padding(start = Spacing.xl, end = Spacing.m, bottom = Spacing.l),
+                verticalAlignment = Alignment.Top,
                 content = {
-                    // Top-aligned so the delete icon stays level with the first pill row when pills wrap.
-                    Row(
-                        verticalAlignment = Alignment.Top,
+                    KeywordPills(
+                        keywords = remember(match.message, match.keywords) {
+                            keywordsByFirstMention(match.message, match.keywords)
+                        },
+                        // Centres a 28dp pill row on the 48dp icon button.
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(top = 10.dp),
+                    )
+                    IconButton(
+                        onClick = onDelete,
                         content = {
-                            KeywordPills(
-                                keywords = match.keywords,
-                                // Centres a 28dp pill row on the 48dp icon button.
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(top = 10.dp),
-                            )
-                            IconButton(
-                                onClick = onDelete,
-                                content = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Delete,
-                                        contentDescription = stringResource(R.string.delete_match),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = stringResource(R.string.delete_match),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     )
+                }
+            )
 
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = Spacing.xl),
+                verticalArrangement = Arrangement.spacedBy(Spacing.l),
+                content = {
+                    // Top-aligned so the avatar stays by the title when a large font wraps the header.
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
                         content = {
                             // No app badge: the line beside it names the app, so TalkBack would say it twice.
@@ -158,7 +178,7 @@ private fun MatchSheetContent(
                                         text = stringResource(
                                             R.string.match_source_time,
                                             appName,
-                                            formatFullTimestamp(match.timestamp),
+                                            formatSheetTimestamp(match.timestamp),
                                         ),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Medium,
@@ -173,6 +193,14 @@ private fun MatchSheetContent(
                 }
             )
 
+            // Marks where the message is cut while more of it sits below.
+            HorizontalDivider(
+                color = when (scrollState.canScrollForward) {
+                    true -> MaterialTheme.colorScheme.outlineVariant
+                    else -> Color.Transparent
+                },
+            )
+
             OpenAction(
                 appName = appName,
                 canOpenInApp = canOpenInApp,
@@ -185,13 +213,13 @@ private fun MatchSheetContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun KeywordPills(keywords: Set<String>, modifier: Modifier = Modifier) {
+private fun KeywordPills(keywords: List<String>, modifier: Modifier = Modifier) {
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         verticalArrangement = Arrangement.spacedBy(Spacing.s),
         content = {
-            keywords.sorted().forEach { keyword ->
+            keywords.forEach { keyword ->
                 Text(
                     text = keyword.uppercase(),
                     style = KeywordPillStyle,
@@ -250,11 +278,19 @@ private fun OpenAction(
                     .fillMaxWidth()
                     .heightIn(min = 56.dp),
                 shape = RoundedCornerShape(Radius.l),
-                // Dark neutral like the reference: teal is kept for matched keywords.
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface,
-                    contentColor = MaterialTheme.colorScheme.surface,
-                ),
+                // Weight follows what the button can do: dark when it reaches the chat, grey when it can
+                // only open the app, so the note and keywords lead instead. Never teal: that means "match".
+                colors = when (canOpenInApp) {
+                    true -> ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.surface,
+                    )
+
+                    else -> ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    )
+                },
                 content = {
                     Text(
                         text = when (canOpenInApp) {
@@ -271,9 +307,21 @@ private fun OpenAction(
 
 private fun highlightedMessage(match: KeywordMatch, keywordColor: Color, linkColor: Color): AnnotatedString {
     val message = match.message
+    val spans = messageSpans(message, match.keywords)
+    // A phone number split across lines reads as two numbers. Same length, so ranges still line up.
+    val display = StringBuilder(message).apply {
+        spans.filterIsInstance<MessageSpan.Link>().filter { it.target.startsWith("tel:") }.forEach { link ->
+            for (i in link.range) {
+                when (this[i]) {
+                    ' ' -> setCharAt(i, '\u00A0')
+                    '-' -> setCharAt(i, '\u2011')
+                }
+            }
+        }
+    }.toString()
     return buildAnnotatedString {
-        append(message)
-        messageSpans(message, match.keywords).forEach { span ->
+        append(display)
+        spans.forEach { span ->
             val end = span.range.last + 1
             when (span) {
                 is MessageSpan.Keyword -> addStyle(
@@ -299,14 +347,22 @@ private fun highlightedMessage(match: KeywordMatch, keywordColor: Color, linkCol
 }
 
 @Composable
-private fun formatFullTimestamp(timestamp: LocalDateTime): String {
+private fun formatSheetTimestamp(timestamp: LocalDateTime): String {
     val locale = LocalConfiguration.current.locales[0]
-    return remember(timestamp, locale) {
-        val skeleton = when (timestamp.year == LocalDateTime.now().year) {
-            true -> "EEEEMMMMdjmm"
-            else -> "EEEEMMMMdyjmm"
+    val today = LocalDate.now()
+    val time = remember(timestamp, locale) {
+        timestamp.format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "jmm"), locale))
+    }
+    return when (timestamp.toLocalDate()) {
+        today -> stringResource(R.string.match_today_at, time)
+        today.minusDays(1) -> stringResource(R.string.match_yesterday_at, time)
+        else -> remember(timestamp, locale) {
+            val skeleton = when (timestamp.year == today.year) {
+                true -> "EEEEMMMMdjmm"
+                else -> "EEEEMMMMdyjmm"
+            }
+            timestamp.format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale))
         }
-        timestamp.format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale))
     }
 }
 
