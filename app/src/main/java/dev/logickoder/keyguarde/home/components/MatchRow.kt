@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.home.components
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
@@ -41,10 +43,12 @@ import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.home.domain.RelativeTime
+import dev.logickoder.keyguarde.home.domain.relativeTime
 import dev.logickoder.keyguarde.home.domain.windowSnippet
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import java.time.format.TextStyle
 
 private val AvatarSize = 40.dp
 
@@ -204,13 +208,17 @@ private fun snippetText(match: KeywordMatch, keywordColor: Color): AnnotatedStri
 
 @Composable
 internal fun formatRelativeTime(timestamp: LocalDateTime): String {
-    val minutes = ChronoUnit.MINUTES.between(timestamp, LocalDateTime.now())
-
-    return when {
-        minutes < 1 -> stringResource(R.string.just_now)
-        minutes < 60 -> stringResource(R.string.minutes_ago, minutes)
-        minutes < 24 * 60 -> stringResource(R.string.hours_ago, minutes / 60)
-        else -> timestamp.format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))
+    val locale = LocalConfiguration.current.locales[0]
+    return when (val time = relativeTime(timestamp, LocalDateTime.now())) {
+        RelativeTime.JustNow -> stringResource(R.string.just_now)
+        is RelativeTime.Minutes -> stringResource(R.string.minutes_ago, time.count)
+        is RelativeTime.Hours -> stringResource(R.string.hours_ago, time.count)
+        RelativeTime.Yesterday -> stringResource(R.string.yesterday)
+        is RelativeTime.Weekday -> time.day.getDisplayName(TextStyle.FULL, locale)
+        is RelativeTime.Date -> {
+            val skeleton = if (time.showYear) "MMMdy" else "MMMd"
+            time.date.format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale))
+        }
     }
 }
 

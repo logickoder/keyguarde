@@ -44,19 +44,21 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopAppBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
-    isFilterActive: Boolean,
+    filterCount: Int,
     onFilter: () -> Unit,
     onSelect: () -> Unit,
     onResetCounter: () -> Unit,
@@ -121,7 +123,7 @@ fun HomeTopAppBar(
                     )
                 }
             )
-            FilterButton(isActive = isFilterActive, onClick = onFilter)
+            FilterButton(count = filterCount, onClick = onFilter)
             OverflowMenu(onSelect = onSelect, onResetCounter = onResetCounter, onClearAll = onClearAll)
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -131,28 +133,28 @@ fun HomeTopAppBar(
 }
 
 @Composable
-private fun FilterButton(isActive: Boolean, onClick: () -> Unit) {
+private fun FilterButton(count: Int, onClick: () -> Unit) {
     IconButton(
         onClick = onClick,
         content = {
             BadgedBox(
                 badge = {
-                    if (isActive) {
+                    if (count > 0) {
                         // Neutral, not the default error red: an active filter isn't a problem.
                         Badge(
                             containerColor = MaterialTheme.colorScheme.onSurface,
                             contentColor = MaterialTheme.colorScheme.surface,
                             // The icon's description already says a filter is on.
-                            content = { Text("1", modifier = Modifier.clearAndSetSemantics {}) }
+                            content = { Text(count.toString(), modifier = Modifier.clearAndSetSemantics {}) }
                         )
                     }
                 },
                 content = {
                     Icon(
                         imageVector = Icons.Default.FilterList,
-                        contentDescription = when (isActive) {
-                            true -> stringResource(R.string.filter_active)
-                            else -> stringResource(R.string.filter)
+                        contentDescription = when (count) {
+                            0 -> stringResource(R.string.filter)
+                            else -> pluralStringResource(R.plurals.filter_active, count, count)
                         }
                     )
                 }
@@ -207,14 +209,15 @@ private fun TitleContent(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         content = {
-            // Decorative: the app name right after says the same thing.
+            // Decorative: the app name right after says the same thing. Small and grey so the
+            // solid shield doesn't pull the eye away from the list.
             Icon(
                 painter = painterResource(R.drawable.logo),
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurface
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(text = stringResource(R.string.app_name))
         }
@@ -307,7 +310,7 @@ private fun HomeTopAppBarPreview() = AppTheme {
     HomeTopAppBar(
         searchQuery = query,
         onSearchQueryChange = { query = it },
-        isFilterActive = true,
+        filterCount = 2,
         onFilter = {},
         onSelect = {},
         onResetCounter = {},

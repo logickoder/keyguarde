@@ -7,7 +7,6 @@ import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -73,12 +72,19 @@ class AppRepository(
     }
 
     /**
-     * The app the Matches list is filtered to, or null for all apps. Kept across launches.
+     * The apps the Matches list is filtered to; empty means every app. Kept across launches.
      */
-    val matchesFilter = localStore.get(MATCHES_FILTER)
+    val matchesFilter: Flow<Set<String>> = localStore.get(MATCHES_FILTER).map { it.orEmpty() }
 
-    suspend fun saveMatchesFilter(packageName: String?) {
-        localStore.save(MATCHES_FILTER, packageName)
+    suspend fun saveMatchesFilter(packageNames: Set<String>) {
+        localStore.save(MATCHES_FILTER, packageNames.takeIf { it.isNotEmpty() })
+    }
+
+    /**
+     * How many matches each app has, keyed by package name.
+     */
+    val matchCountsByApp: Flow<Map<String, Int>> = database.keywordMatchDao().countByApp().map { counts ->
+        counts.associate { it.app to it.count }
     }
 
     /**
@@ -97,10 +103,10 @@ class AppRepository(
     }
 
     /**
-     * Count matches newer than [since], optionally limited to one app.
+     * Count matches newer than [since], limited to [packageNames] unless it's empty.
      */
-    fun countMatchesSince(since: LocalDateTime, packageName: String?): Flow<Int> =
-        database.keywordMatchDao().countSince(since, packageName?.takeIf { it.isNotBlank() })
+    fun countMatchesSince(since: LocalDateTime, packageNames: Set<String>): Flow<Int> =
+        database.keywordMatchDao().countSince(since, packageNames.isEmpty(), packageNames)
 
     /**
      * Get all installed apps that can post notifications on the device.
@@ -202,24 +208,23 @@ class AppRepository(
     /**
      * Get all keyword matches.
      *
-     * @param packageName (Optional) The package name of the app for which to retrieve keyword matches.
+     * @param packageNames The apps to show matches from; empty means every app.
      * @param query (Optional) The query to search for in the keyword matches.
      *
      * @return A [Flow] emitting [PagingData] of [KeywordMatch] objects.
      */
     fun getMatches(
-        packageName: String? = null,
+        packageNames: Set<String> = emptySet(),
         query: String = "",
     ): Flow<PagingData<KeywordMatch>> = Pager(
         config = PagingConfig(pageSize = 20),
         pagingSourceFactory = {
-            val packageFilter = packageName?.takeIf { it.isNotBlank() }
             val queryFilter = query.takeIf { it.isNotBlank() }?.let {
                 it.split(" ").filter { term ->
                     term.isNotBlank()
                 }.joinToString(" ") { term -> "$term*" }
             }
-            database.keywordMatchDao().getMatches(packageFilter, queryFilter)
+            database.keywordMatchDao().getMatches(packageNames.isEmpty(), packageNames, queryFilter)
         }
     ).flow
 
@@ -292,7 +297,7 @@ class AppRepository(
 
         private val LAST_VISIT_AT = longPreferencesKey("last_visit_at")
 
-        private val MATCHES_FILTER = stringPreferencesKey("matches_filter")
+        private val MATCHES_FILTER = stringSetPreferencesKey("matches_filter_apps")
 
         // Package names of priority apps
         const val WHATSAPP_PACKAGE_NAME = "com.whatsapp"

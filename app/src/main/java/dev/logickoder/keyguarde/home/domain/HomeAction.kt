@@ -1,17 +1,27 @@
 package dev.logickoder.keyguarde.home.domain
 
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
-import dev.logickoder.keyguarde.app.data.model.WatchedApp
 
 sealed interface HomeAction {
     data class SearchQueryChanged(val query: String) : HomeAction
 
-    /** Show only [app]'s matches, or every app's when null. Persists across launches. */
-    data class FilterChanged(val app: WatchedApp?) : HomeAction
-
+    /** Open the filter sheet, starting from the applied filter. */
     data object ShowFilterSheet : HomeAction
 
+    /** Close the filter sheet without applying what was ticked. */
     data object DismissFilterSheet : HomeAction
+
+    /** Tick or untick an app in the filter sheet. */
+    data class ToggleFilterApp(val packageName: String) : HomeAction
+
+    /** Untick every app in the filter sheet. */
+    data object ClearFilterDraft : HomeAction
+
+    /** Apply the sheet's ticked apps and close it. Nothing ticked means every app. Persists across launches. */
+    data object ApplyFilter : HomeAction
+
+    /** Show every app's matches again. */
+    data object ClearFilter : HomeAction
 
     data class OpenInApp(val match: KeywordMatch) : HomeAction
 

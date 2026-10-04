@@ -3,6 +3,7 @@
     <string name="tab_matches">Matches</string>
     <string name="tab_keywords">Keywords</string>
     <string name="undo">Undo</string>
+    <string name="clear">Clear</string>
     <string name="more_options">More options</string>
     <string name="app_name">Keyguarde</string>
     <string name="previous">Previous</string>
@@ -87,11 +88,24 @@
     <string name="select_all">Select all</string>
     <string name="reset_counter">Reset counter</string>
     <string name="filter">Filter</string>
-    <string name="filter_active">Filter, 1 app selected</string>
+    <plurals name="filter_active">
+        <item quantity="one">Filter, %1$d app selected</item>
+        <item quantity="other">Filter, %1$d apps selected</item>
+    </plurals>
     <string name="filtered_by">Filtered: %1$s</string>
     <string name="clear_filter">Clear filter</string>
     <string name="filter_sheet_title">Show matches from</string>
     <string name="all_apps">All apps</string>
+    <string name="filter_group_selected">Selected</string>
+    <string name="filter_show_all">Show all</string>
+    <plurals name="filter_show_matches">
+        <item quantity="one">Show %1$d match</item>
+        <item quantity="other">Show %1$d matches</item>
+    </plurals>
+    <plurals name="filter_app_matches">
+        <item quantity="one">%1$d match</item>
+        <item quantity="other">%1$d matches</item>
+    </plurals>
     <string name="clear_all_title">Clear all matches?</string>
     <string name="clear_all_body">This removes every saved match. You can undo it right after.</string>
     <string name="clear_all_confirm">Clear all</string>
@@ -103,6 +117,7 @@
     <string name="match_new">New</string>
     <string name="minutes_ago">%1$d min ago</string>
     <string name="hours_ago">%1$d hr ago</string>
+    <string name="yesterday">Yesterday</string>
     <plurals name="new_since_last_visit">
         <item quantity="one">%1$d new since last visit</item>
         <item quantity="other">%1$d new since last visit</item>

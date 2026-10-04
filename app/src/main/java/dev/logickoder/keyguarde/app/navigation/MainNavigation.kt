@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -39,11 +41,12 @@ enum class MainTab(@param:StringRes val label: Int) {
     Settings(R.string.settings),
 }
 
+// Filled when selected, outlined otherwise: the shape change carries the state, not the pill alone.
 @Composable
-private fun MainTab.icon(): Painter = when (this) {
-    MainTab.Matches -> painterResource(R.drawable.ic_tab_matches)
-    MainTab.Keywords -> painterResource(R.drawable.ic_tab_keywords)
-    MainTab.Settings -> rememberVectorPainter(Icons.Rounded.Settings)
+private fun MainTab.icon(selected: Boolean): Painter = when (this) {
+    MainTab.Matches -> painterResource(if (selected) R.drawable.ic_tab_matches_filled else R.drawable.ic_tab_matches)
+    MainTab.Keywords -> painterResource(if (selected) R.drawable.ic_tab_keywords_filled else R.drawable.ic_tab_keywords)
+    MainTab.Settings -> rememberVectorPainter(if (selected) Icons.Filled.Settings else Icons.Outlined.Settings)
 }
 
 /**
@@ -85,16 +88,20 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 }
             )
 
+            // Both the list and the bar are surface-coloured, so a hairline marks where the list ends.
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
             BannerAd(modifier = Modifier.padding(top = Spacing.s))
 
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
                 content = {
                     MainTab.entries.forEach { item ->
+                        val selected = item == tab
                         NavigationBarItem(
-                            selected = item == tab,
+                            selected = selected,
                             onClick = { tab = item },
-                            icon = { Icon(painter = item.icon(), contentDescription = null) },
+                            icon = { Icon(painter = item.icon(selected), contentDescription = null) },
                             label = { Text(stringResource(item.label)) },
                             alwaysShowLabel = true,
                             // Neutral on purpose: teal is reserved for matched keywords.

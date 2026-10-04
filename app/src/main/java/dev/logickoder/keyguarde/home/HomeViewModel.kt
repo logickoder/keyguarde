@@ -29,7 +29,9 @@ import dev.logickoder.keyguarde.home.domain.MatchListItem
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -70,20 +72,20 @@ class HomeViewModel(
     val effects: Flow<HomeEffect> = _effects.receiveAsFlow()
 
     // A saved filter for an app that's no longer watched would show an empty list, so it's ignored.
-    private val effectiveFilter: Flow<String?> = combine(
-        inputs.map { it.filterPackage },
+    private val effectiveFilter: Flow<Set<String>> = combine(
+        inputs.map { it.filterPackages },
         repository.watchedApps,
-    ) { packageName, apps ->
-        packageName?.takeIf { name -> apps.any { it.packageName == name } }
+    ) { packageNames, apps ->
+        packageNames intersect apps.mapTo(mutableSetOf()) { it.packageName }
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val newSinceLastVisit: Flow<Int> = combine(lastVisit, effectiveFilter) { since, packageName ->
-        since to packageName
-    }.flatMapLatest { (since, packageName) ->
+    private val newSinceLastVisit: Flow<Int> = combine(lastVisit, effectiveFilter) { since, packageNames ->
+        since to packageNames
+    }.flatMapLatest { (since, packageNames) ->
         when (since) {
             null -> flowOf(0)
-            else -> repository.countMatchesSince(since, packageName)
+            else -> repository.countMatchesSince(since, packageNames)
         }
     }
 
@@ -92,10 +94,13 @@ class HomeViewModel(
         repository.watchedApps,
         AppListenerService.notificationIntents,
         newSinceLastVisit,
-    ) { inputs, watchedApps, intents, newCount ->
+        repository.matchCountsByApp,
+    ) { inputs, watchedApps, intents, newCount, counts ->
         HomeState(
-            filter = watchedApps.firstOrNull { it.packageName == inputs.filterPackage },
+            filter = watchedApps.filter { it.packageName in inputs.filterPackages }.toImmutableList(),
             watchedApps = watchedApps.toImmutableList(),
+            matchCounts = counts.toImmutableMap(),
+            filterDraft = inputs.filterDraft,
             newSinceLastVisit = newCount,
             openableMatchIds = intents.keys.toImmutableSet(),
             isFilterSheetVisible = inputs.isFilterSheetVisible,
@@ -114,10 +119,10 @@ class HomeViewModel(
         effectiveFilter,
         snapshotFlow { query },
         lastVisit,
-    ) { packageName, query, since -> Triple(packageName, query, since) }
+    ) { packageNames, query, since -> Triple(packageNames, query, since) }
         .distinctUntilChanged()
-        .flatMapLatest { (packageName, query, since) ->
-            repository.getMatches(packageName, query).map { page ->
+        .flatMapLatest { (packageNames, query, since) ->
+            repository.getMatches(packageNames, query).map { page ->
                 page.map { match ->
                     MatchListItem.Match(match, isNew = since != null && match.timestamp > since)
                 }.insertSeparators { before, after ->
@@ -136,7 +141,7 @@ class HomeViewModel(
         refreshLastVisit()
         viewModelScope.launch {
             val saved = repository.matchesFilter.first()
-            inputs.update { it.copy(filterPackage = saved) }
+            inputs.update { it.copy(filterPackages = saved.toPersistentSet()) }
         }
     }
 
@@ -144,15 +149,33 @@ class HomeViewModel(
         when (action) {
             is HomeAction.SearchQueryChanged -> query = action.query
 
-            is HomeAction.FilterChanged -> {
-                val packageName = action.app?.packageName
-                inputs.update { it.copy(filterPackage = packageName, isFilterSheetVisible = false) }
-                viewModelScope.launch { repository.saveMatchesFilter(packageName) }
+            HomeAction.ShowFilterSheet -> inputs.update {
+                it.copy(isFilterSheetVisible = true, filterDraft = it.filterPackages)
             }
 
-            HomeAction.ShowFilterSheet -> inputs.update { it.copy(isFilterSheetVisible = true) }
-
             HomeAction.DismissFilterSheet -> inputs.update { it.copy(isFilterSheetVisible = false) }
+
+            is HomeAction.ToggleFilterApp -> inputs.update {
+                val draft = it.filterDraft
+                it.copy(
+                    filterDraft = when (action.packageName in draft) {
+                        true -> draft.remove(action.packageName)
+                        else -> draft.add(action.packageName)
+                    }
+                )
+            }
+
+            HomeAction.ClearFilterDraft -> inputs.update { it.copy(filterDraft = persistentSetOf()) }
+
+            HomeAction.ApplyFilter -> {
+                inputs.update { it.copy(filterPackages = it.filterDraft, isFilterSheetVisible = false) }
+                saveFilter()
+            }
+
+            HomeAction.ClearFilter -> {
+                inputs.update { it.copy(filterPackages = persistentSetOf()) }
+                saveFilter()
+            }
 
             is HomeAction.OpenInApp -> openInApp(action.match)
 
@@ -196,6 +219,11 @@ class HomeViewModel(
 
             HomeAction.UndoDelete -> undoDelete()
         }
+    }
+
+    private fun saveFilter() {
+        val packageNames = inputs.value.filterPackages
+        viewModelScope.launch { repository.saveMatchesFilter(packageNames) }
     }
 
     private fun refreshLastVisit() {
@@ -262,7 +290,8 @@ class HomeViewModel(
     }
 
     private data class Inputs(
-        val filterPackage: String? = null,
+        val filterPackages: PersistentSet<String> = persistentSetOf(),
+        val filterDraft: PersistentSet<String> = persistentSetOf(),
         val isFilterSheetVisible: Boolean = false,
         val isClearAllConfirmVisible: Boolean = false,
         val isSelectionMode: Boolean = false,

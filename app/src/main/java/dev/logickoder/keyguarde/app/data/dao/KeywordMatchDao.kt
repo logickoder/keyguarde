@@ -6,6 +6,7 @@ import androidx.room3.Delete
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import dev.logickoder.keyguarde.app.data.model.AppMatchCount
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
@@ -28,9 +29,6 @@ interface KeywordMatchDao {
     suspend fun delete(vararg match: KeywordMatch)
 
     /**
-     * Delete a specific KeywordMatch entry from the database.
-     */
-    /**
      * Fetch matches by id, e.g. to keep a copy before deleting them so the delete can be undone.
      */
     @Query("SELECT * FROM keyword_matches WHERE rowid IN (:ids)")
@@ -49,10 +47,16 @@ interface KeywordMatchDao {
     suspend fun restore(matches: List<KeywordMatch>)
 
     /**
-     * Count matches newer than [since], optionally limited to one app.
+     * Count matches newer than [since], limited to [apps] unless [allApps] is set.
      */
-    @Query("SELECT COUNT(*) FROM keyword_matches WHERE timestamp > :since AND (:app IS NULL OR app = :app)")
-    fun countSince(since: LocalDateTime, app: String?): Flow<Int>
+    @Query("SELECT COUNT(*) FROM keyword_matches WHERE timestamp > :since AND (:allApps OR app IN (:apps))")
+    fun countSince(since: LocalDateTime, allApps: Boolean, apps: Set<String>): Flow<Int>
+
+    /**
+     * How many matches each app has.
+     */
+    @Query("SELECT app, COUNT(*) AS count FROM keyword_matches GROUP BY app")
+    fun countByApp(): Flow<List<AppMatchCount>>
 
     @Query("DELETE FROM keyword_matches WHERE rowid IN (:ids)")
     suspend fun delete(ids: List<Long>)
@@ -64,17 +68,17 @@ interface KeywordMatchDao {
     fun getByKeyword(keyword: String): Flow<List<KeywordMatch>>
 
     /**
-     * Fetch KeywordMatch entries filtered by a specific app if provided.
+     * Fetch matches from [apps] (or every app when [allApps] is set), optionally searched by [query].
      */
     @Query(
         """
         SELECT * FROM keyword_matches
-        WHERE (:app IS NULL OR app = :app)
+        WHERE (:allApps OR app IN (:apps))
         AND (:query IS NULL OR rowid IN (SELECT rowid FROM keyword_matches_fts WHERE keyword_matches_fts MATCH :query))
         ORDER BY timestamp DESC
         """
     )
-    fun getMatches(app: String?, query: String?): PagingSource<Int, KeywordMatch>
+    fun getMatches(allApps: Boolean, apps: Set<String>, query: String?): PagingSource<Int, KeywordMatch>
 
     /**
      * Delete all KeywordMatch entries from the database.

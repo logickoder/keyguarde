@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -158,17 +159,24 @@ private fun HomeContent(
                         HomeTopAppBar(
                             searchQuery = query,
                             onSearchQueryChange = { onAction(HomeAction.SearchQueryChanged(it)) },
-                            isFilterActive = state.filter != null,
+                            filterCount = state.filter.size,
                             onFilter = { onAction(HomeAction.ShowFilterSheet) },
                             onSelect = { onAction(HomeAction.StartSelection) },
                             onResetCounter = { onAction(HomeAction.ResetCount) },
                             onClearAll = { onAction(HomeAction.ShowClearAllConfirm) },
                         )
-                        state.filter?.let { app ->
+                        if (state.filter.isNotEmpty()) {
+                            val names = remember(state.filter) { state.filter.joinToString { it.name } }
                             InputChip(
                                 selected = true,
-                                onClick = { onAction(HomeAction.FilterChanged(null)) },
-                                label = { Text(stringResource(R.string.filtered_by, app.name)) },
+                                onClick = { onAction(HomeAction.ClearFilter) },
+                                label = {
+                                    Text(
+                                        text = stringResource(R.string.filtered_by, names),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                },
                                 trailingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Close,
@@ -266,8 +274,11 @@ private fun HomeContent(
             if (state.isFilterSheetVisible) {
                 MatchFilterSheet(
                     apps = state.watchedApps,
-                    selected = state.filter,
-                    onSelect = { onAction(HomeAction.FilterChanged(it)) },
+                    counts = state.matchCounts,
+                    selected = state.filterDraft,
+                    onToggle = { onAction(HomeAction.ToggleFilterApp(it)) },
+                    onClear = { onAction(HomeAction.ClearFilterDraft) },
+                    onApply = { onAction(HomeAction.ApplyFilter) },
                     onDismiss = { onAction(HomeAction.DismissFilterSheet) },
                 )
             }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Matches tab, selected: the same bubble filled, with the text lines cut out. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M6,3H18A4,4 0,0 1,22 7V14A4,4 0,0 1,18 18H11.4L7.65,21.25C7,21.8 6,21.4 6,20.55V18A4,4 0,0 1,2 14V7A4,4 0,0 1,6 3ZM8,8h3a1,1 0,0 1,0 2h-3a1,1 0,0 1,0 -2zM8,12h5a1,1 0,0 1,0 2h-5a1,1 0,0 1,0 -2zM14.5,7.5h1.5a1,1 0,0 1,1 1v1a1,1 0,0 1,-1 1h-1.5a1,1 0,0 1,-1 -1v-1a1,1 0,0 1,1 -1z" />
+</vector>

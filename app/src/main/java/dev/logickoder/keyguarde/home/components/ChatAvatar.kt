@@ -14,8 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -23,14 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 import dev.logickoder.keyguarde.app.data.chatAvatarFile
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.avatarColors
-
-private val Monochrome = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
 
 /**
  * The chat's picture with a small monochrome badge for the source app. Falls back to initials
@@ -66,18 +61,16 @@ fun ChatAvatar(
                 )
             }
 
-            if (app != null && app.icon.isNotBlank()) {
-                AsyncImage(
-                    model = app.icon,
+            if (app != null) {
+                AppIcon(
+                    app = app,
                     // The app name is no longer printed on the row, so the badge carries it for TalkBack.
                     contentDescription = app.name,
-                    colorFilter = Monochrome,
+                    size = 14.dp,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .offset(x = 2.dp, y = 2.dp)
-                        .size(18.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(MaterialTheme.colorScheme.surface, CircleShape)
                         .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                         .padding(2.dp),
                 )
