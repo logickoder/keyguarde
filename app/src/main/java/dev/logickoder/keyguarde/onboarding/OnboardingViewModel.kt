@@ -31,6 +31,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import dev.logickoder.keyguarde.onboarding.domain.caughtKeyword
+import dev.logickoder.keyguarde.onboarding.domain.SetupTest
+import dev.logickoder.keyguarde.app.service.AppListenerService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class OnboardingViewModel(
@@ -38,14 +43,19 @@ class OnboardingViewModel(
     private val savedStateHandle: SavedStateHandle,
     // Reading every installed app's label and icon is slow; kept off the main thread.
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val setupTestReceived: Flow<String> = AppListenerService.setupTestReceived,
 ) : ViewModel() {
     private val _state = MutableStateFlow(restore())
     val state: StateFlow<OnboardingState> = _state.asStateFlow()
 
     private var loadAppsJob: Job? = null
+    private var testTimeoutJob: Job? = null
 
     init {
         loadApps()
+        viewModelScope.launch {
+            setupTestReceived.collect { text -> onTestReceived(text) }
+        }
         // The user can leave for system Settings on the Access page; keep their progress
         // if Android kills the process meanwhile.
         viewModelScope.launch {
@@ -118,6 +128,8 @@ class OnboardingViewModel(
                 it.copy(permissionGranted = action.listenerGranted, alertsAllowed = action.alertsAllowed)
             }
 
+            OnboardingAction.TestSent -> startTest()
+
             is OnboardingAction.Save -> save(action.context.applicationContext)
         }
     }
@@ -131,6 +143,24 @@ class OnboardingViewModel(
         }
         if (_state.value.currentPage == OnboardingPage.Apps && _state.value.apps.isEmpty()) {
             loadApps()
+        }
+    }
+
+    private fun startTest() {
+        _state.update { it.copy(test = SetupTest.Waiting) }
+        testTimeoutJob?.cancel()
+        testTimeoutJob = viewModelScope.launch {
+            delay(TEST_TIMEOUT_MILLIS)
+            _state.update { if (it.test == SetupTest.Waiting) it.copy(test = SetupTest.Missed) else it }
+        }
+    }
+
+    private fun onTestReceived(text: String) {
+        if (_state.value.test != SetupTest.Waiting) return
+        testTimeoutJob?.cancel()
+        _state.update { state ->
+            val keyword = caughtKeyword(text, state.keywords.map { it.word })
+            state.copy(test = keyword?.let { SetupTest.Caught(it) } ?: SetupTest.Missed)
         }
     }
 
@@ -189,6 +219,9 @@ class OnboardingViewModel(
     }
 
     companion object {
+        // How long the listener gets to report the test back; usually it takes well under a second.
+        private const val TEST_TIMEOUT_MILLIS = 5_000L
+
         private const val KEY_PAGES = "pages"
         private const val KEY_SELECTED_APPS = "selected_apps"
         private const val KEY_KEYWORDS = "keywords"

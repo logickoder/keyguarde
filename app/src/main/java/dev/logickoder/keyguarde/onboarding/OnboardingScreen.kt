@@ -2,7 +2,6 @@ package dev.logickoder.keyguarde.onboarding
 
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
@@ -14,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,11 +35,12 @@ import dev.logickoder.keyguarde.onboarding.components.OnboardingTopBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
+import dev.logickoder.keyguarde.onboarding.domain.SetupTest
 import dev.logickoder.keyguarde.onboarding.pages.AppsPage
 import dev.logickoder.keyguarde.onboarding.pages.IntroPage
 import dev.logickoder.keyguarde.onboarding.pages.KeywordsPage
 import dev.logickoder.keyguarde.onboarding.pages.AccessPage
-import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
+import dev.logickoder.keyguarde.onboarding.pages.TestPage
 
 @Composable
 fun OnboardingScreen(
@@ -74,6 +75,11 @@ fun OnboardingScreen(
         }
     }
 
+    // A missed test was never read, so nothing cleared it from the shade.
+    LaunchedEffect(state.test) {
+        if (state.test == SetupTest.Missed) NotificationHelper.cancelSetupTest(context)
+    }
+
     LaunchedEffect(state.isComplete) {
         if (state.isComplete) {
             onDone()
@@ -85,6 +91,12 @@ fun OnboardingScreen(
         state = state,
         onAction = viewModel::onAction,
         onAllowAccess = { NotificationHelper.launchListenerSettings(context) },
+        onSendTest = {
+            val keyword = state.testKeyword
+            if (keyword != null && NotificationHelper.postSetupTest(context, keyword)) {
+                viewModel.onAction(OnboardingAction.TestSent)
+            }
+        },
         onEnableAlerts = {
             // The row only shows on Android 13+, where alerts need asking for.
             if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
@@ -100,10 +112,9 @@ private fun OnboardingContent(
     onAction: (OnboardingAction) -> Unit,
     onAllowAccess: () -> Unit,
     onEnableAlerts: () -> Unit,
+    onSendTest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-
     Scaffold(
         modifier = modifier,
         content = { innerPadding ->
@@ -138,9 +149,14 @@ private fun OnboardingContent(
                                 onEnableAlerts = onEnableAlerts,
                             )
 
-                            OnboardingPage.Test -> ReadyPage(
-                                isSaving = state.isSaving,
-                                onFinish = { onAction(OnboardingAction.Save(context)) }
+                            OnboardingPage.Test -> TestPage(
+                                test = state.test,
+                                keyword = state.testKeyword.orEmpty(),
+                                canSendTest = state.alertsAllowed,
+                                appNames = remember(state.apps, state.selectedApps) {
+                                    state.apps.filter { it.packageName in state.selectedApps }.joinToString { it.name }
+                                },
+                                onOpenAccessSettings = onAllowAccess,
                             )
                         }
                     }
@@ -157,38 +173,72 @@ private fun OnboardingContent(
             )
         },
         bottomBar = {
-            // The last step brings its own action.
-            AnimatedVisibility(
-                // Above the keyboard too, so Continue stays reachable while typing keywords.
+            OnboardingActions(
+                state = state,
+                onAction = onAction,
+                onAllowAccess = onAllowAccess,
+                onEnableAlerts = onEnableAlerts,
+                onSendTest = onSendTest,
                 modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime)),
-                visible = state.currentPage != OnboardingPage.Test,
-                content = {
-                    // On Access the one button does the asking, then turns into Continue.
-                    val needsAccess = state.currentPage == OnboardingPage.Access && !state.permissionGranted
-                    OnboardingBottomBar(
-                        label = stringResource(
-                            when {
-                                state.currentPage == OnboardingPage.Intro -> R.string.onboarding_get_started
-                                needsAccess -> R.string.access_allow
-                                else -> R.string.onboarding_continue
-                            }
-                        ),
-                        enabled = state.nextEnabled,
-                        hint = when (state.currentPage) {
-                            OnboardingPage.Keywords -> stringResource(R.string.onboarding_hint_keywords)
-                            OnboardingPage.Apps -> stringResource(R.string.onboarding_hint_apps)
-                            else -> null
-                        },
-                        onClick = {
-                            when (needsAccess) {
-                                true -> onAllowAccess()
-                                else -> onAction(OnboardingAction.Next)
-                            }
-                        },
-                    )
-                }
             )
         },
+    )
+}
+
+/**
+ * The bottom actions for the current step. Each step has one main action; the access and test
+ * steps change theirs as the user progresses, so the next thing to do is always the big button.
+ */
+@Composable
+private fun OnboardingActions(
+    state: OnboardingState,
+    onAction: (OnboardingAction) -> Unit,
+    onAllowAccess: () -> Unit,
+    onEnableAlerts: () -> Unit,
+    onSendTest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val save = { onAction(OnboardingAction.Save(context)) }
+    val next = { onAction(OnboardingAction.Next) }
+
+    val (label, onClick) = when (state.currentPage) {
+        OnboardingPage.Intro -> stringResource(R.string.onboarding_get_started) to next
+        OnboardingPage.Access -> when (state.permissionGranted) {
+            true -> stringResource(R.string.onboarding_continue) to next
+            else -> stringResource(R.string.access_allow) to onAllowAccess
+        }
+
+        OnboardingPage.Test -> when {
+            !state.alertsAllowed -> stringResource(R.string.test_finish) to save
+            state.test is SetupTest.Caught -> stringResource(R.string.test_go_to_matches) to save
+            state.test == SetupTest.Waiting -> stringResource(R.string.test_status_waiting) to {}
+            state.test == SetupTest.Missed -> stringResource(R.string.test_try_again) to onSendTest
+            else -> stringResource(R.string.test_send) to onSendTest
+        }
+
+        else -> stringResource(R.string.onboarding_continue) to next
+    }
+    val secondary: Pair<String, () -> Unit>? = when {
+        state.currentPage != OnboardingPage.Test -> null
+        !state.alertsAllowed -> stringResource(R.string.test_turn_on_alerts) to onEnableAlerts
+        state.test == SetupTest.Idle -> stringResource(R.string.test_skip) to save
+        state.test == SetupTest.Missed -> stringResource(R.string.test_finish_anyway) to save
+        else -> null
+    }
+
+    OnboardingBottomBar(
+        modifier = modifier,
+        label = label,
+        enabled = state.nextEnabled && state.test != SetupTest.Waiting && !state.isSaving,
+        hint = when (state.currentPage) {
+            OnboardingPage.Keywords -> stringResource(R.string.onboarding_hint_keywords)
+            OnboardingPage.Apps -> stringResource(R.string.onboarding_hint_apps)
+            else -> null
+        },
+        onClick = onClick,
+        secondaryLabel = secondary?.first,
+        onSecondary = secondary?.second ?: {},
     )
 }
 
@@ -200,5 +250,6 @@ private fun OnboardingContentPreview() = AppTheme {
         onAction = {},
         onAllowAccess = {},
         onEnableAlerts = {},
+        onSendTest = {},
     )
 }

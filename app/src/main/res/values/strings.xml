@@ -19,7 +19,6 @@
     <string name="expand">Expand</string>
     <string name="expanded">Expanded</string>
     <string name="collapsed">Collapsed</string>
-    <string name="success">Success</string>
     <string name="unknown_error">Unknown error</string>
     <string name="keyword">Keyword</string>
     <string name="add_keyword">Add Keyword</string>
@@ -75,11 +74,31 @@
     <string name="access_alerts_body">Optional. Matches are saved either way.</string>
     <string name="access_alerts_turn_on">Turn on</string>
     <string name="access_alerts_on">On</string>
+    <string name="test_title">Try it once</string>
+    <string name="test_body">Keyguarde sends itself a notification with “%1$s” in it. If it catches it, you\'re set.</string>
+    <string name="test_title_waiting">Sending a test…</string>
+    <string name="test_title_caught">It works</string>
+    <string name="test_body_caught">Keyguarde caught “%1$s”. From now on, matches from %2$s show up in Matches.</string>
+    <string name="test_title_missed">The test didn\'t arrive</string>
+    <string name="test_body_missed">Android didn\'t pass the notification to Keyguarde. Turn Keyguarde\'s notification access off and on, then try again.</string>
+    <string name="test_title_no_alerts">Almost done</string>
+    <string name="test_body_no_alerts">Turn on alerts to send yourself a test, or finish now. Matches are saved either way.</string>
+    <string name="test_status_waiting">Waiting for it…</string>
+    <string name="test_status_caught">Caught</string>
+    <string name="test_status_missed">Didn\'t arrive</string>
+    <string name="test_send">Send a test match</string>
+    <string name="test_try_again">Try again</string>
+    <string name="test_go_to_matches">Go to Matches</string>
+    <string name="test_finish">Finish setup</string>
+    <string name="test_skip">Skip and finish</string>
+    <string name="test_finish_anyway">Finish anyway</string>
+    <string name="test_turn_on_alerts">Turn on alerts</string>
+    <string name="test_open_access">Open access settings</string>
+    <string name="setup_test_notification_title">Keyguarde setup test</string>
+    <string name="setup_test_notification_text">Testing Keyguarde: does it catch “%1$s”?</string>
+    <string name="channel_setup_test_name">Setup test</string>
+    <string name="channel_setup_test_description">One notification during setup, to check Keyguarde can read notifications</string>
     <string name="intro_sample_message">The %1$s for March is still open. Can you check?</string>
-    <string name="all_set">All Set!</string>
-    <string name="ready_desc">Keyguarde is now ready to monitor your notifications</string>
-    <string name="ready_desc_details">You\'ll see a small notification showing the number of keyword matches. This is how you\'ll know Keyguarde is working for you.</string>
-    <string name="start_using_app">Start Using Keyguarde</string>
 
     <!-- Permission banners -->
     <string name="notification_permission_banner_message">

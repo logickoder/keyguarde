@@ -17,11 +17,16 @@ data class OnboardingState(
     val permissionGranted: Boolean = false,
     /** Whether Keyguarde may post its own alerts. Optional: matches are saved either way. */
     val alertsAllowed: Boolean = false,
+    val test: SetupTest = SetupTest.Idle,
     val isSaving: Boolean = false,
     val isComplete: Boolean = false,
 ) {
     val currentPage: OnboardingPage
         get() = backStack.last()
+
+    /** The keyword the setup test uses: the first one the user added. */
+    val testKeyword: String?
+        get() = keywords.firstOrNull()?.word
 
     val nextEnabled: Boolean
         get() = when (currentPage) {

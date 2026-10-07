@@ -20,7 +20,10 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -73,8 +76,16 @@ class AppListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        // Skip if notification is from this app
-        if (sbn.packageName == packageName) return
+        // Skip if notification is from this app, except the setup test, which is reported back
+        // (not saved) and cleared so it doesn't linger in the shade.
+        if (sbn.packageName == packageName) {
+            if (sbn.notification.extras.getBoolean(NotificationHelper.EXTRA_SETUP_TEST)) {
+                val text = sbn.notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty()
+                _setupTestReceived.tryEmit(text)
+                cancelNotification(sbn.key)
+            }
+            return
+        }
 
         // Early return if keywords or watched packages are empty
         if (keywords.isEmpty() || watchedPackages.isEmpty()) return
@@ -308,6 +319,11 @@ class AppListenerService : NotificationListenerService() {
         private val _notificationIntents = MutableStateFlow(emptyMap<Long, PendingIntent>())
         val notificationIntents: StateFlow<Map<Long, PendingIntent>>
             get() = _notificationIntents
+
+        private val _setupTestReceived = MutableSharedFlow<String>(extraBufferCapacity = 1)
+
+        /** The text of each setup test notification the listener receives. */
+        val setupTestReceived: SharedFlow<String> = _setupTestReceived.asSharedFlow()
 
         private val _isConnected = MutableStateFlow(false)
 

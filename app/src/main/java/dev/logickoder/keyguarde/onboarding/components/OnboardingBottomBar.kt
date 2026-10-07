@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +27,7 @@ import dev.logickoder.keyguarde.app.theme.Spacing
 
 /**
  * One full-width action per step. When it's disabled, [hint] says what unlocks it, so a grey
- * button never sits there without a reason.
+ * button never sits there without a reason. [secondaryLabel] adds a quiet way out underneath.
  */
 @Composable
 fun OnboardingBottomBar(
@@ -35,6 +36,8 @@ fun OnboardingBottomBar(
     hint: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -74,6 +77,19 @@ fun OnboardingBottomBar(
                     Text(text = label, style = MaterialTheme.typography.titleMedium)
                 }
             )
+            if (secondaryLabel != null) {
+                TextButton(
+                    onClick = onSecondary,
+                    modifier = Modifier.padding(top = Spacing.xs),
+                    content = {
+                        Text(
+                            text = secondaryLabel,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                )
+            }
         }
     )
 }

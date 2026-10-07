@@ -6,11 +6,14 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
+import dev.logickoder.keyguarde.onboarding.domain.SetupTest
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -27,6 +30,7 @@ class OnboardingViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private var installed = emptyList<AppInfo>()
+    private val testReceived = MutableSharedFlow<String>(extraBufferCapacity = 1)
     private val repository = mockk<AppRepository> {
         coEvery { getInstalledApps() } answers { installed }
     }
@@ -46,6 +50,7 @@ class OnboardingViewModelTest {
     private fun viewModel(pages: List<String>? = null, selectedApps: List<String>? = null) = OnboardingViewModel(
         repository = repository,
         backgroundDispatcher = dispatcher,
+        setupTestReceived = testReceived,
         savedStateHandle = SavedStateHandle(
             buildMap {
                 pages?.let { put("pages", ArrayList(it)) }
@@ -141,5 +146,44 @@ class OnboardingViewModelTest {
 
         viewModel.onAction(OnboardingAction.ToggleApp("com.android.clock"))
         assertTrue(viewModel.state.value.nextEnabled)
+    }
+
+    @Test
+    fun `the test is caught when the listener reports a keyword back`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onAction(OnboardingAction.AddKeyword("invoice"))
+        advanceUntilIdle()
+
+        viewModel.onAction(OnboardingAction.TestSent)
+        assertEquals(SetupTest.Waiting, viewModel.state.value.test)
+
+        testReceived.emit("Testing Keyguarde: does it catch “invoice”?")
+        advanceUntilIdle()
+        assertEquals(SetupTest.Caught("invoice"), viewModel.state.value.test)
+    }
+
+    @Test
+    fun `the test is missed when nothing comes back in time`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onAction(OnboardingAction.AddKeyword("invoice"))
+        advanceUntilIdle()
+
+        viewModel.onAction(OnboardingAction.TestSent)
+        advanceTimeBy(6_000)
+
+        assertEquals(SetupTest.Missed, viewModel.state.value.test)
+    }
+
+    @Test
+    fun `a late report after a miss doesn't flip the result`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onAction(OnboardingAction.AddKeyword("invoice"))
+        viewModel.onAction(OnboardingAction.TestSent)
+        advanceTimeBy(6_000)
+
+        testReceived.emit("Testing Keyguarde: does it catch “invoice”?")
+        advanceUntilIdle()
+
+        assertEquals(SetupTest.Missed, viewModel.state.value.test)
     }
 }

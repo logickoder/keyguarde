@@ -14,6 +14,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,10 +42,15 @@ object NotificationHelper {
     // Channel IDs
     private const val CHANNEL_ID_BACKGROUND = "background_info"
     private const val CHANNEL_ID_MATCH_ALERTS = "match_alerts"
+    private const val CHANNEL_ID_SETUP_TEST = "setup_test"
 
     // Notification IDs
     private const val NOTIFICATION_ID_PERSISTENT = 1001
     private const val NOTIFICATION_ID_MATCH = 2001
+    private const val NOTIFICATION_ID_SETUP_TEST = 3001
+
+    /** Marks Keyguarde's own setup test, the one notification of its own the listener reads. */
+    const val EXTRA_SETUP_TEST = "${BuildConfig.APPLICATION_ID}.SETUP_TEST"
 
     // Action IDs
     private const val ACTION_RESET_COUNT = "${BuildConfig.APPLICATION_ID}.RESET_COUNT"
@@ -86,11 +92,22 @@ object NotificationHelper {
             lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
         }
 
+        // Setup test channel: one notification during onboarding, removed as soon as it's read
+        val setupTestChannel = NotificationChannel(
+            CHANNEL_ID_SETUP_TEST,
+            context.getString(R.string.channel_setup_test_name),
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = context.getString(R.string.channel_setup_test_description)
+            setShowBadge(false)
+        }
+
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannels(
             listOf(
                 backgroundChannel,
-                matchAlertsChannel
+                matchAlertsChannel,
+                setupTestChannel
             )
         )
     }
@@ -180,6 +197,32 @@ object NotificationHelper {
      * @param sourceName Chat/group/app where the match was found
      * @param showHeadsUp Whether to show as heads-up (user toggleable)
      */
+    /**
+     * Posts the setup test: a notification containing [keyword] that the listener reports back
+     * instead of saving. Returns false when Android won't let Keyguarde post at all.
+     */
+    @SuppressLint("MissingPermission")
+    fun postSetupTest(context: Context, keyword: String): Boolean {
+        if (!isNotificationPermissionGranted(context)) {
+            return false
+        }
+        createNotificationChannels(context)
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID_SETUP_TEST)
+            .setSmallIcon(R.drawable.logo)
+            .setContentTitle(context.getString(R.string.setup_test_notification_title))
+            .setContentText(context.getString(R.string.setup_test_notification_text, keyword))
+            .setAutoCancel(true)
+            .addExtras(Bundle().apply { putBoolean(EXTRA_SETUP_TEST, true) })
+            .build()
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_SETUP_TEST, notification)
+        return true
+    }
+
+    /** Removes the setup test when the listener didn't, so it doesn't linger in the shade. */
+    fun cancelSetupTest(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_SETUP_TEST)
+    }
+
     @SuppressLint("MissingPermission")
     fun showKeywordMatchNotification(
         context: Context,

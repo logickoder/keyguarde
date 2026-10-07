@@ -17,5 +17,8 @@ sealed interface OnboardingAction {
     /** The screen re-read both permissions, e.g. on returning from system Settings. */
     data class PermissionsChecked(val listenerGranted: Boolean, val alertsAllowed: Boolean) : OnboardingAction
 
+    /** The screen posted the setup test notification; start waiting for the listener. */
+    data object TestSent : OnboardingAction
+
     class Save(val context: Context) : OnboardingAction
 }
