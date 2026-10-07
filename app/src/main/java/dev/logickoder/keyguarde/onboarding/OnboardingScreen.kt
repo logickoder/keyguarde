@@ -1,7 +1,11 @@
 package dev.logickoder.keyguarde.onboarding
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
@@ -28,7 +32,7 @@ import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
 import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
 import dev.logickoder.keyguarde.onboarding.pages.IntroPage
-import dev.logickoder.keyguarde.onboarding.pages.KeywordSetupPage
+import dev.logickoder.keyguarde.onboarding.pages.KeywordsPage
 import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
 import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
 import kotlinx.coroutines.delay
@@ -92,7 +96,7 @@ private fun OnboardingContent(
                         when (page) {
                             OnboardingPage.Intro -> IntroPage()
 
-                            OnboardingPage.Keywords -> KeywordSetupPage(
+                            OnboardingPage.Keywords -> KeywordsPage(
                                 keywords = state.keywords,
                                 onAdd = { onAction(OnboardingAction.AddKeyword(it)) },
                                 onRemove = { onAction(OnboardingAction.RemoveKeyword(it)) },
@@ -128,7 +132,8 @@ private fun OnboardingContent(
         bottomBar = {
             // The last step brings its own action.
             AnimatedVisibility(
-                modifier = Modifier.navigationBarsPadding(),
+                // Above the keyboard too, so Continue stays reachable while typing keywords.
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime)),
                 visible = state.currentPage != OnboardingPage.Test,
                 content = {
                     OnboardingBottomBar(

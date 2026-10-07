@@ -13,9 +13,11 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
+import dev.logickoder.keyguarde.onboarding.domain.KeywordInput
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
+import dev.logickoder.keyguarde.onboarding.domain.parseKeyword
 import dev.logickoder.keyguarde.onboarding.domain.saveIconToFile
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
@@ -89,8 +91,15 @@ class OnboardingViewModel(
                 it.copy(selectedApps = (it.selectedApps - action.packageName).toImmutableSet())
             }
 
-            is OnboardingAction.AddKeyword -> _state.update {
-                it.copy(keywords = (it.keywords + Keyword(word = action.word)).toImmutableList())
+            is OnboardingAction.AddKeyword -> _state.update { state ->
+                when (val input = parseKeyword(action.word, state.keywords.map { it.word })) {
+                    is KeywordInput.Valid -> state.copy(
+                        keywords = (state.keywords + Keyword(word = input.word)).toImmutableList()
+                    )
+
+                    // The page checks first; this guards a double tap on a suggestion.
+                    else -> state
+                }
             }
 
             is OnboardingAction.RemoveKeyword -> _state.update {

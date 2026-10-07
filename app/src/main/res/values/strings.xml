@@ -36,6 +36,24 @@
     <string name="intro_privacy">Your messages never leave your phone. Keyguarde reads them on-device and keeps matches only here.</string>
     <string name="intro_sample_chat">Design Team</string>
     <string name="intro_sample_initials">DT</string>
+    <string name="keywords_title">What should Keyguarde look for?</string>
+    <string name="keywords_body">Add words or short phrases. Keyguarde matches whole words in any case, so “rent” catches “Rent due” but not “current”.</string>
+    <string name="keywords_placeholder">Type a word or phrase</string>
+    <string name="keywords_added_label">Your keywords</string>
+    <string name="keywords_suggestions_label">Suggestions</string>
+    <string name="keywords_remove">Remove %1$s</string>
+    <string name="keywords_add_suggestion">Add %1$s</string>
+    <string name="keyword_duplicate">You already added “%1$s”.</string>
+    <string-array name="keyword_suggestions">
+        <item>urgent</item>
+        <item>payment</item>
+        <item>invoice</item>
+        <item>meeting</item>
+        <item>deadline</item>
+        <item>delivery</item>
+        <item>interview</item>
+        <item>call me</item>
+    </string-array>
     <string name="intro_sample_message">The %1$s for March is still open. Can you check?</string>
     <string name="permissions_needed">Required Permissions</string>
     <string name="notification_access">Notification Access</string>
@@ -60,9 +78,6 @@
     <string name="select_apps_to_monitor">Select Apps to Monitor</string>
     <string name="select_apps_to_monitor_desc">Choose which apps Keyguarde should watch for your keywords</string>
     <string name="you_can_change_selections_later">You can change these selections later in Settings</string>
-    <string name="set_up_keywords">Set Up Your Keywords</string>
-    <string name="set_up_keywords_desc">Add keywords that matter to you. Keyguarde will alert you when these words appear in notifications.</string>
-    <string name="keyword_examples">Examples: urgent, meeting, deadline, ASAP</string>
     <string name="all_set">All Set!</string>
     <string name="ready_desc">Keyguarde is now ready to monitor your notifications</string>
     <string name="ready_desc_details">You\'ll see a small notification showing the number of keyword matches. This is how you\'ll know Keyguarde is working for you.</string>
