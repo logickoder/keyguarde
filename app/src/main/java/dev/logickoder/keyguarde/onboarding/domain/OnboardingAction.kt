@@ -8,9 +8,7 @@ sealed interface OnboardingAction {
 
     data object Previous : OnboardingAction
 
-    data class AddApp(val packageName: String) : OnboardingAction
-
-    data class RemoveApp(val packageName: String) : OnboardingAction
+    data class ToggleApp(val packageName: String) : OnboardingAction
 
     data class AddKeyword(val word: String) : OnboardingAction
 

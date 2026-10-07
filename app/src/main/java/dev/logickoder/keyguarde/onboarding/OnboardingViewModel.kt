@@ -14,6 +14,7 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.onboarding.domain.KeywordInput
+import dev.logickoder.keyguarde.onboarding.domain.defaultAppSelection
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
@@ -22,6 +23,7 @@ import dev.logickoder.keyguarde.onboarding.domain.saveIconToFile
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +36,8 @@ import kotlinx.coroutines.withContext
 class OnboardingViewModel(
     private val repository: AppRepository,
     private val savedStateHandle: SavedStateHandle,
+    // Reading every installed app's label and icon is slow; kept off the main thread.
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val _state = MutableStateFlow(restore())
     val state: StateFlow<OnboardingState> = _state.asStateFlow()
@@ -47,7 +51,10 @@ class OnboardingViewModel(
         viewModelScope.launch {
             _state.collect { state ->
                 savedStateHandle[KEY_PAGES] = ArrayList(state.backStack.map { it.name })
-                savedStateHandle[KEY_SELECTED_APPS] = ArrayList(state.selectedApps)
+                // Saved only once defaults are in, or a restore would read the empty start as a choice.
+                if (state.hasDefaultedApps) {
+                    savedStateHandle[KEY_SELECTED_APPS] = ArrayList(state.selectedApps)
+                }
                 savedStateHandle[KEY_KEYWORDS] = ArrayList(state.keywords.map { it.word })
             }
         }
@@ -55,6 +62,7 @@ class OnboardingViewModel(
 
     private fun restore(): OnboardingState {
         val default = OnboardingState()
+        val savedApps = savedStateHandle.get<ArrayList<String>>(KEY_SELECTED_APPS)
         return default.copy(
             backStack = savedStateHandle.get<ArrayList<String>>(KEY_PAGES)
                 // A page renamed between app versions is dropped rather than crashing the restore.
@@ -62,9 +70,9 @@ class OnboardingViewModel(
                 ?.takeIf { it.isNotEmpty() }
                 ?.toImmutableList()
                 ?: default.backStack,
-            selectedApps = savedStateHandle.get<ArrayList<String>>(KEY_SELECTED_APPS)
-                ?.toImmutableSet()
-                ?: default.selectedApps,
+            selectedApps = savedApps?.toImmutableSet() ?: default.selectedApps,
+            // A restored selection is the user's own; don't replace it with defaults.
+            hasDefaultedApps = savedApps != null,
             keywords = savedStateHandle.get<ArrayList<String>>(KEY_KEYWORDS)
                 ?.map { Keyword(word = it) }
                 ?.toImmutableList()
@@ -83,12 +91,12 @@ class OnboardingViewModel(
                 }
             }
 
-            is OnboardingAction.AddApp -> _state.update {
-                it.copy(selectedApps = (it.selectedApps + action.packageName).toImmutableSet())
-            }
-
-            is OnboardingAction.RemoveApp -> _state.update {
-                it.copy(selectedApps = (it.selectedApps - action.packageName).toImmutableSet())
+            is OnboardingAction.ToggleApp -> _state.update {
+                val selected = when (action.packageName in it.selectedApps) {
+                    true -> it.selectedApps - action.packageName
+                    else -> it.selectedApps + action.packageName
+                }
+                it.copy(selectedApps = selected.toImmutableSet())
             }
 
             is OnboardingAction.AddKeyword -> _state.update { state ->
@@ -129,8 +137,17 @@ class OnboardingViewModel(
             return
         }
         loadAppsJob = viewModelScope.launch {
-            val apps = withContext(Dispatchers.Default) { repository.getInstalledApps() }
-            _state.update { it.copy(apps = apps.toImmutableList()) }
+            val apps = withContext(backgroundDispatcher) { repository.getInstalledApps() }
+            _state.update { state ->
+                state.copy(
+                    apps = apps.toImmutableList(),
+                    selectedApps = when (state.hasDefaultedApps) {
+                        true -> state.selectedApps
+                        else -> defaultAppSelection(apps.map { it.packageName }).toImmutableSet()
+                    },
+                    hasDefaultedApps = true,
+                )
+            }
         }
     }
 

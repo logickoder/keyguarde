@@ -30,7 +30,7 @@ import dev.logickoder.keyguarde.onboarding.components.OnboardingTopBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
-import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
+import dev.logickoder.keyguarde.onboarding.pages.AppsPage
 import dev.logickoder.keyguarde.onboarding.pages.IntroPage
 import dev.logickoder.keyguarde.onboarding.pages.KeywordsPage
 import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
@@ -102,11 +102,10 @@ private fun OnboardingContent(
                                 onRemove = { onAction(OnboardingAction.RemoveKeyword(it)) },
                             )
 
-                            OnboardingPage.Apps -> AppSelectionPage(
+                            OnboardingPage.Apps -> AppsPage(
                                 apps = state.apps,
                                 selected = state.selectedApps,
-                                onAdd = { onAction(OnboardingAction.AddApp(it)) },
-                                onRemove = { onAction(OnboardingAction.RemoveApp(it)) },
+                                onToggle = { onAction(OnboardingAction.ToggleApp(it)) },
                             )
 
                             OnboardingPage.Access -> PermissionsPage(state.permissionGranted)

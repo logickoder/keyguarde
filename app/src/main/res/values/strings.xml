@@ -17,6 +17,8 @@
     <string name="navigate">Navigate</string>
     <string name="collapse">Collapse</string>
     <string name="expand">Expand</string>
+    <string name="expanded">Expanded</string>
+    <string name="collapsed">Collapsed</string>
     <string name="success">Success</string>
     <string name="unknown_error">Unknown error</string>
     <string name="keyword">Keyword</string>
@@ -54,6 +56,16 @@
         <item>interview</item>
         <item>call me</item>
     </string-array>
+    <string name="apps_title">Which apps should it watch?</string>
+    <string name="apps_body">Keyguarde only reads notifications from the apps you pick. You can change this later in Settings.</string>
+    <string name="apps_suggested">Chat apps on this phone</string>
+    <string name="apps_no_suggested">No common chat apps found. Pick from all apps below.</string>
+    <string name="apps_loading">Finding your apps…</string>
+    <string name="apps_search">Search apps</string>
+    <plurals name="apps_all">
+        <item quantity="one">All apps (%1$d)</item>
+        <item quantity="other">All apps (%1$d)</item>
+    </plurals>
     <string name="intro_sample_message">The %1$s for March is still open. Can you check?</string>
     <string name="permissions_needed">Required Permissions</string>
     <string name="notification_access">Notification Access</string>
@@ -75,9 +87,6 @@
     <string name="post_notification_desc_details">The persistent notification lets Keyguarde run reliably in the
         background and show you alerts when your keywords are detected.
     </string>
-    <string name="select_apps_to_monitor">Select Apps to Monitor</string>
-    <string name="select_apps_to_monitor_desc">Choose which apps Keyguarde should watch for your keywords</string>
-    <string name="you_can_change_selections_later">You can change these selections later in Settings</string>
     <string name="all_set">All Set!</string>
     <string name="ready_desc">Keyguarde is now ready to monitor your notifications</string>
     <string name="ready_desc_details">You\'ll see a small notification showing the number of keyword matches. This is how you\'ll know Keyguarde is working for you.</string>
