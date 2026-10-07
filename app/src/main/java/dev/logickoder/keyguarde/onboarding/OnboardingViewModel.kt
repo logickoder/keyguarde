@@ -130,6 +130,11 @@ class OnboardingViewModel(
 
             OnboardingAction.TestSent -> startTest()
 
+            OnboardingAction.ResetTest -> {
+                testTimeoutJob?.cancel()
+                _state.update { it.copy(test = SetupTest.Idle) }
+            }
+
             is OnboardingAction.Save -> save(action.context.applicationContext)
         }
     }

@@ -3,18 +3,13 @@ package dev.logickoder.keyguarde.onboarding.pages
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -39,6 +34,7 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.onboarding.components.HeroLayout
 
 /**
  * What Keyguarde does, shown with the product instead of described: a notification with its
@@ -53,53 +49,30 @@ fun IntroPage(modifier: Modifier = Modifier) {
         highlight(headline, keyword, keywordColor)
     }
 
-    // Fills the screen, picture above and words below, but scrolls when a large font needs room.
-    BoxWithConstraints(
-        modifier = modifier.fillMaxSize(),
+    HeroLayout(
+        modifier = modifier,
+        hero = { IntroIllustration(keyword = keyword) },
         content = {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .heightIn(min = maxHeight)
-                    .padding(horizontal = Spacing.xl),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                content = {
-                    // With a minimum height set, the weight takes the space left over, so the
-                    // picture centres above the words instead of sticking to the top.
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(vertical = Spacing.xl),
-                        contentAlignment = Alignment.Center,
-                        content = { IntroIllustration(keyword = keyword) }
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        content = {
-                            Text(
-                                text = styledHeadline,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.semantics { heading() },
-                            )
-                            Text(
-                                text = stringResource(R.string.intro_body),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(top = Spacing.m),
-                            )
-                            Text(
-                                text = stringResource(R.string.intro_privacy),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(top = Spacing.l, bottom = Spacing.xl),
-                            )
-                        }
-                    )
-                }
+            Text(
+                text = styledHeadline,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                text = stringResource(R.string.intro_body),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = Spacing.m),
+            )
+            Text(
+                text = stringResource(R.string.intro_privacy),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = Spacing.l, bottom = Spacing.xl),
             )
         }
     )

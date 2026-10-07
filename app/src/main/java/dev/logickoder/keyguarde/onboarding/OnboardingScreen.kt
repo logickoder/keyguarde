@@ -156,7 +156,7 @@ private fun OnboardingContent(
                                 appNames = remember(state.apps, state.selectedApps) {
                                     state.apps.filter { it.packageName in state.selectedApps }.joinToString { it.name }
                                 },
-                                onOpenAccessSettings = onAllowAccess,
+                                onTryAgain = onSendTest,
                             )
                         }
                     }
@@ -213,7 +213,11 @@ private fun OnboardingActions(
             !state.alertsAllowed -> stringResource(R.string.test_finish) to save
             state.test is SetupTest.Caught -> stringResource(R.string.test_go_to_matches) to save
             state.test == SetupTest.Waiting -> stringResource(R.string.test_status_waiting) to {}
-            state.test == SetupTest.Missed -> stringResource(R.string.test_try_again) to onSendTest
+            // The miss means access needs a toggle; going to fix it resets the test for a clean retry.
+            state.test == SetupTest.Missed -> stringResource(R.string.test_open_access) to {
+                onAction(OnboardingAction.ResetTest)
+                onAllowAccess()
+            }
             else -> stringResource(R.string.test_send) to onSendTest
         }
 

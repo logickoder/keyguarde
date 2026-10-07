@@ -1,23 +1,20 @@
 package dev.logickoder.keyguarde.onboarding.pages
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +45,7 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.onboarding.components.HeroLayout
 import dev.logickoder.keyguarde.onboarding.domain.SetupTest
 
 /**
@@ -62,65 +61,50 @@ fun TestPage(
     keyword: String,
     canSendTest: Boolean,
     appNames: String,
-    onOpenAccessSettings: () -> Unit,
+    onTryAgain: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(
-        modifier = modifier.fillMaxSize(),
+    HeroLayout(
+        modifier = modifier,
+        hero = { TestNotification(keyword = keyword, test = test) },
         content = {
+            // Announced as it changes, since the result arrives without the user acting.
             Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .heightIn(min = maxHeight)
-                    .padding(horizontal = Spacing.xl),
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 content = {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(vertical = Spacing.xl),
-                        contentAlignment = Alignment.Center,
-                        content = { TestNotification(keyword = keyword, test = test) }
+                    Text(
+                        text = title(test, canSendTest),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.semantics { heading() },
                     )
-
-                    // Announced as it changes, since the result arrives without the user acting.
-                    Column(
-                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        content = {
-                            Text(
-                                text = title(test, canSendTest),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.semantics { heading() },
-                            )
-                            Text(
-                                text = body(test, canSendTest, keyword, appNames),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(top = Spacing.m),
-                            )
-                        }
+                    Text(
+                        text = body(test, canSendTest, keyword, appNames),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = Spacing.m),
                     )
-
-                    if (test == SetupTest.Missed) {
-                        TextButton(
-                            onClick = onOpenAccessSettings,
-                            modifier = Modifier.padding(top = Spacing.s),
-                            content = {
-                                Text(
-                                    text = stringResource(R.string.test_open_access),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        )
-                    }
-                    Box(modifier = Modifier.padding(bottom = Spacing.xl))
                 }
             )
+
+            // A second try, for when the miss was a one-off. The fix itself is the main button.
+            if (test == SetupTest.Missed) {
+                TextButton(
+                    onClick = onTryAgain,
+                    modifier = Modifier.padding(top = Spacing.s),
+                    content = {
+                        Text(
+                            text = stringResource(R.string.test_try_again),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                )
+            }
+            Box(modifier = Modifier.padding(bottom = Spacing.xl))
         }
     )
 }
@@ -138,7 +122,7 @@ private fun title(test: SetupTest, canSendTest: Boolean): String = stringResourc
 
 @Composable
 private fun body(test: SetupTest, canSendTest: Boolean, keyword: String, appNames: String): String = when {
-    test is SetupTest.Caught -> stringResource(R.string.test_body_caught, test.keyword, appNames)
+    test is SetupTest.Caught -> stringResource(R.string.test_body_caught, appNames)
     test == SetupTest.Missed -> stringResource(R.string.test_body_missed)
     !canSendTest -> stringResource(R.string.test_body_no_alerts)
     else -> stringResource(R.string.test_body, keyword)
@@ -147,7 +131,15 @@ private fun body(test: SetupTest, canSendTest: Boolean, keyword: String, appName
 /** The test as it'll look in the shade, with a status line for where it got to. */
 @Composable
 private fun TestNotification(keyword: String, test: SetupTest) {
-    val keywordColor = MaterialTheme.colorScheme.primary
+    // Grey until the listener catches it, then teal: the same colour a real match gets.
+    val keywordColor by animateColorAsState(
+        targetValue = when (test) {
+            is SetupTest.Caught -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.onSurface
+        },
+        animationSpec = tween(durationMillis = 400),
+        label = "TestKeyword",
+    )
     val text = stringResource(R.string.setup_test_notification_text, keyword)
     val styled = remember(text, keyword, keywordColor) { highlight(text, keyword, keywordColor) }
 
@@ -212,10 +204,8 @@ private fun TestStatus(test: SetupTest) {
                     StatusText(stringResource(R.string.test_status_waiting))
                 }
 
-                is SetupTest.Caught -> {
-                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                    StatusText(stringResource(R.string.test_status_caught))
-                }
+                // The keyword turning teal is the signal; the title says the rest.
+                is SetupTest.Caught -> Unit
 
                 SetupTest.Missed -> {
                     Icon(Icons.Outlined.ErrorOutline, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -246,6 +236,6 @@ private fun TestPagePreview() = AppTheme {
         keyword = "invoice",
         canSendTest = true,
         appNames = "WhatsApp",
-        onOpenAccessSettings = {},
+        onTryAgain = {},
     )
 }

@@ -31,7 +31,7 @@
     <string name="onboarding_hint_keywords">Add at least one keyword to continue.</string>
     <string name="onboarding_hint_apps">Pick at least one app to continue.</string>
     <string name="intro_sample_keyword">invoice</string>
-    <string name="intro_headline">Never miss %1$s again</string>
+    <string name="intro_headline">Never miss an %1$s again</string>
     <string name="intro_body">Pick the words that matter. Keyguarde watches your chat notifications and keeps every message that mentions them.</string>
     <string name="intro_privacy">Your messages never leave your phone. Keyguarde reads them on-device and keeps matches only here.</string>
     <string name="intro_sample_chat">Design Team</string>
@@ -78,13 +78,12 @@
     <string name="test_body">Keyguarde sends itself a notification with “%1$s” in it. If it catches it, you\'re set.</string>
     <string name="test_title_waiting">Sending a test…</string>
     <string name="test_title_caught">It works</string>
-    <string name="test_body_caught">Keyguarde caught “%1$s”. From now on, matches from %2$s show up in Matches.</string>
+    <string name="test_body_caught">From now on, matches from %1$s show up in Matches.</string>
     <string name="test_title_missed">The test didn\'t arrive</string>
-    <string name="test_body_missed">Android didn\'t pass the notification to Keyguarde. Turn Keyguarde\'s notification access off and on, then try again.</string>
+    <string name="test_body_missed">Android didn\'t pass the notification to Keyguarde. Turn Keyguarde\'s notification access off and on, then come back to test again.</string>
     <string name="test_title_no_alerts">Almost done</string>
     <string name="test_body_no_alerts">Turn on alerts to send yourself a test, or finish now. Matches are saved either way.</string>
     <string name="test_status_waiting">Waiting for it…</string>
-    <string name="test_status_caught">Caught</string>
     <string name="test_status_missed">Didn\'t arrive</string>
     <string name="test_send">Send a test match</string>
     <string name="test_try_again">Try again</string>

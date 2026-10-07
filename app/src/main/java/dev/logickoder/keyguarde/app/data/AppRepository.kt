@@ -139,7 +139,10 @@ class AppRepository(
                 }
             }
 
-            if (passesPermissionCheck) {
+            // Only apps a person opens; system services and plugins can't send chat messages.
+            val isLaunchable = packageManager.getLaunchIntentForPackage(app.packageName) != null
+
+            if (passesPermissionCheck && isLaunchable) {
                 add(
                     AppInfo(
                         name = packageManager.getApplicationLabel(app).toString(),

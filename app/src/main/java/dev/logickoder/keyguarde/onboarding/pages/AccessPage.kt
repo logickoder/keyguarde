@@ -3,18 +3,13 @@ package dev.logickoder.keyguarde.onboarding.pages
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.HorizontalDivider
@@ -39,6 +34,7 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.onboarding.components.HeroLayout
 
 /**
  * The one permission Keyguarde can't work without, asked last so the user knows what it's for.
@@ -54,49 +50,33 @@ fun AccessPage(
     onEnableAlerts: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(
-        modifier = modifier.fillMaxSize(),
+    HeroLayout(
+        modifier = modifier,
+        hero = { AccessToggle(on = accessGranted) },
         content = {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .heightIn(min = maxHeight)
-                    .padding(horizontal = Spacing.xl),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                content = {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(vertical = Spacing.xl),
-                        contentAlignment = Alignment.Center,
-                        content = { AccessToggle(on = accessGranted) }
-                    )
-
-                    Text(
-                        text = stringResource(if (accessGranted) R.string.access_title_done else R.string.access_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.semantics { heading() },
-                    )
-                    Text(
-                        text = stringResource(if (accessGranted) R.string.access_body_done else R.string.access_body),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = Spacing.m, bottom = Spacing.xl),
-                    )
-
-                    if (showAlerts) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        AlertsRow(
-                            allowed = alertsAllowed,
-                            onEnable = onEnableAlerts,
-                            modifier = Modifier.padding(top = Spacing.s, bottom = Spacing.l),
-                        )
-                    }
-                }
+            Text(
+                text = stringResource(if (accessGranted) R.string.access_title_done else R.string.access_title),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.semantics { heading() },
             )
+            Text(
+                text = stringResource(if (accessGranted) R.string.access_body_done else R.string.access_body),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = Spacing.m, bottom = Spacing.xl),
+            )
+
+            if (showAlerts) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                AlertsRow(
+                    allowed = alertsAllowed,
+                    onEnable = onEnableAlerts,
+                    modifier = Modifier.padding(top = Spacing.s, bottom = Spacing.l),
+                )
+            }
         }
     )
 }
@@ -129,9 +109,12 @@ private fun AccessToggle(on: Boolean) {
             Switch(
                 checked = on,
                 onCheckedChange = null,
+                // Off state uses the darker grey: the default outline is under 3:1 on this card.
                 colors = SwitchDefaults.colors(
                     checkedTrackColor = MaterialTheme.colorScheme.onSurface,
                     checkedThumbColor = MaterialTheme.colorScheme.surface,
+                    uncheckedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             )
         }
