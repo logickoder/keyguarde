@@ -35,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -205,7 +206,9 @@ private fun AddedPill(word: String, onRemove: () -> Unit) {
     Row(
         modifier = Modifier
             .minimumInteractiveComponentSize()
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(Radius.pill))
+            // Clipped before clickable, so the press ripple follows the pill instead of a square.
+            .clip(RoundedCornerShape(Radius.pill))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(
                 onClickLabel = stringResource(R.string.keywords_remove, word),
                 role = Role.Button,
@@ -232,6 +235,7 @@ private fun SuggestionPill(word: String, onAdd: () -> Unit) {
     Row(
         modifier = Modifier
             .minimumInteractiveComponentSize()
+            .clip(RoundedCornerShape(Radius.pill))
             .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(Radius.pill))
             .clickable(
                 onClickLabel = stringResource(R.string.keywords_add_suggestion, word),
