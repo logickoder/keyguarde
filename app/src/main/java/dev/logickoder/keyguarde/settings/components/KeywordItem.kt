@@ -49,7 +49,7 @@ fun KeywordItem(
                 content = {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = keyword.word.uppercase(),
+                        text = keyword.word,
                         style = KeywordPillStyle.copy(fontSize = 18.sp, lineHeight = 24.sp),
                         color = MaterialTheme.colorScheme.onSurface,
                     )

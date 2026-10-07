@@ -40,8 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -257,15 +255,9 @@ private fun SuggestionPill(word: String, onAdd: () -> Unit) {
     )
 }
 
-/** Uppercase on screen, but the word as typed for TalkBack, which can spell capitals out. */
 @Composable
 private fun PillText(word: String, color: Color) {
-    Text(
-        text = word.uppercase(),
-        style = KeywordPillStyle,
-        color = color,
-        modifier = Modifier.clearAndSetSemantics { contentDescription = word },
-    )
+    Text(text = word, style = KeywordPillStyle, color = color)
 }
 
 @Preview(showBackground = true)

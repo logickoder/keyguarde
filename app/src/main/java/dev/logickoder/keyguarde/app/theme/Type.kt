@@ -33,13 +33,14 @@ val oswaldFontFamily = FontFamily(
     Font(googleFont = OswaldFont, fontProvider = interProvider, weight = FontWeight.SemiBold),
 )
 
-/** Keyword pill text. Callers uppercase the string; TextStyle has no text transform. */
+/** Keyword pill text: condensed so a pill reads as a tag, in the case the user typed. */
 val KeywordPillStyle = TextStyle(
     fontFamily = oswaldFontFamily,
     fontWeight = FontWeight.Medium,
     fontSize = 13.sp,
     lineHeight = 16.sp,
-    letterSpacing = 0.08.em,
+    // Light tracking; the wide spacing that suited capitals looks loose on lowercase.
+    letterSpacing = 0.02.em,
 )
 
 private val base = Typography()

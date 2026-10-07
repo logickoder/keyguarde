@@ -233,7 +233,7 @@ private fun KeywordPills(keywords: List<String>, modifier: Modifier = Modifier) 
         content = {
             keywords.forEach { keyword ->
                 Text(
-                    text = keyword.uppercase(),
+                    text = keyword,
                     style = KeywordPillStyle,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
