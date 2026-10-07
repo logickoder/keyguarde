@@ -15,6 +15,8 @@ data class OnboardingState(
     val hasDefaultedApps: Boolean = false,
     val keywords: ImmutableList<Keyword> = persistentListOf(),
     val permissionGranted: Boolean = false,
+    /** Whether Keyguarde may post its own alerts. Optional: matches are saved either way. */
+    val alertsAllowed: Boolean = false,
     val isSaving: Boolean = false,
     val isComplete: Boolean = false,
 ) {
@@ -26,7 +28,6 @@ data class OnboardingState(
             OnboardingPage.Keywords -> keywords.isNotEmpty()
             // Counted against installed apps, so a stale pick can't unlock the step.
             OnboardingPage.Apps -> apps.any { it.packageName in selectedApps }
-            OnboardingPage.Access -> permissionGranted
             else -> true
         }
 }

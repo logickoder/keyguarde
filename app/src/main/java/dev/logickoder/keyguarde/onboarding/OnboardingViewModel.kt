@@ -114,8 +114,8 @@ class OnboardingViewModel(
                 it.copy(keywords = (it.keywords - action.keyword).toImmutableList())
             }
 
-            is OnboardingAction.PermissionChecked -> _state.update {
-                it.copy(permissionGranted = action.granted)
+            is OnboardingAction.PermissionsChecked -> _state.update {
+                it.copy(permissionGranted = action.listenerGranted, alertsAllowed = action.alertsAllowed)
             }
 
             is OnboardingAction.Save -> save(action.context.applicationContext)
@@ -123,6 +123,8 @@ class OnboardingViewModel(
     }
 
     private fun next() {
+        // The Access step's button opens Settings until access is on; this guards a stray Next.
+        if (_state.value.currentPage == OnboardingPage.Access && !_state.value.permissionGranted) return
         _state.update {
             val nextPage = OnboardingPage.entries[it.currentPage.ordinal + 1]
             it.copy(backStack = it.backStack.toPersistentList().add(nextPage))

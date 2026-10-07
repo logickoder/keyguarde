@@ -1,5 +1,7 @@
 package dev.logickoder.keyguarde.onboarding
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
@@ -16,11 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingPopTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingTransition
@@ -33,10 +38,8 @@ import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
 import dev.logickoder.keyguarde.onboarding.pages.AppsPage
 import dev.logickoder.keyguarde.onboarding.pages.IntroPage
 import dev.logickoder.keyguarde.onboarding.pages.KeywordsPage
-import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
+import dev.logickoder.keyguarde.onboarding.pages.AccessPage
 import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 
 @Composable
 fun OnboardingScreen(
@@ -49,14 +52,25 @@ fun OnboardingScreen(
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.currentPage) {
-        if (state.currentPage == OnboardingPage.Access) {
-            while (isActive) {
-                viewModel.onAction(
-                    OnboardingAction.PermissionChecked(isListenerServiceEnabled(context))
-                )
-                delay(1_000)
-            }
+    val checkPermissions = {
+        viewModel.onAction(
+            OnboardingAction.PermissionsChecked(
+                listenerGranted = isListenerServiceEnabled(context),
+                alertsAllowed = NotificationHelper.isNotificationPermissionGranted(context),
+            )
+        )
+    }
+    // Both are granted in system screens, so re-read them whenever the user comes back.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { checkPermissions() }
+
+    val alertsPermission = NotificationHelper.requestNotificationPermissionLauncher { granted ->
+        checkPermissions()
+        // Android stops showing the prompt after repeated denials; settings is the way left.
+        if (!granted) {
+            context.startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            )
         }
     }
 
@@ -70,6 +84,13 @@ fun OnboardingScreen(
         modifier = modifier,
         state = state,
         onAction = viewModel::onAction,
+        onAllowAccess = { NotificationHelper.launchListenerSettings(context) },
+        onEnableAlerts = {
+            // The row only shows on Android 13+, where alerts need asking for.
+            if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
+                alertsPermission.launch(NotificationHelper.PERMISSION)
+            }
+        },
     )
 }
 
@@ -77,6 +98,8 @@ fun OnboardingScreen(
 private fun OnboardingContent(
     state: OnboardingState,
     onAction: (OnboardingAction) -> Unit,
+    onAllowAccess: () -> Unit,
+    onEnableAlerts: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -108,7 +131,12 @@ private fun OnboardingContent(
                                 onToggle = { onAction(OnboardingAction.ToggleApp(it)) },
                             )
 
-                            OnboardingPage.Access -> PermissionsPage(state.permissionGranted)
+                            OnboardingPage.Access -> AccessPage(
+                                accessGranted = state.permissionGranted,
+                                alertsAllowed = state.alertsAllowed,
+                                showAlerts = NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION,
+                                onEnableAlerts = onEnableAlerts,
+                            )
 
                             OnboardingPage.Test -> ReadyPage(
                                 isSaving = state.isSaving,
@@ -135,10 +163,13 @@ private fun OnboardingContent(
                 modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime)),
                 visible = state.currentPage != OnboardingPage.Test,
                 content = {
+                    // On Access the one button does the asking, then turns into Continue.
+                    val needsAccess = state.currentPage == OnboardingPage.Access && !state.permissionGranted
                     OnboardingBottomBar(
                         label = stringResource(
-                            when (state.currentPage) {
-                                OnboardingPage.Intro -> R.string.onboarding_get_started
+                            when {
+                                state.currentPage == OnboardingPage.Intro -> R.string.onboarding_get_started
+                                needsAccess -> R.string.access_allow
                                 else -> R.string.onboarding_continue
                             }
                         ),
@@ -146,10 +177,14 @@ private fun OnboardingContent(
                         hint = when (state.currentPage) {
                             OnboardingPage.Keywords -> stringResource(R.string.onboarding_hint_keywords)
                             OnboardingPage.Apps -> stringResource(R.string.onboarding_hint_apps)
-                            OnboardingPage.Access -> stringResource(R.string.onboarding_hint_access)
                             else -> null
                         },
-                        onClick = { onAction(OnboardingAction.Next) },
+                        onClick = {
+                            when (needsAccess) {
+                                true -> onAllowAccess()
+                                else -> onAction(OnboardingAction.Next)
+                            }
+                        },
                     )
                 }
             )
@@ -163,5 +198,7 @@ private fun OnboardingContentPreview() = AppTheme {
     OnboardingContent(
         state = OnboardingState(),
         onAction = {},
+        onAllowAccess = {},
+        onEnableAlerts = {},
     )
 }

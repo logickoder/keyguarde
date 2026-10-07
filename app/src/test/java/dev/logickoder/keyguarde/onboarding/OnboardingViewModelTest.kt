@@ -62,6 +62,7 @@ class OnboardingViewModelTest {
     @Test
     fun `steps run intro, keywords, apps, access, test`() {
         val viewModel = viewModel()
+        viewModel.onAction(OnboardingAction.PermissionsChecked(listenerGranted = true, alertsAllowed = false))
         val seen = mutableListOf(viewModel.state.value.currentPage)
         repeat(OnboardingPage.entries.size - 1) {
             viewModel.onAction(OnboardingAction.Next)
@@ -69,6 +70,18 @@ class OnboardingViewModelTest {
         }
 
         assertEquals(OnboardingPage.entries, seen)
+    }
+
+    @Test
+    fun `access can't be skipped without granting it`() {
+        val viewModel = viewModel(pages = listOf("Intro", "Keywords", "Apps", "Access"))
+
+        viewModel.onAction(OnboardingAction.Next)
+        assertEquals(OnboardingPage.Access, viewModel.state.value.currentPage)
+
+        viewModel.onAction(OnboardingAction.PermissionsChecked(listenerGranted = true, alertsAllowed = false))
+        viewModel.onAction(OnboardingAction.Next)
+        assertEquals(OnboardingPage.Test, viewModel.state.value.currentPage)
     }
 
     @Test

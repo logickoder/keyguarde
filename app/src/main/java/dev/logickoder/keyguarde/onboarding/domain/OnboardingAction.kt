@@ -14,7 +14,8 @@ sealed interface OnboardingAction {
 
     data class RemoveKeyword(val keyword: Keyword) : OnboardingAction
 
-    data class PermissionChecked(val granted: Boolean) : OnboardingAction
+    /** The screen re-read both permissions, e.g. on returning from system Settings. */
+    data class PermissionsChecked(val listenerGranted: Boolean, val alertsAllowed: Boolean) : OnboardingAction
 
     class Save(val context: Context) : OnboardingAction
 }

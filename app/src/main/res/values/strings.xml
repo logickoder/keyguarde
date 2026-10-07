@@ -31,7 +31,6 @@
     <string name="onboarding_continue">Continue</string>
     <string name="onboarding_hint_keywords">Add at least one keyword to continue.</string>
     <string name="onboarding_hint_apps">Pick at least one app to continue.</string>
-    <string name="onboarding_hint_access">Turn on notification access to continue.</string>
     <string name="intro_sample_keyword">invoice</string>
     <string name="intro_headline">Never miss %1$s again</string>
     <string name="intro_body">Pick the words that matter. Keyguarde watches your chat notifications and keeps every message that mentions them.</string>
@@ -66,27 +65,17 @@
         <item quantity="one">All apps (%1$d)</item>
         <item quantity="other">All apps (%1$d)</item>
     </plurals>
+    <string name="access_title">Let Keyguarde read notifications</string>
+    <string name="access_body">Turn on Keyguarde on the next screen, then come back. Android\'s warning lists everything a listener could do. Keyguarde only reads.</string>
+    <string name="access_title_done">Keyguarde can read notifications</string>
+    <string name="access_body_done">It only checks the apps you picked, and only for your keywords.</string>
+    <string name="access_toggle_label">Notification access</string>
+    <string name="access_allow">Allow notification access</string>
+    <string name="access_alerts_title">Alerts for new matches</string>
+    <string name="access_alerts_body">Optional. Matches are saved either way.</string>
+    <string name="access_alerts_turn_on">Turn on</string>
+    <string name="access_alerts_on">On</string>
     <string name="intro_sample_message">The %1$s for March is still open. Can you check?</string>
-    <string name="permissions_needed">Required Permissions</string>
-    <string name="notification_access">Notification Access</string>
-    <string name="notifications_access_desc">This is necessary to scan for your keywords. Your privacy is our priority -
-        all processing happens on your device and no data leaves it.
-    </string>
-    <string name="permission_granted">Permission Granted</string>
-    <string name="grant_permission">Grant Permission</string>
-    <string name="why_is_this_needed">Why is this needed?</string>
-    <string name="notifications_access_desc_1">Keyguarde works by looking at notification content to match your
-        keywords. This permission is essential for the app to work correctly.
-    </string>
-    <string name="notifications_access_desc_2">We take your privacy seriously. All processing happens locally on your
-        device and no data is stored or transmitted elsewhere.
-    </string>
-    <string name="post_notifications">Post Notifications</string>
-    <string name="post_notifications_desc">Allow Keyguarde to show you alerts when keywords are detected</string>
-    <string name="why_are_these_needed">Why are these needed?</string>
-    <string name="post_notification_desc_details">The persistent notification lets Keyguarde run reliably in the
-        background and show you alerts when your keywords are detected.
-    </string>
     <string name="all_set">All Set!</string>
     <string name="ready_desc">Keyguarde is now ready to monitor your notifications</string>
     <string name="ready_desc_details">You\'ll see a small notification showing the number of keyword matches. This is how you\'ll know Keyguarde is working for you.</string>

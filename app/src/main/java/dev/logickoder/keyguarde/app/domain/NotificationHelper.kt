@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
+import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -318,8 +319,23 @@ object NotificationHelper {
         return enabledListeners?.split(":")?.contains(componentName) == true
     }
 
+    /**
+     * Opens Keyguarde's own access toggle where Android supports it (11+), so the user doesn't
+     * hunt for it in a list of every listener app. Falls back to that list elsewhere.
+     */
     fun launchListenerSettings(context: Context) {
-        context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        val component = ComponentName(context, AppListenerService::class.java).flattenToString()
+        val detail = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+                .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, component)
+
+            else -> null
+        }
+        try {
+            context.startActivity(detail ?: Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        } catch (_: ActivityNotFoundException) {
+            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        }
     }
 
     @Composable
