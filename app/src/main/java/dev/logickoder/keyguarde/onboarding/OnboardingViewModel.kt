@@ -40,7 +40,7 @@ class OnboardingViewModel(
 
     init {
         loadApps()
-        // The user can leave for system Settings on the Permissions page; keep their progress
+        // The user can leave for system Settings on the Access page; keep their progress
         // if Android kills the process meanwhile.
         viewModelScope.launch {
             _state.collect { state ->
@@ -55,7 +55,9 @@ class OnboardingViewModel(
         val default = OnboardingState()
         return default.copy(
             backStack = savedStateHandle.get<ArrayList<String>>(KEY_PAGES)
-                ?.map { OnboardingPage.valueOf(it) }
+                // A page renamed between app versions is dropped rather than crashing the restore.
+                ?.mapNotNull { name -> OnboardingPage.entries.firstOrNull { it.name == name } }
+                ?.takeIf { it.isNotEmpty() }
                 ?.toImmutableList()
                 ?: default.backStack,
             selectedApps = savedStateHandle.get<ArrayList<String>>(KEY_SELECTED_APPS)
@@ -108,7 +110,7 @@ class OnboardingViewModel(
             val nextPage = OnboardingPage.entries[it.currentPage.ordinal + 1]
             it.copy(backStack = it.backStack.toPersistentList().add(nextPage))
         }
-        if (_state.value.currentPage == OnboardingPage.AppSelection && _state.value.apps.isEmpty()) {
+        if (_state.value.currentPage == OnboardingPage.Apps && _state.value.apps.isEmpty()) {
             loadApps()
         }
     }

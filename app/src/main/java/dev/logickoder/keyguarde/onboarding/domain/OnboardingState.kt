@@ -9,7 +9,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
 
 data class OnboardingState(
-    val backStack: ImmutableList<OnboardingPage> = persistentListOf(OnboardingPage.Welcome),
+    val backStack: ImmutableList<OnboardingPage> = persistentListOf(OnboardingPage.Intro),
     val apps: ImmutableList<AppInfo> = persistentListOf(),
     val selectedApps: ImmutableSet<String> = persistentSetOf(
         WHATSAPP_PACKAGE_NAME,
@@ -25,9 +25,9 @@ data class OnboardingState(
 
     val nextEnabled: Boolean
         get() = when (currentPage) {
-            OnboardingPage.Permissions -> permissionGranted
-            OnboardingPage.AppSelection -> selectedApps.isNotEmpty()
-            OnboardingPage.KeywordSetup -> keywords.isNotEmpty()
+            OnboardingPage.Keywords -> keywords.isNotEmpty()
+            OnboardingPage.Apps -> selectedApps.isNotEmpty()
+            OnboardingPage.Access -> permissionGranted
             else -> true
         }
 }

@@ -3,31 +3,34 @@ package dev.logickoder.keyguarde.onboarding
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingPopTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingTransition
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.onboarding.components.OnboardingBottomBar
+import dev.logickoder.keyguarde.onboarding.components.OnboardingTopBar
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
 import dev.logickoder.keyguarde.onboarding.pages.AppSelectionPage
-import dev.logickoder.keyguarde.onboarding.pages.HowItWorksPage
+import dev.logickoder.keyguarde.onboarding.pages.IntroPage
 import dev.logickoder.keyguarde.onboarding.pages.KeywordSetupPage
 import dev.logickoder.keyguarde.onboarding.pages.PermissionsPage
 import dev.logickoder.keyguarde.onboarding.pages.ReadyPage
-import dev.logickoder.keyguarde.onboarding.pages.WelcomePage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -43,7 +46,7 @@ fun OnboardingScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.currentPage) {
-        if (state.currentPage == OnboardingPage.Permissions) {
+        if (state.currentPage == OnboardingPage.Access) {
             while (isActive) {
                 viewModel.onAction(
                     OnboardingAction.PermissionChecked(isListenerServiceEnabled(context))
@@ -87,23 +90,24 @@ private fun OnboardingContent(
                 entryProvider = entryProvider {
                     entry<OnboardingPage> { page ->
                         when (page) {
-                            OnboardingPage.Welcome -> WelcomePage()
-                            OnboardingPage.HowItWorks -> HowItWorksPage()
-                            OnboardingPage.Permissions -> PermissionsPage(state.permissionGranted)
-                            OnboardingPage.AppSelection -> AppSelectionPage(
+                            OnboardingPage.Intro -> IntroPage()
+
+                            OnboardingPage.Keywords -> KeywordSetupPage(
+                                keywords = state.keywords,
+                                onAdd = { onAction(OnboardingAction.AddKeyword(it)) },
+                                onRemove = { onAction(OnboardingAction.RemoveKeyword(it)) },
+                            )
+
+                            OnboardingPage.Apps -> AppSelectionPage(
                                 apps = state.apps,
                                 selected = state.selectedApps,
                                 onAdd = { onAction(OnboardingAction.AddApp(it)) },
                                 onRemove = { onAction(OnboardingAction.RemoveApp(it)) },
                             )
 
-                            OnboardingPage.KeywordSetup -> KeywordSetupPage(
-                                keywords = state.keywords,
-                                onAdd = { onAction(OnboardingAction.AddKeyword(it)) },
-                                onRemove = { onAction(OnboardingAction.RemoveKeyword(it)) },
-                            )
+                            OnboardingPage.Access -> PermissionsPage(state.permissionGranted)
 
-                            OnboardingPage.ReadyScreen -> ReadyPage(
+                            OnboardingPage.Test -> ReadyPage(
                                 isSaving = state.isSaving,
                                 onFinish = { onAction(OnboardingAction.Save(context)) }
                             )
@@ -112,16 +116,36 @@ private fun OnboardingContent(
                 }
             )
         },
+        topBar = {
+            OnboardingTopBar(
+                modifier = Modifier.statusBarsPadding(),
+                step = state.currentPage.ordinal + 1,
+                stepCount = OnboardingPage.entries.size,
+                canGoBack = state.backStack.size > 1,
+                onBack = { onAction(OnboardingAction.Previous) },
+            )
+        },
         bottomBar = {
+            // The last step brings its own action.
             AnimatedVisibility(
                 modifier = Modifier.navigationBarsPadding(),
-                visible = state.currentPage != OnboardingPage.ReadyScreen,
+                visible = state.currentPage != OnboardingPage.Test,
                 content = {
                     OnboardingBottomBar(
-                        currentPage = state.currentPage,
-                        onPrevious = { onAction(OnboardingAction.Previous) },
-                        nextEnabled = state.nextEnabled,
-                        onNext = { onAction(OnboardingAction.Next) }
+                        label = stringResource(
+                            when (state.currentPage) {
+                                OnboardingPage.Intro -> R.string.onboarding_get_started
+                                else -> R.string.onboarding_continue
+                            }
+                        ),
+                        enabled = state.nextEnabled,
+                        hint = when (state.currentPage) {
+                            OnboardingPage.Keywords -> stringResource(R.string.onboarding_hint_keywords)
+                            OnboardingPage.Apps -> stringResource(R.string.onboarding_hint_apps)
+                            OnboardingPage.Access -> stringResource(R.string.onboarding_hint_access)
+                            else -> null
+                        },
+                        onClick = { onAction(OnboardingAction.Next) },
                     )
                 }
             )
