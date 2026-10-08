@@ -39,8 +39,8 @@ export default function HomePage() {
       },
       {
         icon: Lock,
-        title: 'All offline, no tracking',
-        description: 'Everything stays on your device.',
+        title: 'Messages stay on your phone',
+        description: 'Matching happens on your phone. Nothing you receive is uploaded.',
         image: '/api/placeholder/150/120',
         alt: 'Privacy features'
       }
@@ -72,8 +72,8 @@ export default function HomePage() {
   const features = useMemo(
     () => [
       {
-        title: 'Works Offline',
-        description: 'Everything happens on your device with no internet connection required.'
+        title: 'Matches without internet',
+        description: 'Notifications are checked on your phone, so matching works offline too.'
       },
       {
         title: 'Battery Efficient',
@@ -94,49 +94,43 @@ export default function HomePage() {
   const faqs = useMemo(
     () => [
       {
-        question: 'Why does it need notification access?',
+        question: 'Why am I not getting matches?',
         answer:
-          'Keyguarde needs notification access to read the content of your notifications and match them against your keywords. This permission is essential for the app to function, but all processing happens locally on your device.'
+          "Open Settings and tap Run a test. If the test fails, turn Keyguarde's notification access off, then on. Also check the app is ticked under Apps, and Battery use says Unrestricted."
       },
       {
-        question: 'Does it read my messages?',
+        question: 'How do matches work?',
         answer:
-          'Keyguarde only reads the text content of notifications as they appear. It does not access your message history, media, or any other data within your messaging apps. All processing is done locally on your device.'
-      },
-      {
-        question: 'Will it drain my battery?',
-        answer:
-          "Keyguarde is designed to be lightweight and battery-efficient. It only activates when new notifications arrive, and uses minimal resources while running in the background. The app has been optimized to have negligible impact on your device's battery life."
-      },
-      {
-        question: "I'm not getting matches after installing. What should I do?",
-        answer:
-          "If you're not receiving keyword matches after setup, try restarting your device. This ensures the notification listener service starts properly and can monitor your notifications. Also make sure you've granted notification access permission and selected the apps you want to monitor."
+          'Whole words, any case. “rent” matches “Rent due” but not “current”. One message can match several keywords.'
       },
       {
         question: 'How do I add or remove keywords?',
         answer:
-          "You can manage your keywords from the home screen by tapping the '+' button to add new keywords. To remove keywords, go to Settings > Keyword Filters where you can view and delete existing keywords."
+          'Open the Keywords tab. Type a word at the top to add it. Tap a keyword to edit it, or swipe it left to delete it.'
       },
       {
-        question: 'Can I select which apps to monitor?',
-        answer:
-          'Yes! Go to Settings > Watched Apps to choose which messaging apps Keyguarde should monitor. By default, WhatsApp and Telegram are selected, but you can add or remove apps as needed.'
+        question: 'Can I pick which apps it watches?',
+        answer: 'Yes. Open Settings, then Apps. Chat apps on your phone are listed first.'
       },
       {
-        question: 'Is my data private and secure?',
+        question: 'Why does Keyguarde need notification access?',
         answer:
-          'Absolutely. All notification processing happens locally on your device. No messages, notification data, or personal information is stored externally or transmitted to any servers. Your privacy is our top priority.'
+          "It checks each new notification for your keywords. Without access, Android doesn't show it any."
       },
       {
-        question: 'How do keyword matches work?',
+        question: 'Does it read my messages?',
         answer:
-          "Keyguarde matches whole words only and is case-insensitive. For example, 'react' will match 'React' but not 'reacted'. Multiple keywords can be matched in the same message, and you'll be notified when any of your keywords appear."
+          "Only the text of notifications from the apps you pick, as they arrive. It can't open your chats, see older messages or read media."
+      },
+      {
+        question: 'Where does my data go?',
+        answer:
+          "Messages, matches and keywords stay on your phone, and they're left out of Android backups. Keyguarde sends usage stats, crash reports and performance data to Google Firebase, and shows Google AdMob ads. The privacy policy lists exactly what."
+      },
+      {
+        question: 'Will it drain my battery?',
+        answer: 'No. It does nothing between notifications, and each check is a short text search.'
       }
-      // {
-      //     question: 'Can I disable alerts for certain chats?',
-      //     answer: 'Yes! Keyguarde lets you filter notifications by chat names. You can specify which individual chats or groups to monitor, so you only receive alerts from the conversations that matter most to you.',
-      // },
     ],
     []
   );

@@ -109,7 +109,8 @@ export default function TermsOfUsePage() {
                 <h3 className="text-xl font-semibold mb-4 text-on-surface">Premium Version</h3>
                 <div className="bg-secondary-container p-6 rounded-xl mb-6">
                   <p className="text-on-surface">
-                    A one-time purchase is available to remove advertisements permanently.
+                    A one-time purchase to remove advertisements is planned. It isn&#39;t available
+                    yet.
                   </p>
                 </div>
 
