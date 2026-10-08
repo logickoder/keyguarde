@@ -38,19 +38,27 @@ fun Context.startActivitySafely(intent: Intent) {
     }
 }
 
-/** Opens [url] in the browser, or whatever app handles it. */
-fun Context.openUrl(url: String) = startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+/**
+ * Opens [url] in the browser, or whatever app handles it.
+ *
+ * @return false when no app can open it, so the caller can say so.
+ */
+fun Context.openUrl(url: String): Boolean = try {
+    startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    true
+} catch (_: ActivityNotFoundException) {
+    false
+}
 
 /**
  * Opens Keyguarde's Play Store page, in the Play Store app when it's installed, else the browser.
  * Not the in-app review API: Google rate-limits its dialog, so a tap could show nothing.
+ *
+ * @return false when neither is available.
  */
-fun Context.openStoreListing() {
-    try {
-        startActivity(Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri()))
-    } catch (_: ActivityNotFoundException) {
-        startActivity(
-            Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri())
-        )
-    }
+fun Context.openStoreListing(): Boolean = try {
+    startActivity(Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri()))
+    true
+} catch (_: ActivityNotFoundException) {
+    openUrl("https://play.google.com/store/apps/details?id=$packageName")
 }

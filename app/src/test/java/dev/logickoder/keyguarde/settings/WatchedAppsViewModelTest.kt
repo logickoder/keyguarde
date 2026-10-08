@@ -9,6 +9,7 @@ import dev.logickoder.keyguarde.settings.domain.WatchedAppsEffect
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +34,7 @@ class WatchedAppsViewModelTest {
     private val watched = MutableStateFlow(emptyList<WatchedApp>())
 
     private val repository = mockk<AppRepository>(relaxed = true) {
-        every { getInstalledApps() } returns listOf(installed("com.whatsapp", "WhatsApp"), installed("org.telegram.messenger", "Telegram"))
+        every { getInstalledApps(any()) } returns listOf(installed("com.whatsapp", "WhatsApp"), installed("org.telegram.messenger", "Telegram"))
         every { watchedApps } returns watched
     }
 
@@ -56,6 +57,14 @@ class WatchedAppsViewModelTest {
         backgroundScope.launch { viewModel.state.collect {} }
         advanceUntilIdle()
         return viewModel
+    }
+
+    @Test
+    fun `watched apps are listed even when their notifications are blocked`() = runTest(dispatcher) {
+        watched.value = listOf(watched("com.whatsapp", "WhatsApp"))
+        loadedViewModel()
+
+        verify { repository.getInstalledApps(setOf("com.whatsapp")) }
     }
 
     @Test

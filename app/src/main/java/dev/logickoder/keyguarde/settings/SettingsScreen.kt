@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.appBatterySettings
@@ -54,6 +55,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val toastManager = LocalToastManager.current
+    val linkMissing = stringResource(R.string.link_app_missing)
     val viewModel = viewModel<SettingsViewModel>(factory = SettingsViewModel.factory(context))
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -89,8 +92,11 @@ fun SettingsScreen(
         onOpenBatterySettings = { context.startActivitySafely(appBatterySettings(context)) },
         onEnableNotifications = enableNotifications,
         onRate = {
-            context.openStoreListing()
-            viewModel.onAction(SettingsAction.RatePromptDone)
+            if (context.openStoreListing()) {
+                viewModel.onAction(SettingsAction.RatePromptDone)
+            } else {
+                toastManager.show(linkMissing)
+            }
         },
         onPreviewAlerts = {
             if (state.usePersistentNotification) {

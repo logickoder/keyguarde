@@ -28,6 +28,7 @@ import dev.logickoder.keyguarde.settings.components.SettingsRow
 import dev.logickoder.keyguarde.settings.components.SettingsSection
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 import dev.logickoder.keyguarde.settings.domain.FaqItem
+import kotlinx.coroutines.flow.first
 
 private const val FEEDBACK_EMAIL = "jeffery@logickoder.dev"
 private const val WEBSITE_URL = "https://logickoder.dev/keyguarde/"
@@ -55,6 +56,7 @@ fun HelpScreen(
     val context = LocalContext.current
     val toastManager = LocalToastManager.current
     val emailMissing = stringResource(R.string.email_app_missing, FEEDBACK_EMAIL)
+    val linkMissing = stringResource(R.string.link_app_missing)
     val subject = stringResource(R.string.feedback_email_subject)
     val body = stringResource(
         R.string.feedback_email_body,
@@ -76,8 +78,8 @@ fun HelpScreen(
                 toastManager.show(emailMissing)
             }
         },
-        onRate = { context.openStoreListing() },
-        onOpenUrl = { url -> context.openUrl(url) },
+        onRate = { if (!context.openStoreListing()) toastManager.show(linkMissing) },
+        onOpenUrl = { url -> if (!context.openUrl(url)) toastManager.show(linkMissing) },
         modifier = modifier,
     )
 }

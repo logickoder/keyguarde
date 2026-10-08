@@ -17,10 +17,15 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -395,14 +400,21 @@ object NotificationHelper {
     @Composable
     fun rememberEnableNotifications(): () -> Unit {
         val context = LocalContext.current
+        val activity = LocalActivity.current
+        // Whether Android would explain the request before this launch; see the result below.
+        var hadRationale by remember { mutableStateOf(false) }
         val launcher = requestNotificationPermissionLauncher { granted ->
             // The prompt is a dialog, so the app never leaves the foreground to refresh on return.
             AppContainer.from(context).systemStatus.refresh()
-            // Android stops showing the prompt after repeated denials; settings is the only way left.
-            if (!granted) context.startActivitySafely(appNotificationSettings(context))
+            // After repeated denials Android skips the prompt and reports a denial at once, with
+            // no rationale before or after. Only then is settings the way left; a user who just
+            // tapped "Don't allow" in the prompt meant it.
+            val promptSkipped = !hadRationale && activity != null && !canRequestNotificationPermission(activity)
+            if (!granted && promptSkipped) context.startActivitySafely(appNotificationSettings(context))
         }
         return {
             if (REQUIRES_NOTIFICATION_PERMISSION) {
+                hadRationale = activity != null && canRequestNotificationPermission(activity)
                 launcher.launch(PERMISSION)
             } else {
                 context.startActivitySafely(appNotificationSettings(context))

@@ -21,8 +21,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -33,7 +35,10 @@ class WatchedAppsViewModel(
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val installedApps = flow {
-        emit(repository.getInstalledApps())
+        // Watched apps stay listed even with their notifications blocked; otherwise they'd show
+        // as not on the phone, and the last-app guard would miss them.
+        val watched = repository.watchedApps.first().mapTo(HashSet()) { it.packageName }
+        emit(repository.getInstalledApps(alwaysInclude = watched))
     }.flowOn(backgroundDispatcher)
 
     private val _effects = Channel<WatchedAppsEffect>(Channel.BUFFERED)

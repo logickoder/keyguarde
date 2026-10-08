@@ -302,6 +302,7 @@
     <string name="rate_app">Rate Keyguarde</string>
     <string name="visit_website">Website</string>
     <string name="open_source">Source code</string>
+    <string name="link_app_missing">Can\'t open the link. No browser is installed or turned on. Turn one on in Android settings, then try again.</string>
     <string name="email_app_missing">Can\'t open email. No email app is installed. Write to %1$s instead.</string>
 
     <!-- Notification channel names -->

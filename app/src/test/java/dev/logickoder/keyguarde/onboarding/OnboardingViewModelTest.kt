@@ -35,7 +35,7 @@ class OnboardingViewModelTest {
     private var installed = emptyList<AppInfo>()
     private val testReceived = MutableSharedFlow<String>(extraBufferCapacity = 1)
     private val repository = mockk<AppRepository> {
-        coEvery { getInstalledApps() } answers { installed }
+        coEvery { getInstalledApps(any()) } answers { installed }
     }
 
     private fun app(packageName: String) = AppInfo(packageName, packageName, mockk<Drawable>())

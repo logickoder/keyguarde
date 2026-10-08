@@ -179,10 +179,12 @@ class AppRepository(
      * Get all installed apps that can post notifications on the device.
      * Filters out the current app and sorts the apps by priority and name.
      *
+     * @param alwaysInclude listed even when their notifications are blocked, such as apps already
+     * watched: they are still installed, and the user must be able to untick them.
      * @return A sorted list of [AppInfo] containing app name, package name, and icon.
      */
     @SuppressLint("QueryPermissionsNeeded")
-    fun getInstalledApps() = buildList {
+    fun getInstalledApps(alwaysInclude: Set<String> = emptySet()) = buildList {
         val packageManager = context.packageManager
         // Only apps a person opens; system services and plugins can't send chat messages. One
         // launcher query, instead of a launch-intent lookup per installed package.
@@ -212,7 +214,7 @@ class AppRepository(
                 }
             }
 
-            if (passesPermissionCheck) {
+            if (passesPermissionCheck || app.packageName in alwaysInclude) {
                 add(
                     AppInfo(
                         name = packageManager.getApplicationLabel(app).toString(),
