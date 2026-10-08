@@ -116,8 +116,10 @@ export default function PrivacyPolicyPage() {
 
       <h2>Ads</h2>
       <p>
-        The free version shows a banner ad from Google AdMob. A one-time purchase to remove ads is
-        planned. This policy will be updated before it ships.
+        The free version shows a banner ad from Google AdMob. Where the law requires consent, such
+        as in the EEA and the UK, Keyguarde shows Google&#39;s consent message first and requests no
+        ad until you answer. Change your answer in Settings, then Privacy, then Ad privacy choices.
+        A one-time purchase to remove ads is planned. This policy will be updated before it ships.
       </p>
 
       <h2>This website</h2>
