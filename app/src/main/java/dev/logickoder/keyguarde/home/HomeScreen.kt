@@ -78,9 +78,16 @@ import kotlinx.coroutines.flow.flowOf
 
 /**
  * @param onOpenKeywords switches to the Keywords tab, from the empty state.
+ * @param search a search another tab asked for, such as a keyword's "See matches"; applied once,
+ * then [onSearchHandled] clears it.
  */
 @Composable
-fun HomeScreen(onOpenKeywords: () -> Unit, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    onOpenKeywords: () -> Unit,
+    modifier: Modifier = Modifier,
+    search: String? = null,
+    onSearchHandled: () -> Unit = {},
+) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val toastManager = LocalToastManager.current
@@ -88,6 +95,13 @@ fun HomeScreen(onOpenKeywords: () -> Unit, modifier: Modifier = Modifier) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val matches = viewModel.matches.collectAsLazyPagingItems()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(search) {
+        if (search != null) {
+            viewModel.onAction(HomeAction.SearchQueryChanged(search))
+            onSearchHandled()
+        }
+    }
 
     LifecycleEventEffect(Lifecycle.Event.ON_START) {
         viewModel.onAction(HomeAction.RefreshLastVisit)

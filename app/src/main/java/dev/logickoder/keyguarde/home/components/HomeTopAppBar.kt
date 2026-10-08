@@ -66,11 +66,19 @@ fun HomeTopAppBar(
     modifier: Modifier = Modifier,
 ) {
     var isSearchActive by rememberSaveable { mutableStateOf(searchQuery.isNotEmpty()) }
+    // Only a tap on Search raises the keyboard. A search opened from a keyword's "See matches"
+    // is there to read results, and a keyboard would cover half of them.
+    var focusOnOpen by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(isSearchActive) {
-        if (isSearchActive) {
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) isSearchActive = true
+    }
+
+    LaunchedEffect(isSearchActive, focusOnOpen) {
+        if (isSearchActive && focusOnOpen) {
             focusRequester.requestFocus()
+            focusOnOpen = false
         }
     }
 
@@ -113,7 +121,10 @@ fun HomeTopAppBar(
                 visible = !isSearchActive,
                 content = {
                     IconButton(
-                        onClick = { isSearchActive = true },
+                        onClick = {
+                            isSearchActive = true
+                            focusOnOpen = true
+                        },
                         content = {
                             Icon(
                                 imageVector = Icons.Default.Search,

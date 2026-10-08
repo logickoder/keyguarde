@@ -68,8 +68,12 @@ import dev.logickoder.keyguarde.settings.domain.KeywordsState
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 
+/**
+ * @param onSeeMatches opens Matches searching for this word.
+ */
 @Composable
 fun KeywordsScreen(
+    onSeeMatches: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val viewModel = viewModel<KeywordsViewModel>(
@@ -103,6 +107,10 @@ fun KeywordsScreen(
         state = state,
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
+        onSeeMatches = { word ->
+            viewModel.onAction(KeywordsAction.DismissEdit)
+            onSeeMatches(word)
+        },
     )
 }
 
@@ -115,6 +123,7 @@ private fun KeywordsContent(
     state: KeywordsState,
     snackbarHostState: SnackbarHostState,
     onAction: (KeywordsAction) -> Unit,
+    onSeeMatches: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val existing = remember(state.keywords) { state.keywords.map { it.word } }
@@ -183,6 +192,8 @@ private fun KeywordsContent(
     state.editing?.let { keyword ->
         KeywordEditSheet(
             word = keyword.word,
+            matchCount = state.stats[keyword.word.lowercase()]?.count ?: 0,
+            onSeeMatches = { onSeeMatches(keyword.word) },
             others = existing - keyword.word,
             onSave = { onAction(KeywordsAction.Save(it)) },
             onDelete = { onAction(KeywordsAction.Delete(keyword)) },
@@ -312,6 +323,7 @@ private fun KeywordsEmptyPreview() = AppTheme {
         state = KeywordsState(),
         snackbarHostState = remember { SnackbarHostState() },
         onAction = {},
+        onSeeMatches = {},
     )
 }
 
@@ -325,5 +337,6 @@ private fun KeywordsContentPreview() = AppTheme {
         ),
         snackbarHostState = remember { SnackbarHostState() },
         onAction = {},
+        onSeeMatches = {},
     )
 }

@@ -237,6 +237,10 @@
     <string name="keyword_sort_alphabetical">A to Z</string>
     <string name="keyword_sort_recently_added">Recently added</string>
     <string name="keyword_sort_by">Sort: %1$s</string>
+    <plurals name="keyword_see_matches">
+        <item quantity="one">See 1 match</item>
+        <item quantity="other">See %1$d matches</item>
+    </plurals>
     <string name="keyword_no_matches">No matches yet</string>
     <string name="no_keywords_added">No keywords yet</string>
     <string name="no_keywords_added_desc">Keyguarde catches nothing until you add one. Type your own above, or tap one below.</string>
