@@ -50,7 +50,7 @@ export default function Hero({ onHowItWorks }: HeroProps) {
           that has one. Everything else stays quiet.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-6">
-          <PlayBadge />
+          <PlayBadge placement="hero" />
           <button
             type="button"
             onClick={onHowItWorks}

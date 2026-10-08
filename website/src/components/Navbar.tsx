@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import Logo from '../assets/logo.svg';
 import useSmoothScroll from '../hooks/useSmoothScroll';
-import { playStoreUrl } from './home/PlayBadge';
+import { PlayStoreLink } from './home/PlayBadge';
+import { pillButtonClass } from './styles';
 
 const sections = [
   { id: 'how-it-works', label: 'How it works' },
@@ -31,14 +32,9 @@ export default function Navbar() {
             </button>
           ))}
         </div>
-        <a
-          href={playStoreUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center rounded-full border border-ink px-4 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-paper"
-        >
+        <PlayStoreLink placement="navbar" className={pillButtonClass}>
           Get the app
-        </a>
+        </PlayStoreLink>
       </nav>
     </header>
   );

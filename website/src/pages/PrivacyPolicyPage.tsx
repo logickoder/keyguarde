@@ -4,7 +4,7 @@ const googleServices = [
   {
     name: 'Firebase Analytics',
     sends:
-      'App opens, screens viewed, device model, Android version, country and an app instance ID.',
+      'App opens, screens viewed, which features you use (such as pausing, filtering or running the setup test), device model, Android version, country and an app instance ID. Never message text, chat names or keywords.',
     policy: 'https://firebase.google.com/support/privacy'
   },
   {
@@ -118,6 +118,22 @@ export default function PrivacyPolicyPage() {
       <p>
         The free version shows a banner ad from Google AdMob. A one-time purchase to remove ads is
         planned. This policy will be updated before it ships.
+      </p>
+
+      <h2>This website</h2>
+      <p>
+        If you accept cookies in the banner, this website uses Google Analytics, through Firebase,
+        to count visits, pages viewed and taps on the Google Play and contact links. It records your
+        browser, device type and country, and sets cookies to tell repeat visits apart. If you
+        decline, none of this loads. Change your answer at any time with Cookie settings at the
+        bottom of every page.{' '}
+        <a
+          href="https://policies.google.com/technologies/partner-sites"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Google&#39;s policy
+        </a>
       </p>
 
       <h2>Contact</h2>

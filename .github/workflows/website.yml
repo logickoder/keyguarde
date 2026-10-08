@@ -44,6 +44,12 @@ jobs:
         run: pnpm install
         working-directory: ./website
 
+      # The VITE_FIREBASE_* web config for analytics. Without it the site builds and runs with
+      # analytics off.
+      - name: Create .env file
+        run: echo "${{ secrets.WEBSITE_ENV_FILE }}" > .env
+        working-directory: ./website
+
       - name: Build project
         run: pnpm run build
         working-directory: ./website

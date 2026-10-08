@@ -3,14 +3,17 @@ import { useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import CookieBanner from './components/CookieBanner';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfUsePage from './pages/TermsOfUsePage';
+import PageViews from './analytics/PageViews';
 
 export default function App() {
   return (
     <div className="min-h-screen bg-paper font-sans text-ink">
       <HashRouter>
         <ScrollToTop />
+        <PageViews />
         <Navbar />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -20,6 +23,7 @@ export default function App() {
           <Route path="/contact" element={<Navigate to="/" replace />} />
         </Routes>
         <Footer />
+        <CookieBanner />
       </HashRouter>
     </div>
   );

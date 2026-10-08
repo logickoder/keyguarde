@@ -12,7 +12,7 @@ export default function DownloadBand() {
             Free on Android. Pick a few words, tick your chat apps, done.
           </p>
         </div>
-        <PlayBadge />
+        <PlayBadge placement="download_band" />
       </div>
     </section>
   );

@@ -5,6 +5,8 @@ import Logo from '../assets/logo.svg';
 import Github from '../assets/github.svg';
 import Twitter from '../assets/x.svg';
 import Linkedin from '../assets/linkedin.svg';
+import { trackEvent } from '../analytics/analytics';
+import { setConsent } from '../analytics/consent';
 
 const socials = [
   { href: 'https://github.com/logickoder/keyguarde', label: 'Keyguarde on GitHub', icon: Github },
@@ -30,9 +32,17 @@ export default function Footer() {
           <Link to="/terms" className={linkClass}>
             Terms
           </Link>
-          <a href="mailto:jeffery@logickoder.dev" className={linkClass}>
+          <a
+            href="mailto:jeffery@logickoder.dev"
+            className={linkClass}
+            onClick={() => trackEvent('contact_click', { placement: 'footer_link' })}
+          >
             Contact
           </a>
+          {/* Withdraws any earlier answer and asks again. */}
+          <button type="button" className={linkClass} onClick={() => setConsent(null)}>
+            Cookie settings
+          </button>
         </div>
         <div className="-mx-3 flex items-center text-ink-muted">
           {socials.map((social) => (
@@ -50,6 +60,7 @@ export default function Footer() {
           <a
             href="mailto:jeffery@logickoder.dev"
             aria-label="Email jeffery@logickoder.dev"
+            onClick={() => trackEvent('contact_click', { placement: 'footer_icon' })}
             className="inline-flex h-11 w-11 items-center justify-center transition-colors hover:text-ink"
           >
             <Mail size={20} aria-hidden="true" />

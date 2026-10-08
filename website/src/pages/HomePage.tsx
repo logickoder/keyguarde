@@ -7,6 +7,7 @@ import HowItWorks from '../components/home/HowItWorks';
 import PrivacyBand from '../components/home/PrivacyBand';
 import WhoItsFor from '../components/home/WhoItsFor';
 import useSmoothScroll from '../hooks/useSmoothScroll';
+import { trackEvent } from '../analytics/analytics';
 
 export default function HomePage() {
   const location = useLocation();
@@ -22,7 +23,12 @@ export default function HomePage() {
 
   return (
     <main>
-      <Hero onHowItWorks={() => scrollTo('how-it-works')} />
+      <Hero
+        onHowItWorks={() => {
+          trackEvent('how_it_works_click');
+          scrollTo('how-it-works');
+        }}
+      />
       <HowItWorks />
       <PrivacyBand />
       <WhoItsFor />
