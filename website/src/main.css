@@ -67,22 +67,6 @@ layer(base);
   --color-on-band: var(--on-band);
   --color-on-band-muted: var(--on-band-muted);
 
-  /* Old names, mapped onto the greys until each page moves to the names above. */
-  --color-primary: var(--ink);
-  --color-on-primary: var(--paper);
-  --color-primary-container: var(--surface-high);
-  --color-secondary: var(--ink-muted);
-  --color-on-secondary: var(--paper);
-  --color-secondary-container: var(--surface-high);
-  --color-background: var(--paper);
-  --color-on-background: var(--ink);
-  --color-on-surface: var(--ink);
-  --color-muted: var(--ink-muted);
-  --color-success: var(--ink-muted);
-  --color-success-container: var(--surface-high);
-  --color-danger-container: var(--surface-high);
-  --color-on-danger: var(--paper);
-
   --font-sans: Inter, sans-serif;
   /* The app's keyword pills and section labels. */
   --font-label: Oswald, Inter, sans-serif;
@@ -108,4 +92,16 @@ layer(base);
     color: var(--ink);
     font-family: Inter, sans-serif;
   }
+}
+
+/* The typography plugin's colours, on the app tokens, so legal pages follow light and dark. */
+.prose.legal {
+  --tw-prose-body: var(--ink-muted);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-links: var(--ink);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-bullets: var(--line-strong);
+  --tw-prose-counters: var(--ink-muted);
+  --tw-prose-hr: var(--line);
+  --tw-prose-quotes: var(--ink);
 }

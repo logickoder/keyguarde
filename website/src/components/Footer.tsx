@@ -29,9 +29,9 @@ export default function Footer() {
           <Link to="/terms" className={linkClass}>
             Terms
           </Link>
-          <Link to="/contact" className={linkClass}>
+          <a href="mailto:jeffery@logickoder.dev" className={linkClass}>
             Contact
-          </Link>
+          </a>
         </div>
         <div className="flex items-center gap-4 text-ink-muted">
           {socials.map((social) => (
