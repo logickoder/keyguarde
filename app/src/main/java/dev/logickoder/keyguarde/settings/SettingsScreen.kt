@@ -26,12 +26,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.Events
+import dev.logickoder.keyguarde.analytics.LocalAnalytics
+import dev.logickoder.keyguarde.analytics.TrackScreen
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.domain.appBatterySettings
 import dev.logickoder.keyguarde.app.domain.openStoreListing
-import dev.logickoder.keyguarde.app.domain.startActivitySafely
+import dev.logickoder.keyguarde.app.domain.rememberOpenBatterySettings
 import dev.logickoder.keyguarde.app.navigation.SettingsRoute
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -56,6 +59,8 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val toastManager = LocalToastManager.current
+    val analytics = LocalAnalytics.current
+    TrackScreen("settings")
     val linkMissing = stringResource(R.string.link_app_missing)
     val viewModel = viewModel<SettingsViewModel>(factory = SettingsViewModel.factory(context))
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -89,9 +94,10 @@ fun SettingsScreen(
             NotificationHelper.restartListener(context)
             viewModel.onAction(SettingsAction.ListenerRestartRequested)
         },
-        onOpenBatterySettings = { context.startActivitySafely(appBatterySettings(context)) },
+        onOpenBatterySettings = rememberOpenBatterySettings(from = "settings"),
         onEnableNotifications = enableNotifications,
         onRate = {
+            analytics.log(Events.rateTapped(from = "status_card"))
             if (context.openStoreListing()) {
                 viewModel.onAction(SettingsAction.RatePromptDone)
             } else {
@@ -99,6 +105,7 @@ fun SettingsScreen(
             }
         },
         onPreviewAlerts = {
+            analytics.log(Events.sampleAlertSent)
             if (state.usePersistentNotification) {
                 NotificationHelper.showPersistentNotification(context, 5, 1)
             }

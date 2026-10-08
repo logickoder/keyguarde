@@ -17,6 +17,10 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.core.net.toUri
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.Events
+import dev.logickoder.keyguarde.analytics.LocalAnalytics
+import dev.logickoder.keyguarde.analytics.TrackScreen
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.domain.openStoreListing
 import dev.logickoder.keyguarde.app.domain.openUrl
@@ -55,6 +59,8 @@ fun HelpScreen(
 ) {
     val context = LocalContext.current
     val toastManager = LocalToastManager.current
+    val analytics = LocalAnalytics.current
+    TrackScreen("settings_help")
     val emailMissing = stringResource(R.string.email_app_missing, FEEDBACK_EMAIL)
     val linkMissing = stringResource(R.string.link_app_missing)
     val subject = stringResource(R.string.feedback_email_subject)
@@ -68,6 +74,7 @@ fun HelpScreen(
     HelpContent(
         onBack = onBack,
         onEmail = {
+            analytics.log(Events.contactTapped)
             val intent = Intent(Intent.ACTION_SENDTO, "mailto:".toUri())
                 .putExtra(Intent.EXTRA_EMAIL, arrayOf(FEEDBACK_EMAIL))
                 .putExtra(Intent.EXTRA_SUBJECT, subject)
@@ -78,7 +85,10 @@ fun HelpScreen(
                 toastManager.show(emailMissing)
             }
         },
-        onRate = { if (!context.openStoreListing()) toastManager.show(linkMissing) },
+        onRate = {
+            analytics.log(Events.rateTapped(from = "help"))
+            if (!context.openStoreListing()) toastManager.show(linkMissing)
+        },
         onOpenUrl = { url -> if (!context.openUrl(url)) toastManager.show(linkMissing) },
         modifier = modifier,
     )

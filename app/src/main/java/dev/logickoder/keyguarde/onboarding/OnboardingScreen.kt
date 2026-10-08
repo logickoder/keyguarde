@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.TrackScreen
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingPopTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingTransition
@@ -52,6 +53,8 @@ fun OnboardingScreen(
     val enableAlerts = NotificationHelper.rememberEnableNotifications()
 
     // A missed test was never read, so nothing cleared it from the shade.
+    TrackScreen("onboarding_${state.currentPage.name.lowercase()}")
+
     LaunchedEffect(state.test) {
         if (state.test == SetupTest.Missed) NotificationHelper.cancelSetupTest(context)
     }

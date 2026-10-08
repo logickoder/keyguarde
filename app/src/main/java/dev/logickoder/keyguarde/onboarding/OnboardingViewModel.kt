@@ -8,6 +8,10 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.logickoder.keyguarde.analytics.Analytics
+import dev.logickoder.keyguarde.analytics.Events
+import dev.logickoder.keyguarde.analytics.analyticsEvent
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
@@ -32,6 +36,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -44,6 +49,7 @@ class OnboardingViewModel(
     // Reading every installed app's label and icon is slow; kept off the main thread.
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val setupTestReceived: Flow<String> = AppListenerService.setupTestReceived,
+    private val analytics: Analytics = Analytics.None,
 ) : ViewModel() {
     private val _state = MutableStateFlow(restore())
     val state: StateFlow<OnboardingState> = _state.asStateFlow()
@@ -53,6 +59,7 @@ class OnboardingViewModel(
         scope = viewModelScope,
         received = setupTestReceived,
         keywords = { _state.value.keywords.map { it.word } },
+        onFinished = { test -> analytics.log(test.analyticsEvent(from = "onboarding")) },
     )
 
     init {
@@ -195,6 +202,7 @@ class OnboardingViewModel(
 
             NotificationHelper.restartListener(context)
 
+            analytics.log(Events.onboardingComplete(apps = watchedApps.size, keywords = state.keywords.size))
             _state.update { it.copy(isComplete = true) }
         }.invokeOnCompletion {
             _state.update { it.copy(isSaving = false) }
@@ -214,6 +222,7 @@ class OnboardingViewModel(
                         repository = container.appRepository,
                         savedStateHandle = createSavedStateHandle(),
                         systemState = container.systemStatus.state,
+                        analytics = container.analytics,
                     )
                 }
             }

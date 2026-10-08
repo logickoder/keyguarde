@@ -13,6 +13,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.ads.MobileAds
+import dev.logickoder.keyguarde.analytics.LocalAnalytics
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.ToastContainer
@@ -54,6 +55,9 @@ class MainActivity : ComponentActivity() {
         val toastManager = ToastManager()
         globalToastManager = toastManager
 
+        // Read once, outside composition: the theme and onboarding state recompose this block.
+        val analytics = AppContainer.from(this).analytics
+
         setContent {
             val themeMode by settings.themeMode.collectAsStateWithLifecycle(savedThemeMode)
             val isDark = when (themeMode) {
@@ -81,6 +85,7 @@ class MainActivity : ComponentActivity() {
             AppTheme(useDarkTheme = isDark) {
                 CompositionLocalProvider(
                     LocalToastManager provides toastManager,
+                    LocalAnalytics provides analytics,
                     content = {
                         Box(
                             content = {

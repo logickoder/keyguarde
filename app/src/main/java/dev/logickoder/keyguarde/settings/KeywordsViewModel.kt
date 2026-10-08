@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.logickoder.keyguarde.analytics.Analytics
+import dev.logickoder.keyguarde.analytics.analyticsEvent
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
@@ -31,6 +34,7 @@ import kotlinx.coroutines.launch
 
 class KeywordsViewModel(
     private val repository: AppRepository,
+    private val analytics: Analytics = Analytics.None,
 ) : ViewModel() {
     private val editing = MutableStateFlow<Keyword?>(null)
 
@@ -56,6 +60,7 @@ class KeywordsViewModel(
     )
 
     fun onAction(action: KeywordsAction) {
+        analytics.log(action.analyticsEvent())
         when (action) {
             is KeywordsAction.Add -> viewModelScope.launch {
                 val existing = repository.keywords.first().map { it.word }
@@ -104,6 +109,7 @@ class KeywordsViewModel(
                 initializer {
                     KeywordsViewModel(
                         repository = container.appRepository,
+                        analytics = container.analytics,
                     )
                 }
             }

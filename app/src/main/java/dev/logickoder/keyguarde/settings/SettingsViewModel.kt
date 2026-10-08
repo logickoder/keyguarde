@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import dev.logickoder.keyguarde.analytics.Analytics
+import dev.logickoder.keyguarde.analytics.analyticsEvent
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.domain.SystemState
@@ -30,6 +33,7 @@ class SettingsViewModel(
     systemState: Flow<SystemState>,
     listenerConnected: Flow<Boolean> = AppListenerService.isConnected,
     setupTestReceived: Flow<String> = AppListenerService.setupTestReceived,
+    private val analytics: Analytics = Analytics.None,
 ) : ViewModel() {
     private val listenerHealth = ListenerHealth(
         systemState.map { it.hasListenerAccess },
@@ -41,6 +45,7 @@ class SettingsViewModel(
         scope = viewModelScope,
         received = setupTestReceived,
         keywords = { appRepository.keywords.first().map { it.word } },
+        onFinished = { test -> analytics.log(test.analyticsEvent(from = "settings")) },
     )
 
     private val alerts: Flow<Alerts> = combine(
@@ -87,6 +92,7 @@ class SettingsViewModel(
     )
 
     fun onAction(action: SettingsAction) {
+        analytics.log(action.analyticsEvent())
         when (action) {
             SettingsAction.ListenerRestartRequested -> listenerHealth.restartRequested()
 
@@ -147,6 +153,7 @@ class SettingsViewModel(
                         appRepository = container.appRepository,
                         settingsRepository = container.settingsRepository,
                         systemState = container.systemStatus.state,
+                        analytics = container.analytics,
                     )
                 }
             }

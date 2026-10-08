@@ -56,5 +56,10 @@
         <meta-data
                 android:name="com.google.android.gms.ads.APPLICATION_ID"
                 android:value="ca-app-pub-9535789616988908~5736840549" />
+        <!-- One Activity hosts every screen, so automatic reports would all say MainActivity.
+             Screens log their own names instead (TrackScreen). -->
+        <meta-data
+                android:name="google_analytics_automatic_screen_reporting_enabled"
+                android:value="false" />
     </application>
 </manifest>

@@ -32,11 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.TrackScreen
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.components.PrimaryButton
-import dev.logickoder.keyguarde.app.domain.appBatterySettings
 import dev.logickoder.keyguarde.app.domain.appDetailsSettings
 import dev.logickoder.keyguarde.app.domain.isBatteryUnrestricted
+import dev.logickoder.keyguarde.app.domain.rememberOpenBatterySettings
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -52,11 +53,12 @@ fun BatterySettingsScreen(
     // The user changes this in system settings; the app re-reads it on the way back.
     val system by AppContainer.from(context).systemStatus.state.collectAsStateWithLifecycle()
     val unrestricted = system.isBatteryUnrestricted
+    TrackScreen("settings_battery")
 
     BatterySettingsContent(
         unrestricted = unrestricted,
         onBack = onBack,
-        onOpenBatterySettings = { context.startActivitySafely(appBatterySettings(context)) },
+        onOpenBatterySettings = rememberOpenBatterySettings(from = "battery"),
         onOpenAppSettings = { context.startActivitySafely(appDetailsSettings(context)) },
         modifier = modifier,
     )

@@ -46,6 +46,10 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.Events
+import dev.logickoder.keyguarde.analytics.LocalAnalytics
+import dev.logickoder.keyguarde.analytics.TrackScreen
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.components.KeywordField
 import dev.logickoder.keyguarde.app.components.NeutralSnackbarHost
 import dev.logickoder.keyguarde.app.components.SuggestionPill
@@ -82,6 +86,8 @@ fun KeywordsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val resources = LocalResources.current
+    val analytics = LocalAnalytics.current
+    TrackScreen("keywords")
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
@@ -104,6 +110,7 @@ fun KeywordsScreen(
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
         onSeeMatches = { word ->
+            analytics.log(Events.keywordMatchesViewed)
             viewModel.onAction(KeywordsAction.DismissEdit)
             onSeeMatches(word)
         },

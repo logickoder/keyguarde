@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.TrackScreen
 import dev.logickoder.keyguarde.app.components.AppIcon
 import dev.logickoder.keyguarde.app.components.AppPicker
 import dev.logickoder.keyguarde.app.components.AppPickerRow
@@ -41,6 +42,7 @@ fun WatchedAppsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val toastManager = LocalToastManager.current
     val resources = LocalResources.current
+    TrackScreen("settings_apps")
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->

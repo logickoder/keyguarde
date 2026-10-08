@@ -59,4 +59,4 @@ Privacy policy: https://logickoder.dev/keyguarde/#/privacy-policy
 
 ## Data safety form
 
-Match it to the privacy policy: app activity and app info and performance (crash logs, diagnostics) collected by Firebase; device or other IDs (advertising ID) used by AdMob for advertising. Messages are not collected: they never leave the device.
+Match it to the privacy policy: app activity (app interactions: screens viewed and features used, for analytics) and app info and performance (crash logs, diagnostics) collected by Firebase; device or other IDs (advertising ID) used by AdMob for advertising. Messages are not collected: they never leave the device.

@@ -267,7 +267,7 @@
     <string name="privacy_leaves_title">Leaves this phone</string>
     <string name="privacy_leaves_body">Keyguarde uses Google services that send some data. None of it includes your messages or keywords.</string>
     <string name="privacy_analytics_title">Usage stats</string>
-    <string name="privacy_analytics_body">Firebase Analytics records app opens, screens viewed, device model and country.</string>
+    <string name="privacy_analytics_body">Firebase Analytics records app opens, screens viewed, which features you use (like pausing or running a test), device model and country. Never message text, chat names or keywords.</string>
     <string name="privacy_crashes_title">Crash reports</string>
     <string name="privacy_crashes_body">Firebase Crashlytics records what broke, with device model and Android version.</string>
     <string name="privacy_performance_title">Performance</string>

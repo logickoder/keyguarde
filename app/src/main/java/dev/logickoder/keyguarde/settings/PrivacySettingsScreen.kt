@@ -19,6 +19,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.Events
+import dev.logickoder.keyguarde.analytics.LocalAnalytics
+import dev.logickoder.keyguarde.analytics.TrackScreen
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.domain.openUrl
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -44,9 +48,14 @@ fun PrivacySettingsScreen(
     val context = LocalContext.current
     val toastManager = LocalToastManager.current
     val linkMissing = stringResource(R.string.link_app_missing)
+    val analytics = LocalAnalytics.current
+    TrackScreen("settings_privacy")
     PrivacyContent(
         onBack = onBack,
-        onOpenPolicy = { if (!context.openUrl(PRIVACY_POLICY_URL)) toastManager.show(linkMissing) },
+        onOpenPolicy = {
+            analytics.log(Events.privacyPolicyOpened)
+            if (!context.openUrl(PRIVACY_POLICY_URL)) toastManager.show(linkMissing)
+        },
         modifier = modifier,
     )
 }

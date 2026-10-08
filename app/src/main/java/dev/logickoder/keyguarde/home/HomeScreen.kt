@@ -48,6 +48,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.analytics.TrackScreen
 import dev.logickoder.keyguarde.app.components.AnimatedStatusBanner
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.NeutralSnackbarHost
@@ -55,8 +56,7 @@ import dev.logickoder.keyguarde.app.components.ToastType
 import dev.logickoder.keyguarde.app.components.showUndo
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.domain.appBatterySettings
-import dev.logickoder.keyguarde.app.domain.startActivitySafely
+import dev.logickoder.keyguarde.app.domain.rememberOpenBatterySettings
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -132,6 +132,7 @@ fun HomeScreen(
     }
 
     val enableNotifications = NotificationHelper.rememberEnableNotifications()
+    TrackScreen("matches")
 
     LaunchedEffect(viewModel) {
         // Launched, so a pending snackbar never holds up later effects.
@@ -194,9 +195,7 @@ fun HomeScreen(
             NotificationHelper.restartListener(context)
             viewModel.onAction(HomeAction.ListenerRestartRequested)
         },
-        onOpenBatterySettings = {
-            context.startActivitySafely(appBatterySettings(context))
-        },
+        onOpenBatterySettings = rememberOpenBatterySettings(from = "matches"),
         onEnableNotifications = enableNotifications,
     )
 }

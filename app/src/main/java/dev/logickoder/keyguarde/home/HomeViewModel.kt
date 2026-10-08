@@ -17,6 +17,9 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import androidx.paging.map
+import dev.logickoder.keyguarde.analytics.Analytics
+import dev.logickoder.keyguarde.analytics.analyticsEvent
+import dev.logickoder.keyguarde.analytics.log
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
@@ -46,6 +49,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -61,6 +65,7 @@ class HomeViewModel(
     private val settings: SettingsRepository,
     private val systemState: Flow<SystemState>,
     listenerConnected: Flow<Boolean> = AppListenerService.isConnected,
+    private val analytics: Analytics = Analytics.None,
 ) : ViewModel() {
     // Compose state, not a flow: a TextField value must update synchronously or the cursor jumps.
     var query by mutableStateOf("")
@@ -144,6 +149,7 @@ class HomeViewModel(
         .cachedIn(viewModelScope)
 
     fun onAction(action: HomeAction) {
+        analytics.log(action.analyticsEvent())
         when (action) {
             is HomeAction.SearchQueryChanged -> query = action.query
 
@@ -308,6 +314,7 @@ class HomeViewModel(
                         resetMatchCount = container.resetMatchCount,
                         settings = container.settingsRepository,
                         systemState = container.systemStatus.state,
+                        analytics = container.analytics,
                     )
                 }
             }

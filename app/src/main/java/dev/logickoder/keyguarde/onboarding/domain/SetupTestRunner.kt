@@ -16,12 +16,14 @@ import kotlinx.coroutines.launch
  *
  * @param received text of each setup test the listener saw.
  * @param keywords the words a caught test must contain.
+ * @param onFinished runs once per test, when it ends Caught or Missed.
  */
 class SetupTestRunner(
     private val scope: CoroutineScope,
     received: Flow<String>,
     private val keywords: suspend () -> Collection<String>,
     private val timeoutMillis: Long = TEST_TIMEOUT_MILLIS,
+    private val onFinished: (SetupTest) -> Unit = {},
 ) {
     private val _state = MutableStateFlow<SetupTest>(SetupTest.Idle)
     val state: StateFlow<SetupTest> = _state.asStateFlow()
@@ -39,7 +41,7 @@ class SetupTestRunner(
         timeoutJob?.cancel()
         timeoutJob = scope.launch {
             delay(timeoutMillis)
-            _state.update { if (it == SetupTest.Waiting) SetupTest.Missed else it }
+            if (_state.compareAndSet(SetupTest.Waiting, SetupTest.Missed)) onFinished(SetupTest.Missed)
         }
     }
 
@@ -52,7 +54,9 @@ class SetupTestRunner(
         if (_state.value != SetupTest.Waiting) return
         timeoutJob?.cancel()
         val keyword = caughtKeyword(text, keywords())
-        _state.update { keyword?.let { SetupTest.Caught(it) } ?: SetupTest.Missed }
+        val result = keyword?.let { SetupTest.Caught(it) } ?: SetupTest.Missed
+        _state.update { result }
+        onFinished(result)
     }
 
     companion object {
