@@ -1,6 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Oswald:wght@500;600&display=swap')
-layer(base);
-
 @import 'tailwindcss';
 
 @plugin '@tailwindcss/typography';
@@ -20,9 +17,6 @@ layer(base);
   --line: #e4e4e7;
   --line-strong: #8a8a93;
   --accent: #0e716a;
-  --inverse: #27272a;
-  --on-inverse: #f4f4f5;
-  --danger: #b42318;
   /* The phone outline: near-black like real hardware, lifted to grey on dark pages to stay visible. */
   --device: #0b0b0d;
   /* The one dark band on the page, for privacy. Dark in both modes; white would glare at night. */
@@ -41,9 +35,6 @@ layer(base);
     --line: #3f3f46;
     --line-strong: #71717a;
     --accent: #2dd4bf;
-    --inverse: #f4f4f5;
-    --on-inverse: #27272a;
-    --danger: #f97066;
     --device: #27272a;
     /* Lifted well clear of the page, so the one band still reads as a band at night. */
     --band: #232327;
@@ -60,9 +51,6 @@ layer(base);
   --color-line-strong: var(--line-strong);
   /* Keywords only. Buttons, links and icons stay ink. */
   --color-accent: var(--accent);
-  --color-inverse: var(--inverse);
-  --color-on-inverse: var(--on-inverse);
-  --color-danger: var(--danger);
   --color-device: var(--device);
   --color-band: var(--band);
   --color-on-band: var(--on-band);

@@ -75,6 +75,7 @@ export default function Hero({ onHowItWorks }: HeroProps) {
             dark={matchesDark}
             alt="Keyguarde's Matches screen: messages from WhatsApp, Telegram and Messages, each with its keyword highlighted"
             className="h-auto w-full"
+            priority
           />
         </PhoneFrame>
         {/* On desktop they sit off the phone's edges, touching only the frame. */}
