@@ -34,6 +34,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -123,6 +124,19 @@ fun HomeScreen(
             listState.animateScrollToItem(index)
         }
         restoredMatchId = null
+    }
+
+    // A match that arrives while the list sits at the top goes in above the first row, and the
+    // list would hold on to that row and leave the new one just out of view. Follow it instead.
+    // A side effect runs before the list measures the new rows, so the request lands in time.
+    val firstKey = if (matches.itemCount > 0) matches.peek(0)?.key else null
+    var shownFirstKey by remember { mutableStateOf(firstKey) }
+    SideEffect {
+        if (firstKey == shownFirstKey) return@SideEffect
+        shownFirstKey = firstKey
+        if (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
+            listState.requestScrollToItem(0)
+        }
     }
 
     LaunchedEffect(keyword) {
