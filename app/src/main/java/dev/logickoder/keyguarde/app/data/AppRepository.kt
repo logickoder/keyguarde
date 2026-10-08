@@ -2,6 +2,7 @@ package dev.logickoder.keyguarde.app.data
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -18,13 +19,15 @@ import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.settings.domain.KeywordSort
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import java.time.LocalDateTime
 
 /**
  * Repository for managing Keyguarde data.
@@ -81,7 +84,7 @@ class AppRepository(
      * When the user last left the app, or null before the first visit ends.
      */
     val lastVisitAt = localStore.get(LAST_VISIT_AT).map { seconds ->
-        seconds?.let(::localDateTimeOfEpochSecond)
+        seconds?.let(Instant::ofEpochSecond)
     }
 
     /**
@@ -89,7 +92,7 @@ class AppRepository(
      */
     suspend fun markVisited() {
         // Same encoding as the timestamp column (Converters), so comparisons line up.
-        localStore.save(LAST_VISIT_AT, LocalDateTime.now().toEpochSecond())
+        localStore.save(LAST_VISIT_AT, Instant.now().epochSecond)
     }
 
     /**
@@ -112,20 +115,28 @@ class AppRepository(
      * Every message caught since install; deleting matches doesn't lower it. Until the first catch
      * after this shipped, it starts from the matches saved, so existing users don't see zero.
      */
-    val caughtCount: Flow<Int> = combine(localStore.get(CAUGHT_COUNT), matchCountsByApp) { count, saved ->
-        count ?: saved.values.sum()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val caughtCount: Flow<Int> = localStore.get(CAUGHT_COUNT).flatMapLatest { count ->
+        when (count) {
+            null -> matchCountsByApp.map { saved -> saved.values.sum() }
+            // Once counted, the saved matches no longer matter; stop re-running their query.
+            else -> flowOf(count)
+        }
     }
 
     /**
-     * Counts a match the listener just saved. Call after the insert, so a first-time seed from the
-     * database already includes it.
+     * Counts a match the listener just saved from [chat], in one write: the lifetime count, and
+     * the recent count and chats the persistent notification shows. Call after the insert, so a
+     * first-time seed of the lifetime count from the database already includes it.
      */
-    suspend fun recordCatch() {
+    suspend fun recordCatch(chat: String) {
         localStore.edit { preferences ->
             preferences[CAUGHT_COUNT] = when (val count = preferences[CAUGHT_COUNT]) {
                 null -> database.keywordMatchDao().countByApp().first().sumOf { it.count }
                 else -> count + 1
             }
+            preferences[RECENT_MATCH_COUNT] = (preferences[RECENT_MATCH_COUNT] ?: 0) + 1
+            preferences[RECENT_CHATS] = preferences[RECENT_CHATS].orEmpty() + chat
         }
     }
 
@@ -161,7 +172,7 @@ class AppRepository(
     /**
      * Count matches newer than [since], limited to [packageNames] unless it's empty.
      */
-    fun countMatchesSince(since: LocalDateTime, packageNames: Set<String>): Flow<Int> =
+    fun countMatchesSince(since: Instant, packageNames: Set<String>): Flow<Int> =
         database.keywordMatchDao().countSince(since, packageNames.isEmpty(), packageNames)
 
     /**
@@ -173,10 +184,16 @@ class AppRepository(
     @SuppressLint("QueryPermissionsNeeded")
     fun getInstalledApps() = buildList {
         val packageManager = context.packageManager
-        val installedApplications = packageManager.getInstalledApplications(
-            PackageManager.GET_META_DATA
-        )
-        for (app in installedApplications) {
+        // Only apps a person opens; system services and plugins can't send chat messages. One
+        // launcher query, instead of a launch-intent lookup per installed package.
+        val launchable = packageManager
+            .queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
+            .mapTo(HashSet()) { it.activityInfo.packageName }
+        for (app in packageManager.getInstalledApplications(0)) {
+            if (app.packageName !in launchable) {
+                continue
+            }
+
             // Exclude the current app from the list
             if (app.packageName == context.packageName) {
                 continue
@@ -195,10 +212,7 @@ class AppRepository(
                 }
             }
 
-            // Only apps a person opens; system services and plugins can't send chat messages.
-            val isLaunchable = packageManager.getLaunchIntentForPackage(app.packageName) != null
-
-            if (passesPermissionCheck && isLaunchable) {
+            if (passesPermissionCheck) {
                 add(
                     AppInfo(
                         name = packageManager.getApplicationLabel(app).toString(),
@@ -333,18 +347,12 @@ class AppRepository(
         localStore.save(ONBOARDING_COMPLETE, true)
     }
 
-    /**
-     * Update the count of recent matches in the DataStore.
-     */
-    suspend fun updateRecentMatchCount(count: Int) {
-        localStore.save(RECENT_MATCH_COUNT, count)
-    }
-
-    /**
-     * Update the recent chats in the DataStore.
-     */
-    suspend fun updateRecentChats(chats: Set<String>) {
-        localStore.save(RECENT_CHATS, chats)
+    /** Starts the recent count over, in one write. */
+    suspend fun resetRecentMatches() {
+        localStore.edit { preferences ->
+            preferences[RECENT_MATCH_COUNT] = 0
+            preferences[RECENT_CHATS] = emptySet()
+        }
     }
 
     companion object {

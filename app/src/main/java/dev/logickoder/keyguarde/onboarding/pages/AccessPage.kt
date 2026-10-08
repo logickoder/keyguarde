@@ -16,7 +16,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,6 +33,7 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.app.theme.neutralSwitchColors
 import dev.logickoder.keyguarde.onboarding.components.HeroLayout
 
 /**
@@ -110,12 +110,7 @@ private fun AccessToggle(on: Boolean) {
                 checked = on,
                 onCheckedChange = null,
                 // Off state uses the darker grey: the default outline is under 3:1 on this card.
-                colors = SwitchDefaults.colors(
-                    checkedTrackColor = MaterialTheme.colorScheme.onSurface,
-                    checkedThumbColor = MaterialTheme.colorScheme.surface,
-                    uncheckedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                colors = neutralSwitchColors(),
             )
         }
     )

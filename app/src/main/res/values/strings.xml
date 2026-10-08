@@ -12,7 +12,6 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
-    <string name="navigate">Navigate</string>
     <string name="expanded">Expanded</string>
     <string name="collapsed">Collapsed</string>
     <string name="unknown_error">Unknown error</string>
@@ -315,14 +314,15 @@
 
     <!-- Persistent notification content -->
     <string name="persistent_notification_title">Keyword Matches</string>
-    <string name="persistent_notification_content_no_matches">Monitoring for keyword matches</string>
-    <plurals name="persistent_notification_matches">
-        <item quantity="one">%1$d new match found in %2$d chat</item>
-        <item quantity="other">%1$d new matches found in %2$d chats</item>
+    <!-- e.g. "7 new matches in 2 chats"; each count picks its own plural. -->
+    <string name="persistent_notification_matches">%1$s in %2$s</string>
+    <plurals name="persistent_notification_match_count">
+        <item quantity="one">%d new match</item>
+        <item quantity="other">%d new matches</item>
     </plurals>
-    <plurals name="persistent_notification_matches_multiple_chats">
-        <item quantity="one">%1$d new match found in %2$d chats</item>
-        <item quantity="other">%1$d new matches found in %2$d chats</item>
+    <plurals name="persistent_notification_chat_count">
+        <item quantity="one">%d chat</item>
+        <item quantity="other">%d chats</item>
     </plurals>
     <string name="action_reset">Reset</string>
 

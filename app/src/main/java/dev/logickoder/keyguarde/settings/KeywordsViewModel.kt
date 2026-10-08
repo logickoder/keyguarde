@@ -9,6 +9,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
+import dev.logickoder.keyguarde.onboarding.domain.KeywordInput
+import dev.logickoder.keyguarde.onboarding.domain.parseKeyword
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
 import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import dev.logickoder.keyguarde.settings.domain.KeywordsState
@@ -21,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -55,7 +58,10 @@ class KeywordsViewModel(
     fun onAction(action: KeywordsAction) {
         when (action) {
             is KeywordsAction.Add -> viewModelScope.launch {
-                repository.addKeyword(Keyword(word = action.word))
+                val existing = repository.keywords.first().map { it.word }
+                // The field shows why a word was refused; this keeps a bad one out regardless.
+                val input = parseKeyword(action.word, existing) as? KeywordInput.Valid ?: return@launch
+                repository.addKeyword(Keyword(word = input.word))
             }
 
             is KeywordsAction.Edit -> editing.update { action.keyword }
@@ -76,9 +82,10 @@ class KeywordsViewModel(
     private fun save(word: String) {
         val original = editing.value ?: return
         editing.update { null }
-        if (word == original.word) return
         viewModelScope.launch {
-            repository.updateKeyword(original, Keyword(word = word))
+            val others = repository.keywords.first().map { it.word } - original.word
+            val input = parseKeyword(word, others) as? KeywordInput.Valid ?: return@launch
+            if (input.word != original.word) repository.updateKeyword(original, Keyword(word = input.word))
         }
     }
 

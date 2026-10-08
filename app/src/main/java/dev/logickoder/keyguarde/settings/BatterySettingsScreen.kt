@@ -6,17 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,13 +19,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
@@ -38,15 +30,15 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.AppContainer
+import dev.logickoder.keyguarde.app.components.PrimaryButton
 import dev.logickoder.keyguarde.app.domain.appBatterySettings
 import dev.logickoder.keyguarde.app.domain.appDetailsSettings
 import dev.logickoder.keyguarde.app.domain.isBatteryUnrestricted
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.theme.AppTheme
-import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.settings.components.LinkButton
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
@@ -57,13 +49,9 @@ fun BatterySettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val inPreview = LocalInspectionMode.current
-    var unrestricted by remember { mutableStateOf(!inPreview && isBatteryUnrestricted(context)) }
-    // The user changes this in system settings, then comes back here.
-    LifecycleResumeEffect(Unit) {
-        if (!inPreview) unrestricted = isBatteryUnrestricted(context)
-        onPauseOrDispose {}
-    }
+    // The user changes this in system settings; the app re-reads it on the way back.
+    val system by AppContainer.from(context).systemStatus.state.collectAsStateWithLifecycle()
+    val unrestricted = system.isBatteryUnrestricted
 
     BatterySettingsContent(
         unrestricted = unrestricted,
@@ -156,18 +144,9 @@ private fun BatteryStatus(unrestricted: Boolean, onOpenBatterySettings: () -> Un
                 )
 
                 else -> {
-                    Button(
+                    PrimaryButton(
+                        text = stringResource(R.string.battery_allow),
                         onClick = onOpenBatterySettings,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp),
-                        shape = RoundedCornerShape(Radius.l),
-                        // Dark neutral like every primary button: teal is reserved for matched keywords.
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onSurface,
-                            contentColor = MaterialTheme.colorScheme.surface,
-                        ),
-                        content = { Text(stringResource(R.string.battery_allow)) },
                     )
                     Text(
                         text = stringResource(batterySteps()),

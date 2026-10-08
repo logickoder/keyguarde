@@ -18,13 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.AppIcon
 import dev.logickoder.keyguarde.app.components.AppPicker
-import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.AppPickerRow
 import dev.logickoder.keyguarde.app.components.AppPickerSectionLabel
+import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
-import dev.logickoder.keyguarde.home.components.AppIcon
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 import dev.logickoder.keyguarde.settings.domain.WatchedAppsEffect
 import dev.logickoder.keyguarde.settings.domain.WatchedAppsState

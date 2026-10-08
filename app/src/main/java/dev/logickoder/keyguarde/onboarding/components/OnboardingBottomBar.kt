@@ -7,11 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,9 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import dev.logickoder.keyguarde.app.components.PrimaryButton
 import dev.logickoder.keyguarde.app.theme.AppTheme
-import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
 
 /**
@@ -59,24 +54,7 @@ fun OnboardingBottomBar(
                     )
                 }
             )
-            Button(
-                onClick = onClick,
-                enabled = enabled,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp),
-                shape = RoundedCornerShape(Radius.l),
-                // Dark neutral, like the match sheet: teal is kept for keywords.
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface,
-                    contentColor = MaterialTheme.colorScheme.surface,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                content = {
-                    Text(text = label, style = MaterialTheme.typography.titleMedium)
-                }
-            )
+            PrimaryButton(text = label, onClick = onClick, enabled = enabled)
             if (secondaryLabel != null) {
                 TextButton(
                     onClick = onSecondary,

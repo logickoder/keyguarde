@@ -6,7 +6,7 @@ import androidx.room3.ForeignKey
 import androidx.room3.Fts4
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
-import java.time.LocalDateTime
+import java.time.Instant
 
 
 /**
@@ -34,7 +34,7 @@ data class KeywordMatch(
     val message: String,
     val chat: String,
     val app: String,
-    val timestamp: LocalDateTime
+    val timestamp: Instant
 )
 
 @Fts4(contentEntity = KeywordMatch::class)

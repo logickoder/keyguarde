@@ -5,6 +5,7 @@ import dev.logickoder.keyguarde.App
 import dev.logickoder.keyguarde.app.data.AppDatabase
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppStore
+import dev.logickoder.keyguarde.app.domain.SystemStatus
 import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.settings.SettingsRepository
 
@@ -24,8 +25,10 @@ class AppContainer(context: Context) {
     val settingsRepository by lazy { SettingsRepository(appStore) }
 
     val resetMatchCount by lazy {
-        ResetMatchCountUsecase(appContext, appRepository, settingsRepository)
+        ResetMatchCountUsecase(appRepository)
     }
+
+    val systemStatus by lazy { SystemStatus(appContext) }
 
     companion object {
         // Compose previews don't run App, so they get a throwaway container.

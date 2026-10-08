@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.Color
 
 // Teal is the only hue: it marks matched keywords and nothing else.
 // 700 is a shade deeper than Tailwind's teal-700 so it clears 4.5:1 on every grey below.
-internal val Teal300 = Color(0xFF5EEAD4)
 internal val Teal400 = Color(0xFF2DD4BF)
 internal val Teal700 = Color(0xFF0E716A)
 internal val Teal950 = Color(0xFF042F2E)

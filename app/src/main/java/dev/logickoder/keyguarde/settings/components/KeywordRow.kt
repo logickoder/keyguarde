@@ -38,7 +38,8 @@ import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.components.formatRelativeTime
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 
 /**
@@ -49,7 +50,7 @@ import kotlin.math.abs
 @Composable
 fun KeywordRow(
     word: String,
-    lastMatchAt: LocalDateTime?,
+    lastMatchAt: Instant?,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -147,5 +148,5 @@ private fun DeleteBackground() {
 @Preview(showBackground = true)
 @Composable
 private fun KeywordRowPreview() = AppTheme {
-    KeywordRow(word = "invoice", lastMatchAt = LocalDateTime.now().minusHours(2), onClick = {}, onDelete = {})
+    KeywordRow(word = "invoice", lastMatchAt = Instant.now().minus(2, ChronoUnit.HOURS), onClick = {}, onDelete = {})
 }

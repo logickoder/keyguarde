@@ -10,32 +10,31 @@ import android.os.SystemClock
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import dev.logickoder.keyguarde.app.AppContainer
-import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.TELEGRAM_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.AppRepository.Companion.WHATSAPP_PACKAGE_NAME
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
+import dev.logickoder.keyguarde.app.data.model.RecentMatches
 import dev.logickoder.keyguarde.app.data.saveChatAvatar
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
+import dev.logickoder.keyguarde.home.domain.keywordRegex
 import io.github.aakira.napier.Napier
+import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 class AppListenerService : NotificationListenerService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -45,7 +44,6 @@ class AppListenerService : NotificationListenerService() {
     private var watchedPackages = emptySet<String>()
     private var keywords = emptyList<Pair<String, Regex>>()
     private var showHeadsUpNotifications = true
-    private var usePersistentSilentNotification = true
     private var isPaused = false
 
     private var componentName: ComponentName? = null
@@ -154,9 +152,8 @@ class AppListenerService : NotificationListenerService() {
 
         scope.launch {
             repository.keywords.collectLatest { words ->
-                keywords = words.map { (word) ->
-                    word to "\\b${Regex.escape(word)}\\b".toRegex(RegexOption.IGNORE_CASE)
-                }
+                // One pattern per word, so a match can report which keywords it caught.
+                keywords = words.mapNotNull { (word) -> keywordRegex(listOf(word))?.let { word to it } }
             }
         }
 
@@ -167,30 +164,28 @@ class AppListenerService : NotificationListenerService() {
         }
 
         scope.launch {
-            settings.usePersistentSilentNotification.collectLatest {
-                usePersistentSilentNotification = it
-            }
+            settings.isPaused.collectLatest { isPaused = it }
         }
 
         scope.launch {
-            // Only a change of state touches the count notification, not the value read at start.
-            settings.isPaused.distinctUntilChanged().withIndex().collectLatest { (index, paused) ->
-                isPaused = paused
-                if (index == 0) return@collectLatest
-                // The match count would read as "still watching", so it hides while paused.
-                when {
-                    paused -> NotificationHelper.cancelPersistentNotification(this@AppListenerService)
-
-                    settings.usePersistentSilentNotification.first() -> {
-                        val count = repository.recentMatchCount.first()
-                        if (count > 0) {
-                            NotificationHelper.showPersistentNotification(
-                                this@AppListenerService,
-                                count,
-                                repository.recentChats.first().size,
-                            )
-                        }
-                    }
+            // The one place the count notification is shown or removed: everything else only
+            // changes the stored count and settings. While paused it would read as "still
+            // watching", so it hides; a reset to zero clears it.
+            combine(
+                repository.recentMatchCount,
+                repository.recentChats,
+                settings.isPaused,
+                settings.usePersistentSilentNotification,
+            ) { count, chats, paused, enabled ->
+                RecentMatches(count, chats.size).takeIf { enabled && !paused && count > 0 }
+            }.distinctUntilChanged().collect { recent ->
+                when (recent) {
+                    null -> NotificationHelper.cancelPersistentNotification(this@AppListenerService)
+                    else -> NotificationHelper.showPersistentNotification(
+                        this@AppListenerService,
+                        recent.count,
+                        recent.sourceCount,
+                    )
                 }
             }
         }
@@ -202,18 +197,13 @@ class AppListenerService : NotificationListenerService() {
                 // WhatsApp groups typically show the group name in EXTRA_CONVERSATION_TITLE
                 val raw = extras.getString(Notification.EXTRA_CONVERSATION_TITLE)
                     ?: extras.getString(Notification.EXTRA_TITLE)
-                raw?.replace(
-                    Regex(
-                        "\\s*\\(\\d+\\s+(new\\s+)?messages?\\)",
-                        RegexOption.IGNORE_CASE
-                    ), ""
-                )?.trim()
+                raw?.replace(WhatsAppMessageCount, "")?.trim()
             }
 
             TELEGRAM_PACKAGE_NAME -> {
                 // Telegram often uses EXTRA_TITLE for the group name
                 val raw = extras.getString(Notification.EXTRA_TITLE)
-                raw?.replace(Regex("\\s*\\(\\d+\\)", RegexOption.IGNORE_CASE), "")?.trim()
+                raw?.replace(TelegramMessageCount, "")?.trim()
             }
 
             else -> {
@@ -226,11 +216,8 @@ class AppListenerService : NotificationListenerService() {
 
                 fallbackKeys.mapNotNull { extras.getString(it) }
                     .firstOrNull { it.isNotBlank() }
-                    ?.replace(
-                        Regex("\\s*\\(\\d+\\s*(new\\s+)?messages?\\)", RegexOption.IGNORE_CASE),
-                        ""
-                    ) // remove (28 messages)
-                    ?.replace(Regex("^[^:]+:\\s*"), "") // remove "Jeffery: Hello" style
+                    ?.replace(MessageCount, "") // remove (28 messages)
+                    ?.replace(SenderPrefix, "") // remove "Jeffery: Hello" style
                     ?.trim()
             }
         }
@@ -264,10 +251,7 @@ class AppListenerService : NotificationListenerService() {
                     app = notification.packageName,
                     chat = title,
                     message = text,
-                    timestamp = LocalDateTime.ofInstant(
-                        Instant.ofEpochMilli(notification.notification.`when`),
-                        ZoneId.systemDefault(),
-                    ),
+                    timestamp = Instant.ofEpochMilli(notification.notification.`when`),
                 )
             )
 
@@ -275,7 +259,7 @@ class AppListenerService : NotificationListenerService() {
                 return@launch
             }
 
-            repository.recordCatch()
+            repository.recordCatch(chat = title.ifBlank { appName })
             cacheChatAvatar(notification, title)
 
             // Create a pending intent for the notification
@@ -286,9 +270,6 @@ class AppListenerService : NotificationListenerService() {
                     else -> prev + (result to pendingIntent)
                 }
             }
-
-            // Update match counters
-            updateMatchCounters(appName)
 
             // Show heads-up notification for matched keywords (if enabled)
             if (showHeadsUpNotifications) {
@@ -318,28 +299,6 @@ class AppListenerService : NotificationListenerService() {
         }
     }
 
-    private suspend fun updateMatchCounters(sourceName: String) {
-        // Get current values
-        val recentMatchCount = repository.recentMatchCount.first()
-        val sources = repository.recentChats.first().toMutableSet()
-
-        // Add the new source name and update match count
-        sources.add(sourceName)
-
-        // Save updated values
-        repository.updateRecentMatchCount(recentMatchCount + 1)
-        repository.updateRecentChats(sources)
-
-        // Update the persistent notification
-        if (usePersistentSilentNotification) {
-            NotificationHelper.showPersistentNotification(
-                this@AppListenerService,
-                recentMatchCount + 1,
-                sources.size
-            )
-        }
-    }
-
     companion object {
         /**
          * A flow that holds the pending intents for notifications.
@@ -363,3 +322,9 @@ class AppListenerService : NotificationListenerService() {
         val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
     }
 }
+
+// Title clean-up, compiled once instead of on every notification.
+private val WhatsAppMessageCount = Regex("\\s*\\(\\d+\\s+(new\\s+)?messages?\\)", RegexOption.IGNORE_CASE)
+private val TelegramMessageCount = Regex("\\s*\\(\\d+\\)")
+private val MessageCount = Regex("\\s*\\(\\d+\\s*(new\\s+)?messages?\\)", RegexOption.IGNORE_CASE)
+private val SenderPrefix = Regex("^[^:]+:\\s*")

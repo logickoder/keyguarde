@@ -8,9 +8,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
-import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
-import dev.logickoder.keyguarde.onboarding.domain.saveIconToFile
+import dev.logickoder.keyguarde.onboarding.domain.toWatchedApp
 import dev.logickoder.keyguarde.settings.domain.WatchedAppsEffect
 import dev.logickoder.keyguarde.settings.domain.WatchedAppsState
 import kotlinx.collections.immutable.toImmutableList
@@ -27,10 +26,11 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class WatchedAppsViewModel(
     private val repository: AppRepository,
-    backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val installedApps = flow {
         emit(repository.getInstalledApps())
@@ -79,17 +79,7 @@ class WatchedAppsViewModel(
     private fun addApp(context: Context, app: AppInfo) {
         val appContext = context.applicationContext
         viewModelScope.launch {
-            repository.addWatchedApp(
-                WatchedApp(
-                    packageName = app.packageName,
-                    name = app.name,
-                    icon = saveIconToFile(
-                        app.icon,
-                        app.packageName,
-                        appContext,
-                    )
-                )
-            )
+            repository.addWatchedApp(withContext(backgroundDispatcher) { app.toWatchedApp(appContext) })
         }
     }
 

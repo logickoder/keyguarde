@@ -3,6 +3,8 @@ package dev.logickoder.keyguarde
 import android.app.Application
 import android.content.BroadcastReceiver
 import dev.logickoder.keyguarde.app.AppContainer
+import androidx.lifecycle.ProcessLifecycleOwner
+import dev.logickoder.keyguarde.app.domain.AppVisibilityObserver
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
@@ -19,6 +21,7 @@ class App : Application() {
         }
 
         resetCountReceiver = NotificationHelper.registerResetCountReceiver(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(AppVisibilityObserver(container))
     }
 
     override fun onTerminate() {

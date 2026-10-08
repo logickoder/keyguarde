@@ -12,18 +12,13 @@ import androidx.core.net.toUri
 fun appNotificationSettings(context: Context): Intent =
     Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
 
-private fun batteryOptimizationSettings(): Intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-
 /**
  * Where the user lifts Keyguarde's battery limit. Android 12+ has it on the app's own page under
  * App battery usage; older versions only have the list of every app.
  */
 fun appBatterySettings(context: Context): Intent = when {
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> Intent(
-        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-        Uri.fromParts("package", context.packageName, null),
-    )
-    else -> batteryOptimizationSettings()
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> appDetailsSettings(context)
+    else -> Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
 }
 
 /** Keyguarde's page in Android settings, where makers put autostart and background switches. */
@@ -39,11 +34,12 @@ fun Context.startActivitySafely(intent: Intent) {
     try {
         startActivity(intent)
     } catch (_: ActivityNotFoundException) {
-        startActivity(
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
-        )
+        startActivity(appDetailsSettings(this))
     }
 }
+
+/** Opens [url] in the browser, or whatever app handles it. */
+fun Context.openUrl(url: String) = startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
 
 /**
  * Opens Keyguarde's Play Store page, in the Play Store app when it's installed, else the browser.

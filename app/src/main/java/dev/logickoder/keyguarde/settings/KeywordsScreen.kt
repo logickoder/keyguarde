@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -20,19 +20,16 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,11 +45,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.KeywordField
+import dev.logickoder.keyguarde.app.components.NeutralSnackbarHost
 import dev.logickoder.keyguarde.app.components.SuggestionPill
+import dev.logickoder.keyguarde.app.components.showUndo
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -65,8 +62,11 @@ import dev.logickoder.keyguarde.settings.domain.KeywordSort
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
 import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import dev.logickoder.keyguarde.settings.domain.KeywordsState
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.launch
 
 /**
  * @param onSeeMatches opens Matches searching for this word.
@@ -87,16 +87,12 @@ fun KeywordsScreen(
         viewModel.effects.collect { effect ->
             when (effect) {
                 is KeywordsEffect.Deleted -> launch {
-                    // A newer delete replaces the snackbar instead of queueing behind it.
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    val result = snackbarHostState.showSnackbar(
+                    val undone = snackbarHostState.showUndo(
                         message = resources.getString(R.string.keyword_deleted, effect.keyword.word),
-                        actionLabel = resources.getString(R.string.undo),
+                        undoLabel = resources.getString(R.string.undo),
                         duration = SnackbarDuration.Short,
                     )
-                    if (result == SnackbarResult.ActionPerformed) {
-                        viewModel.onAction(KeywordsAction.UndoDelete(effect.keyword))
-                    }
+                    if (undone) viewModel.onAction(KeywordsAction.UndoDelete(effect.keyword))
                 }
             }
         }
@@ -134,13 +130,7 @@ private fun KeywordsContent(
             SettingsTopBar(stringResource(R.string.tab_keywords))
         },
         snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                snackbar = { data ->
-                    // The default action colour is teal (inversePrimary); keep it neutral.
-                    Snackbar(snackbarData = data, actionColor = MaterialTheme.colorScheme.inverseOnSurface)
-                }
-            )
+            NeutralSnackbarHost(hostState = snackbarHostState)
         },
         content = { paddingValues ->
             LazyColumn(
@@ -333,7 +323,7 @@ private fun KeywordsContentPreview() = AppTheme {
     KeywordsContent(
         state = KeywordsState(
             keywords = persistentListOf(Keyword(word = "urgent"), Keyword(word = "meeting")),
-            stats = persistentMapOf("urgent" to KeywordStats("urgent", 12, LocalDateTime.now().minusHours(2))),
+            stats = persistentMapOf("urgent" to KeywordStats("urgent", 12, Instant.now().minus(2, ChronoUnit.HOURS))),
         ),
         snackbarHostState = remember { SnackbarHostState() },
         onAction = {},

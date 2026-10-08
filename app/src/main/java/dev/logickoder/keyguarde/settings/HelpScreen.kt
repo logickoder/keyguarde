@@ -19,6 +19,7 @@ import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.domain.openStoreListing
+import dev.logickoder.keyguarde.app.domain.openUrl
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.settings.components.FaqRow
@@ -76,7 +77,7 @@ fun HelpScreen(
             }
         },
         onRate = { context.openStoreListing() },
-        onOpenUrl = { url -> context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) },
+        onOpenUrl = { url -> context.openUrl(url) },
         modifier = modifier,
     )
 }

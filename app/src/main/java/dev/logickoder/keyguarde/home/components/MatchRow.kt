@@ -1,6 +1,5 @@
 package dev.logickoder.keyguarde.home.components
 
-import android.text.format.DateFormat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandHorizontally
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,24 +36,28 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.keywordSpanStyle
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.app.theme.neutralCheckboxColors
+import dev.logickoder.keyguarde.home.domain.MatchSnippet
 import dev.logickoder.keyguarde.home.domain.RelativeTime
 import dev.logickoder.keyguarde.home.domain.relativeTime
 import dev.logickoder.keyguarde.home.domain.windowSnippet
+import java.time.Instant
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.ZoneId
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.flow.first
 
 private val AvatarSize = 40.dp
 
@@ -71,6 +73,7 @@ val MatchRowDividerInset = Spacing.l + AvatarSize + Spacing.m
 @Composable
 fun MatchRow(
     match: KeywordMatch,
+    snippet: MatchSnippet,
     app: WatchedApp?,
     isNew: Boolean,
     onClick: () -> Unit,
@@ -80,9 +83,7 @@ fun MatchRow(
 ) {
     val keywordColor = MaterialTheme.colorScheme.primary
     val newLabel = stringResource(R.string.match_new)
-    val snippet = remember(match.id, match.message, match.keywords, keywordColor) {
-        snippetText(match, keywordColor)
-    }
+    val snippetText = remember(snippet, keywordColor) { snippetText(snippet, keywordColor) }
     val isSelectable = isSelected != null
     // Keeps the box ticked while it slides out, instead of unticking mid-animation.
     val isChecked = rememberLastWhile(isSelectable, isSelected == true)
@@ -115,11 +116,7 @@ fun MatchRow(
                     Checkbox(
                         checked = isChecked,
                         onCheckedChange = null,
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = MaterialTheme.colorScheme.onSurface,
-                            checkmarkColor = MaterialTheme.colorScheme.surface,
-                            uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
+                        colors = neutralCheckboxColors(),
                         modifier = Modifier.padding(end = Spacing.m),
                     )
                 }
@@ -170,7 +167,7 @@ fun MatchRow(
                     )
 
                     Text(
-                        text = snippet,
+                        text = snippetText,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = if (isNew) FontWeight.Medium else FontWeight.Normal,
                         color = when (isNew) {
@@ -209,24 +206,20 @@ fun MatchRowDivider(modifier: Modifier = Modifier) {
     )
 }
 
-private fun snippetText(match: KeywordMatch, keywordColor: Color): AnnotatedString {
-    val snippet = windowSnippet(match.message, match.keywords)
+private fun snippetText(snippet: MatchSnippet, keywordColor: Color): AnnotatedString {
     return buildAnnotatedString {
         append(snippet.text)
         snippet.keywordRanges.forEach { range ->
-            addStyle(
-                SpanStyle(fontWeight = FontWeight.Bold, color = keywordColor),
-                range.first,
-                range.last + 1,
-            )
+            addStyle(keywordSpanStyle(keywordColor), range.first, range.last + 1)
         }
     }
 }
 
 @Composable
-internal fun formatRelativeTime(timestamp: LocalDateTime): String {
+internal fun formatRelativeTime(timestamp: Instant): String {
     val locale = LocalConfiguration.current.locales[0]
-    return when (val time = relativeTime(timestamp, LocalDateTime.now())) {
+    val local = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault())
+    return when (val time = relativeTime(local, LocalDateTime.now())) {
         RelativeTime.JustNow -> stringResource(R.string.just_now)
         is RelativeTime.Minutes -> stringResource(R.string.minutes_ago, time.count)
         is RelativeTime.Hours -> stringResource(R.string.hours_ago, time.count)
@@ -234,7 +227,7 @@ internal fun formatRelativeTime(timestamp: LocalDateTime): String {
         is RelativeTime.Weekday -> time.day.getDisplayName(TextStyle.FULL, locale)
         is RelativeTime.Date -> {
             val skeleton = if (time.showYear) "MMMdy" else "MMMd"
-            time.date.format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale))
+            time.date.format(localizedFormatter(locale, skeleton))
         }
     }
 }
@@ -242,38 +235,38 @@ internal fun formatRelativeTime(timestamp: LocalDateTime): String {
 @Preview(showBackground = true)
 @Composable
 private fun MatchRowPreview() = AppTheme {
+    val matches = listOf(
+        KeywordMatch(
+            id = 1,
+            keywords = setOf("invoice"),
+            message = "Morning all, quick round-up from yesterday. The invoice for March is overdue, please chase.",
+            chat = "Design Team",
+            app = "com.whatsapp",
+            timestamp = Instant.now().minus(5, ChronoUnit.MINUTES),
+        ),
+        KeywordMatch(
+            id = 2,
+            keywords = setOf("urgent"),
+            message = "Urgent: the landlord needs the rent receipt today",
+            chat = "Mum",
+            app = "com.whatsapp",
+            timestamp = Instant.now().minus(2, ChronoUnit.DAYS),
+        ),
+    )
     Column(
         content = {
             NewSinceLastVisitHeader(count = 1)
-            MatchRow(
-                match = KeywordMatch(
-                    id = 1,
-                    keywords = setOf("invoice"),
-                    message = "Morning all, quick round-up from yesterday. The invoice for March is overdue, please chase.",
-                    chat = "Design Team",
-                    app = "com.whatsapp",
-                    timestamp = LocalDateTime.now().minusMinutes(5),
-                ),
-                app = null,
-                isNew = true,
-                onClick = {},
-                onLongClick = {},
-            )
-            MatchRowDivider()
-            MatchRow(
-                match = KeywordMatch(
-                    id = 2,
-                    keywords = setOf("urgent"),
-                    message = "Urgent: the landlord needs the rent receipt today",
-                    chat = "Mum",
-                    app = "com.whatsapp",
-                    timestamp = LocalDateTime.now().minusDays(2),
-                ),
-                app = null,
-                isNew = false,
-                onClick = {},
-                onLongClick = {},
-            )
+            matches.forEachIndexed { index, match ->
+                if (index > 0) MatchRowDivider()
+                MatchRow(
+                    match = match,
+                    snippet = windowSnippet(match.message, match.keywords),
+                    app = null,
+                    isNew = index == 0,
+                    onClick = {},
+                    onLongClick = {},
+                )
+            }
         }
     )
 }

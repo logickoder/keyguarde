@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordStats
-import java.time.LocalDateTime
+import java.time.Instant
 
 enum class KeywordSort(@param:StringRes val label: Int) {
     /** Keywords that fired most recently first; ones that never fired sink to the bottom. */
@@ -22,7 +22,7 @@ enum class KeywordSort(@param:StringRes val label: Int) {
 fun sortKeywords(keywords: List<Keyword>, stats: Map<String, KeywordStats>, sort: KeywordSort): List<Keyword> =
     when (sort) {
         KeywordSort.RecentMatch -> keywords.sortedWith(
-            compareByDescending<Keyword, LocalDateTime?>(nullsFirst()) { stats[it.word.lowercase()]?.lastMatchAt }
+            compareByDescending<Keyword, Instant?>(nullsFirst()) { stats[it.word.lowercase()]?.lastMatchAt }
                 .thenBy { it.word }
         )
         KeywordSort.Alphabetical -> keywords.sortedBy { it.word }

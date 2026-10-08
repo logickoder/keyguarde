@@ -10,7 +10,7 @@ import dev.logickoder.keyguarde.app.data.model.AppMatchCount
 import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Dao
 interface KeywordMatchDao {
@@ -51,7 +51,7 @@ interface KeywordMatchDao {
      * Count matches newer than [since], limited to [apps] unless [allApps] is set.
      */
     @Query("SELECT COUNT(*) FROM keyword_matches WHERE timestamp > :since AND (:allApps OR app IN (:apps))")
-    fun countSince(since: LocalDateTime, allApps: Boolean, apps: Set<String>): Flow<Int>
+    fun countSince(since: Instant, allApps: Boolean, apps: Set<String>): Flow<Int>
 
     /**
      * How many matches each app has.

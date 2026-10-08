@@ -1,7 +1,13 @@
 package dev.logickoder.keyguarde.app.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,10 +22,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.AnimatedStatusBanner
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -80,6 +85,25 @@ fun StatusBanner(
                     )
                 }
             )
+        }
+    )
+}
+
+/**
+ * A [StatusBanner] that slides in and out, so the content below moves instead of jumping.
+ */
+@Composable
+fun ColumnScope.AnimatedStatusBanner(
+    visible: Boolean,
+    message: String,
+    actions: List<Pair<String, () -> Unit>>,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = expandVertically() + fadeIn(),
+        exit = shrinkVertically() + fadeOut(),
+        content = {
+            StatusBanner(message = message, actions = actions, modifier = Modifier.padding(top = Spacing.s))
         }
     )
 }

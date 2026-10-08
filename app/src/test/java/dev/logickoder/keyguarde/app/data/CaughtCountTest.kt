@@ -56,7 +56,7 @@ class CaughtCountTest {
 
     @Test
     fun `the first catch seeds from the saved matches, which already include it`() = runTest {
-        repository.recordCatch()
+        repository.recordCatch(chat = "Landlord")
 
         assertEquals(6, repository.caughtCount.first())
         assertEquals(6, preferences.value[intPreferencesKey("caught_count")])
@@ -64,8 +64,18 @@ class CaughtCountTest {
 
     @Test
     fun `later catches count up one at a time`() = runTest {
-        repeat(3) { repository.recordCatch() }
+        repeat(3) { repository.recordCatch(chat = "Landlord") }
 
         assertEquals(8, repository.caughtCount.first())
+    }
+
+    @Test
+    fun `a catch also counts toward the recent matches and their chats`() = runTest {
+        repository.recordCatch(chat = "Landlord")
+        repository.recordCatch(chat = "Hiring team")
+        repository.recordCatch(chat = "Landlord")
+
+        assertEquals(3, repository.recentMatchCount.first())
+        assertEquals(setOf("Landlord", "Hiring team"), repository.recentChats.first())
     }
 }

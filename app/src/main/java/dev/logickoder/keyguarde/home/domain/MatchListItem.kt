@@ -9,7 +9,14 @@ import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 sealed interface MatchListItem {
     val key: Any
 
-    data class Match(val match: KeywordMatch, val isNew: Boolean) : MatchListItem {
+    /**
+     * @param snippet the row's preview, built off the main thread with the page.
+     */
+    data class Match(
+        val match: KeywordMatch,
+        val isNew: Boolean,
+        val snippet: MatchSnippet = windowSnippet(match.message, match.keywords),
+    ) : MatchListItem {
         override val key: Any get() = match.id
     }
 

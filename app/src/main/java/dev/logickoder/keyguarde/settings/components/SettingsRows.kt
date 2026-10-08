@@ -14,7 +14,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.app.theme.neutralSwitchColors
 
 private val RowMinHeight = 56.dp
 
@@ -155,14 +155,7 @@ fun SettingsSwitchRow(
                 checked = checked,
                 onCheckedChange = null,
                 // Neutral like the rest of the chrome: teal is reserved for matched keywords.
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.surface,
-                    checkedTrackColor = MaterialTheme.colorScheme.onSurface,
-                    checkedBorderColor = MaterialTheme.colorScheme.onSurface,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    uncheckedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                colors = neutralSwitchColors(),
             )
         }
     )

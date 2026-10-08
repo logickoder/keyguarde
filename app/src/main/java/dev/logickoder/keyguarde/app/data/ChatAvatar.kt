@@ -17,11 +17,16 @@ private const val AvatarSizePx = 128
 fun chatAvatarFile(context: Context, app: String, chat: String): File =
     File(chatAvatarDir(context, app), "${sha1("$app|$chat")}.webp")
 
+// A busy group matches often; its picture is re-encoded at most this often, so a change still shows.
+private const val AvatarMaxAgeMillis = 24 * 60 * 60 * 1000L
+
 /**
- * Caches [icon] as the avatar for [chat] in [app], replacing any older one.
+ * Caches [icon] as the avatar for [chat] in [app], unless a recent one is already cached.
  */
 fun saveChatAvatar(context: Context, app: String, chat: String, icon: Drawable) {
-    icon.writeWebp(chatAvatarFile(context, app, chat), maxSizePx = AvatarSizePx)
+    val file = chatAvatarFile(context, app, chat)
+    if (System.currentTimeMillis() - file.lastModified() < AvatarMaxAgeMillis) return
+    icon.writeWebp(file, maxSizePx = AvatarSizePx)
 }
 
 /**
@@ -42,4 +47,4 @@ private fun chatAvatarDir(context: Context, app: String) =
 
 private fun sha1(value: String): String = MessageDigest.getInstance("SHA-1")
     .digest(value.toByteArray())
-    .joinToString("") { "%02x".format(it) }
+    .toHexString()

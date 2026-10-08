@@ -4,43 +4,43 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
-import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
+import dev.logickoder.keyguarde.app.domain.SystemState
+import dev.logickoder.keyguarde.app.service.AppListenerService
 import dev.logickoder.keyguarde.onboarding.domain.KeywordInput
-import dev.logickoder.keyguarde.onboarding.domain.defaultAppSelection
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
+import dev.logickoder.keyguarde.onboarding.domain.SetupTestRunner
+import dev.logickoder.keyguarde.onboarding.domain.defaultAppSelection
 import dev.logickoder.keyguarde.onboarding.domain.parseKeyword
-import dev.logickoder.keyguarde.onboarding.domain.saveIconToFile
+import dev.logickoder.keyguarde.onboarding.domain.toWatchedApp
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import dev.logickoder.keyguarde.onboarding.domain.caughtKeyword
-import dev.logickoder.keyguarde.onboarding.domain.SetupTest
-import dev.logickoder.keyguarde.app.service.AppListenerService
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 class OnboardingViewModel(
     private val repository: AppRepository,
     private val savedStateHandle: SavedStateHandle,
+    systemState: Flow<SystemState>,
     // Reading every installed app's label and icon is slow; kept off the main thread.
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val setupTestReceived: Flow<String> = AppListenerService.setupTestReceived,
@@ -49,12 +49,24 @@ class OnboardingViewModel(
     val state: StateFlow<OnboardingState> = _state.asStateFlow()
 
     private var loadAppsJob: Job? = null
-    private var testTimeoutJob: Job? = null
+    private val setupTest = SetupTestRunner(
+        scope = viewModelScope,
+        received = setupTestReceived,
+        keywords = { _state.value.keywords.map { it.word } },
+    )
 
     init {
         loadApps()
         viewModelScope.launch {
-            setupTestReceived.collect { text -> onTestReceived(text) }
+            setupTest.state.collect { test -> _state.update { it.copy(test = test) } }
+        }
+        // Both are granted in system screens; the app re-reads them when the user comes back.
+        viewModelScope.launch {
+            systemState.collect { system ->
+                _state.update {
+                    it.copy(permissionGranted = system.hasListenerAccess, alertsAllowed = system.notificationsAllowed)
+                }
+            }
         }
         // The user can leave for system Settings on the Access page; keep their progress
         // if Android kills the process meanwhile.
@@ -124,16 +136,9 @@ class OnboardingViewModel(
                 it.copy(keywords = (it.keywords - action.keyword).toImmutableList())
             }
 
-            is OnboardingAction.PermissionsChecked -> _state.update {
-                it.copy(permissionGranted = action.listenerGranted, alertsAllowed = action.alertsAllowed)
-            }
+            OnboardingAction.TestSent -> setupTest.start()
 
-            OnboardingAction.TestSent -> startTest()
-
-            OnboardingAction.ResetTest -> {
-                testTimeoutJob?.cancel()
-                _state.update { it.copy(test = SetupTest.Idle) }
-            }
+            OnboardingAction.ResetTest -> setupTest.reset()
 
             is OnboardingAction.Save -> save(action.context.applicationContext)
         }
@@ -148,24 +153,6 @@ class OnboardingViewModel(
         }
         if (_state.value.currentPage == OnboardingPage.Apps && _state.value.apps.isEmpty()) {
             loadApps()
-        }
-    }
-
-    private fun startTest() {
-        _state.update { it.copy(test = SetupTest.Waiting) }
-        testTimeoutJob?.cancel()
-        testTimeoutJob = viewModelScope.launch {
-            delay(TEST_TIMEOUT_MILLIS)
-            _state.update { if (it.test == SetupTest.Waiting) it.copy(test = SetupTest.Missed) else it }
-        }
-    }
-
-    private fun onTestReceived(text: String) {
-        if (_state.value.test != SetupTest.Waiting) return
-        testTimeoutJob?.cancel()
-        _state.update { state ->
-            val keyword = caughtKeyword(text, state.keywords.map { it.word })
-            state.copy(test = keyword?.let { SetupTest.Caught(it) } ?: SetupTest.Missed)
         }
     }
 
@@ -198,24 +185,15 @@ class OnboardingViewModel(
             val state = _state.value
             repository.addKeyword(*state.keywords.toTypedArray())
 
-            val watchedApps = state.apps.filter { it.packageName in state.selectedApps }.map { app ->
-                WatchedApp(
-                    packageName = app.packageName,
-                    name = app.name,
-                    icon = saveIconToFile(
-                        app.icon,
-                        app.packageName,
-                        context
-                    )
-                )
+            val watchedApps = withContext(backgroundDispatcher) {
+                state.apps.filter { it.packageName in state.selectedApps }.map { it.toWatchedApp(context) }
             }
             repository.addWatchedApp(*watchedApps.toTypedArray())
 
             // Last, so an interrupted save shows onboarding again instead of an empty app.
             repository.onboardingCompleted()
 
-            NotificationHelper.startListenerService(context)
-            NotificationHelper.requestListenerServiceRebind(context)
+            NotificationHelper.restartListener(context)
 
             _state.update { it.copy(isComplete = true) }
         }.invokeOnCompletion {
@@ -224,9 +202,6 @@ class OnboardingViewModel(
     }
 
     companion object {
-        // How long the listener gets to report the test back; usually it takes well under a second.
-        private const val TEST_TIMEOUT_MILLIS = 5_000L
-
         private const val KEY_PAGES = "pages"
         private const val KEY_SELECTED_APPS = "selected_apps"
         private const val KEY_KEYWORDS = "keywords"
@@ -238,6 +213,7 @@ class OnboardingViewModel(
                     OnboardingViewModel(
                         repository = container.appRepository,
                         savedStateHandle = createSavedStateHandle(),
+                        systemState = container.systemStatus.state,
                     )
                 }
             }

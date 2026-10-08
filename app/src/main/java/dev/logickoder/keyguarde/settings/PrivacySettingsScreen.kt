@@ -1,6 +1,5 @@
 package dev.logickoder.keyguarde.settings
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,11 +18,11 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.core.net.toUri
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.settings.components.LinkButton
+import dev.logickoder.keyguarde.app.domain.openUrl
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 
 private const val PRIVACY_POLICY_URL = "https://logickoder.dev/keyguarde/#/privacy-policy"
@@ -44,7 +43,7 @@ fun PrivacySettingsScreen(
     val context = LocalContext.current
     PrivacyContent(
         onBack = onBack,
-        onOpenPolicy = { context.startActivity(Intent(Intent.ACTION_VIEW, PRIVACY_POLICY_URL.toUri())) },
+        onOpenPolicy = { context.openUrl(PRIVACY_POLICY_URL) },
         modifier = modifier,
     )
 }

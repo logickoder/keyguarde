@@ -3,6 +3,7 @@ package dev.logickoder.keyguarde.onboarding
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.SavedStateHandle
 import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.domain.SystemState
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
@@ -12,10 +13,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -47,8 +50,11 @@ class OnboardingViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val system = MutableStateFlow(SystemState(hasListenerAccess = false, notificationsAllowed = false))
+
     private fun viewModel(pages: List<String>? = null, selectedApps: List<String>? = null) = OnboardingViewModel(
         repository = repository,
+        systemState = system,
         backgroundDispatcher = dispatcher,
         setupTestReceived = testReceived,
         savedStateHandle = SavedStateHandle(
@@ -67,7 +73,7 @@ class OnboardingViewModelTest {
     @Test
     fun `steps run intro, keywords, apps, access, test`() {
         val viewModel = viewModel()
-        viewModel.onAction(OnboardingAction.PermissionsChecked(listenerGranted = true, alertsAllowed = false))
+        grantAccess()
         val seen = mutableListOf(viewModel.state.value.currentPage)
         repeat(OnboardingPage.entries.size - 1) {
             viewModel.onAction(OnboardingAction.Next)
@@ -84,7 +90,7 @@ class OnboardingViewModelTest {
         viewModel.onAction(OnboardingAction.Next)
         assertEquals(OnboardingPage.Access, viewModel.state.value.currentPage)
 
-        viewModel.onAction(OnboardingAction.PermissionsChecked(listenerGranted = true, alertsAllowed = false))
+        grantAccess()
         viewModel.onAction(OnboardingAction.Next)
         assertEquals(OnboardingPage.Test, viewModel.state.value.currentPage)
     }
@@ -155,6 +161,7 @@ class OnboardingViewModelTest {
         advanceUntilIdle()
 
         viewModel.onAction(OnboardingAction.TestSent)
+        runCurrent()
         assertEquals(SetupTest.Waiting, viewModel.state.value.test)
 
         testReceived.emit("Testing Keyguarde: does it catch “invoice”?")
@@ -185,5 +192,10 @@ class OnboardingViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SetupTest.Missed, viewModel.state.value.test)
+    }
+
+    private fun grantAccess() {
+        system.value = SystemState(hasListenerAccess = true, notificationsAllowed = false)
+        dispatcher.scheduler.runCurrent()
     }
 }

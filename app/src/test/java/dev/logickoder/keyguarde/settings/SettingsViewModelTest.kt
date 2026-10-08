@@ -1,6 +1,7 @@
 package dev.logickoder.keyguarde.settings
 
 import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.domain.SystemState
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
 import dev.logickoder.keyguarde.onboarding.domain.SetupTest
@@ -66,9 +67,12 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private val system = MutableStateFlow(SystemState())
+
     private fun viewModel() = SettingsViewModel(
         appRepository = appRepository,
         settingsRepository = settingsRepository,
+        systemState = system,
         listenerConnected = listenerConnected,
         setupTestReceived = testReceived,
     )
@@ -101,7 +105,7 @@ class SettingsViewModelTest {
     fun `access off shows as a listener issue`() = runTest(dispatcher) {
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
-        viewModel.onAction(SettingsAction.SystemChecked(false, notificationsAllowed = true, isBatteryUnrestricted = true))
+        system.value = SystemState(hasListenerAccess = false, isBatteryUnrestricted = true)
         advanceUntilIdle()
 
         assertEquals(ListenerIssue.AccessOff, viewModel.state.value.listenerIssue)
@@ -172,7 +176,7 @@ class SettingsViewModelTest {
         caughtCount.value = 50
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
-        viewModel.onAction(SettingsAction.SystemChecked(false, notificationsAllowed = true, isBatteryUnrestricted = true))
+        system.value = SystemState(hasListenerAccess = false, isBatteryUnrestricted = true)
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.showRatePrompt)
@@ -192,7 +196,7 @@ class SettingsViewModelTest {
         caughtCount.value = 50
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
-        viewModel.onAction(SettingsAction.SystemChecked(true, notificationsAllowed = true, isBatteryUnrestricted = false))
+        system.value = SystemState(hasListenerAccess = true, isBatteryUnrestricted = false)
         advanceUntilIdle()
 
         assertTrue(viewModel.state.value.showRatePrompt)
@@ -216,7 +220,7 @@ class SettingsViewModelTest {
     fun `the battery notice shows until the Battery screen is opened`() = runTest(dispatcher) {
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
-        viewModel.onAction(SettingsAction.SystemChecked(true, notificationsAllowed = true, isBatteryUnrestricted = false))
+        system.value = SystemState(hasListenerAccess = true, isBatteryUnrestricted = false)
         advanceUntilIdle()
         assertTrue(viewModel.state.value.showBatteryNotice)
 

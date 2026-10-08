@@ -21,7 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.AsyncImage
+import dev.logickoder.keyguarde.app.components.AppIcon
 import dev.logickoder.keyguarde.app.data.chatAvatarFile
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -40,26 +41,22 @@ fun ChatAvatar(
     size: Dp = 40.dp,
 ) {
     val context = LocalContext.current
-    val file = remember(packageName, chat) {
-        chatAvatarFile(context, packageName, chat).takeIf { it.exists() }
-    }
+    val file = remember(packageName, chat) { chatAvatarFile(context, packageName, chat) }
 
     Box(
         modifier = modifier.size(size),
         content = {
-            when (file) {
-                null -> InitialsAvatar(chat = chat, size = size)
-                else -> SubcomposeAsyncImage(
-                    model = file,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(size)
-                        .clip(CircleShape),
-                    loading = { InitialsAvatar(chat = chat, size = size) },
-                    error = { InitialsAvatar(chat = chat, size = size) },
-                )
-            }
+            // Initials sit under the picture, so they show while it loads, and stay when there is
+            // none (never captured, or the cache was cleared).
+            InitialsAvatar(chat = chat, size = size)
+            AsyncImage(
+                model = file,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(size)
+                    .clip(CircleShape),
+            )
 
             if (app != null) {
                 AppIcon(

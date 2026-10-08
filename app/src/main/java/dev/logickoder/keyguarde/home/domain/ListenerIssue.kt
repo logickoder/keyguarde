@@ -24,14 +24,16 @@ enum class ListenerIssue {
  * @param isGraceOver false for a moment after launch or a restart, while the system binds the
  * listener, so the banner doesn't flash on every app open.
  * @param hasTriedRestart whether the user tapped Restart since the listener last connected.
+ * @param isPaused the user paused Keyguarde, which is meant to be quiet, so problems wait for Resume.
  */
 fun listenerIssue(
     hasAccess: Boolean?,
     isConnected: Boolean,
     isGraceOver: Boolean,
     hasTriedRestart: Boolean,
+    isPaused: Boolean = false,
 ): ListenerIssue = when {
-    hasAccess == null -> ListenerIssue.None
+    hasAccess == null || isPaused -> ListenerIssue.None
     !hasAccess -> ListenerIssue.AccessOff
     isConnected || !isGraceOver -> ListenerIssue.None
     hasTriedRestart -> ListenerIssue.StillStopped

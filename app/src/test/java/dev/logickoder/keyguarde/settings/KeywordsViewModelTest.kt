@@ -4,7 +4,7 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import dev.logickoder.keyguarde.settings.domain.KeywordSort
-import java.time.LocalDateTime
+import java.time.Instant
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
 import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import io.mockk.coVerify
@@ -31,7 +31,7 @@ class KeywordsViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val repository = mockk<AppRepository>(relaxed = true) {
         every { keywords } returns flowOf(listOf(Keyword("invoice"), Keyword("rent")))
-        every { statsByKeyword } returns flowOf(mapOf("invoice" to KeywordStats("invoice", 12, LocalDateTime.of(2026, 10, 1, 9, 0))))
+        every { statsByKeyword } returns flowOf(mapOf("invoice" to KeywordStats("invoice", 12, Instant.parse("2026-10-01T09:00:00Z"))))
         every { keywordSort } returns flowOf(KeywordSort.RecentMatch)
     }
 
@@ -64,6 +64,28 @@ class KeywordsViewModelTest {
         advanceUntilIdle()
 
         coVerify { repository.addKeyword(*varargAll { it.word == "payment" }) }
+    }
+
+    @Test
+    fun `a duplicate or too short word is never saved`() = runTest(dispatcher) {
+        val viewModel = KeywordsViewModel(repository)
+        viewModel.onAction(KeywordsAction.Add("Invoice"))
+        viewModel.onAction(KeywordsAction.Add("a"))
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { repository.addKeyword(*anyVararg()) }
+    }
+
+    @Test
+    fun `an edit that would duplicate another keyword is not saved`() = runTest(dispatcher) {
+        val viewModel = KeywordsViewModel(repository)
+        val invoice = Keyword("invoice")
+
+        viewModel.onAction(KeywordsAction.Edit(invoice))
+        viewModel.onAction(KeywordsAction.Save("rent"))
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { repository.updateKeyword(any(), any()) }
     }
 
     @Test

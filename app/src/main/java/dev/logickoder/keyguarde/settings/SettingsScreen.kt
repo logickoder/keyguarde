@@ -22,17 +22,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.domain.appNotificationSettings
 import dev.logickoder.keyguarde.app.domain.appBatterySettings
-import dev.logickoder.keyguarde.app.domain.isBatteryUnrestricted
 import dev.logickoder.keyguarde.app.domain.openStoreListing
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.navigation.SettingsRoute
@@ -61,23 +57,7 @@ fun SettingsScreen(
     val viewModel = viewModel<SettingsViewModel>(factory = SettingsViewModel.factory(context))
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val checkSystem = {
-        viewModel.onAction(
-            SettingsAction.SystemChecked(
-                hasListenerAccess = NotificationHelper.isListenerServiceEnabled(context),
-                notificationsAllowed = NotificationHelper.isNotificationPermissionGranted(context),
-                isBatteryUnrestricted = isBatteryUnrestricted(context),
-            )
-        )
-    }
-    // All three can change in system settings while the app is in the background.
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { checkSystem() }
-
-    val notificationPermission = NotificationHelper.requestNotificationPermissionLauncher { granted ->
-        checkSystem()
-        // Android stops showing the prompt after repeated denials; settings is the only way left.
-        if (!granted) context.startActivitySafely(appNotificationSettings(context))
-    }
+    val enableNotifications = NotificationHelper.rememberEnableNotifications()
 
     val previewKeywords = setOf(
         stringResource(R.string.test_notification_keyword_1),
@@ -103,18 +83,11 @@ fun SettingsScreen(
         },
         onOpenListenerSettings = { NotificationHelper.launchListenerSettings(context) },
         onRestartListener = {
-            NotificationHelper.startListenerService(context)
-            NotificationHelper.requestListenerServiceRebind(context)
+            NotificationHelper.restartListener(context)
             viewModel.onAction(SettingsAction.ListenerRestartRequested)
         },
         onOpenBatterySettings = { context.startActivitySafely(appBatterySettings(context)) },
-        onEnableNotifications = {
-            if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
-                notificationPermission.launch(NotificationHelper.PERMISSION)
-            } else {
-                context.startActivitySafely(appNotificationSettings(context))
-            }
-        },
+        onEnableNotifications = enableNotifications,
         onRate = {
             context.openStoreListing()
             viewModel.onAction(SettingsAction.RatePromptDone)
@@ -274,15 +247,14 @@ private fun Status(
     Column(
         modifier = Modifier.padding(horizontal = Spacing.l),
         content = {
-            // A paused listener is meant to be quiet, so its problems wait until Resume.
             ListenerIssueBanners(
-                issue = if (state.isPaused) ListenerIssue.None else state.listenerIssue,
+                issue = state.listenerIssue,
                 onOpenListenerSettings = onOpenListenerSettings,
                 onRestartListener = onRestartListener,
                 onOpenBatterySettings = onOpenBatterySettings,
             )
             AnimatedVisibility(
-                visible = state.isPaused || state.listenerIssue == ListenerIssue.None,
+                visible = state.listenerIssue == ListenerIssue.None,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut(),
                 content = {

@@ -1,6 +1,6 @@
 package dev.logickoder.keyguarde.app.data.model
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 /**
  * How often one keyword has matched and when it last did, for the Keywords tab.
@@ -8,5 +8,5 @@ import java.time.LocalDateTime
 data class KeywordStats(
     val word: String,
     val count: Int,
-    val lastMatchAt: LocalDateTime?,
+    val lastMatchAt: Instant?,
 )

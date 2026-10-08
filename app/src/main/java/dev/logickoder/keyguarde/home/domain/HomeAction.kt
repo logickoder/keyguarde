@@ -39,11 +39,6 @@ sealed interface HomeAction {
 
     data object ResetCount : HomeAction
 
-    /**
-     * The screen came back into view and re-checked what the user can change in system settings.
-     */
-    data class PermissionsChecked(val hasListenerAccess: Boolean, val notificationsAllowed: Boolean) : HomeAction
-
     /** The user asked to restart the listener; wait a moment for it to bind before warning again. */
     data object ListenerRestartRequested : HomeAction
 
@@ -54,9 +49,6 @@ sealed interface HomeAction {
 
     /** Undo a pause set in Settings, from the banner on Matches. */
     data object Resume : HomeAction
-
-    /** The screen became visible; re-read when the user last left so "new" is measured from then. */
-    data object RefreshLastVisit : HomeAction
 
     /** Enter selection mode with nothing selected (overflow menu). */
     data object StartSelection : HomeAction

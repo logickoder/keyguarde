@@ -13,14 +13,14 @@ import kotlinx.coroutines.flow.update
 
 /**
  * Tracks whether the listener is catching messages, for any screen that warns about it. The
- * screen reports what it checked on resume and when the user asks for a restart.
+ * screen reports when the user asks for a restart.
  */
 class ListenerHealth(
+    hasAccess: Flow<Boolean>,
     listenerConnected: Flow<Boolean>,
+    isPaused: Flow<Boolean>,
     private val graceMillis: Long = LISTENER_GRACE_MILLIS,
 ) {
-    private val hasAccess = MutableStateFlow<Boolean?>(null)
-
     // Bumped on each restart request; every bump restarts the grace period.
     private val restarts = MutableStateFlow(0)
 
@@ -41,12 +41,9 @@ class ListenerHealth(
         listenerConnected.onEach { connected -> if (connected) hasTriedRestart.update { false } },
         isGraceOver,
         hasTriedRestart,
+        isPaused,
         ::listenerIssue,
     ).distinctUntilChanged()
-
-    fun accessChecked(granted: Boolean) {
-        hasAccess.update { granted }
-    }
 
     fun restartRequested() {
         hasTriedRestart.update { true }

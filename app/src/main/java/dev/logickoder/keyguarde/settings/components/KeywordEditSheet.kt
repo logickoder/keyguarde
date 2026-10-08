@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -13,14 +12,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -43,10 +39,11 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.PrimaryButton
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.app.theme.neutralTextFieldColors
 import dev.logickoder.keyguarde.onboarding.domain.KeywordInput
 import dev.logickoder.keyguarde.onboarding.domain.parseKeyword
 
@@ -152,28 +149,13 @@ fun KeywordEditSheet(
                         ),
                         keyboardActions = KeyboardActions(onDone = { submit() }),
                         shape = RoundedCornerShape(Radius.m),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.onSurface,
-                            focusedLabelColor = MaterialTheme.colorScheme.onSurface,
-                            cursorColor = MaterialTheme.colorScheme.onSurface,
-                        ),
+                        colors = neutralTextFieldColors(),
                     )
-                    Button(
+                    PrimaryButton(
+                        text = stringResource(R.string.save),
                         onClick = submit,
-                        // Nothing to save until the word changes.
-                        enabled = text.text.trim().lowercase() != word,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp),
-                        shape = RoundedCornerShape(Radius.l),
-                        // Dark neutral like every primary button: teal is reserved for matched keywords.
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onSurface,
-                            contentColor = MaterialTheme.colorScheme.surface,
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
-                        content = { Text(stringResource(R.string.save)) },
+                        // Nothing to save until the word changes, by the same rule a save uses.
+                        enabled = (parseKeyword(text.text, emptyList()) as? KeywordInput.Valid)?.word != word,
                     )
                     // Quiet on purpose: destructive, and undoable from the snackbar.
                     TextButton(

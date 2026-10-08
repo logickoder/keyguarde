@@ -27,12 +27,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.BannerAd
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.HomeScreen
+import dev.logickoder.keyguarde.home.HomeViewModel
+import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.settings.KeywordsScreen
 
 enum class MainTab(@param:StringRes val label: Int) {
@@ -56,8 +60,9 @@ private fun MainTab.icon(selected: Boolean): Painter = when (this) {
 @Composable
 fun MainNavigation(modifier: Modifier = Modifier) {
     var tab by rememberSaveable { mutableStateOf(MainTab.Matches) }
-    // A keyword's "See matches" hands its word to Matches through here.
-    var pendingKeyword by rememberSaveable { mutableStateOf<String?>(null) }
+    // The same instance the Matches tab uses: both share this screen's ViewModel store, so a
+    // keyword's "See matches" filters the list directly.
+    val homeViewModel = viewModel<HomeViewModel>(factory = HomeViewModel.factory(LocalContext.current))
     val tabStates = rememberSaveableStateHolder()
 
     // Back from another tab returns to Matches before it leaves the app.
@@ -82,12 +87,10 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                                 when (current) {
                                     MainTab.Matches -> HomeScreen(
                                         onOpenKeywords = { tab = MainTab.Keywords },
-                                        keyword = pendingKeyword,
-                                        onKeywordHandled = { pendingKeyword = null },
                                     )
                                     MainTab.Keywords -> KeywordsScreen(
                                         onSeeMatches = { word ->
-                                            pendingKeyword = word
+                                            homeViewModel.onAction(HomeAction.FilterByKeyword(word))
                                             tab = MainTab.Matches
                                         },
                                     )

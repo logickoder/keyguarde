@@ -16,13 +16,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +36,7 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.app.theme.neutralTextFieldColors
 import dev.logickoder.keyguarde.onboarding.domain.KeywordInput
 import dev.logickoder.keyguarde.onboarding.domain.parseKeyword
 
@@ -97,11 +97,7 @@ fun KeywordField(
             )
         },
         shape = RoundedCornerShape(Radius.m),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.onSurface,
-            focusedLabelColor = MaterialTheme.colorScheme.onSurface,
-            cursorColor = MaterialTheme.colorScheme.onSurface,
-        ),
+        colors = neutralTextFieldColors(),
     )
 }
 

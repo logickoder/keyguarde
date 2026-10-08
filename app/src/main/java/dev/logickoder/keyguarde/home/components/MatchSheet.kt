@@ -1,7 +1,6 @@
 package dev.logickoder.keyguarde.home.components
 
 import android.content.ClipData
-import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,38 +15,32 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.Check
-import java.time.LocalDate
-import dev.logickoder.keyguarde.home.domain.keywordsByFirstMention
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -58,10 +51,11 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.PrimaryButton
+import dev.logickoder.keyguarde.app.components.keywordSpanStyle
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -69,9 +63,16 @@ import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.domain.MessageSpan
+import dev.logickoder.keyguarde.home.domain.keywordsByFirstMention
 import dev.logickoder.keyguarde.home.domain.messageSpans
+import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /**
  * The whole match: keywords, who sent it and when, the full message, and a way back to the chat.
@@ -318,34 +319,14 @@ private fun OpenAction(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Button(
-                onClick = if (canOpenInApp) onOpenInApp else onLaunchApp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp),
-                shape = RoundedCornerShape(Radius.l),
-                // Weight follows what the button can do: dark when it reaches the chat, grey when it can
-                // only open the app, so the note and keywords lead instead. Never teal: that means "match".
-                colors = when (canOpenInApp) {
-                    true -> ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onSurface,
-                        contentColor = MaterialTheme.colorScheme.surface,
-                    )
-
-                    else -> ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    )
+            PrimaryButton(
+                text = when (canOpenInApp) {
+                    true -> stringResource(R.string.match_open_in, appName)
+                    else -> stringResource(R.string.match_open_app, appName)
                 },
-                content = {
-                    Text(
-                        text = when (canOpenInApp) {
-                            true -> stringResource(R.string.match_open_in, appName)
-                            else -> stringResource(R.string.match_open_app, appName)
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
+                onClick = if (canOpenInApp) onOpenInApp else onLaunchApp,
+                // Grey when it can only open the app, so the note and keywords lead instead.
+                quiet = !canOpenInApp,
             )
         }
     )
@@ -371,7 +352,7 @@ private fun highlightedMessage(match: KeywordMatch, keywordColor: Color, linkCol
             val end = span.range.last + 1
             when (span) {
                 is MessageSpan.Keyword -> addStyle(
-                    SpanStyle(fontWeight = FontWeight.Bold, color = keywordColor),
+                    keywordSpanStyle(keywordColor),
                     span.range.first,
                     end,
                 )
@@ -393,11 +374,12 @@ private fun highlightedMessage(match: KeywordMatch, keywordColor: Color, linkCol
 }
 
 @Composable
-private fun formatSheetTimestamp(timestamp: LocalDateTime): String {
+private fun formatSheetTimestamp(instant: Instant): String {
     val locale = LocalConfiguration.current.locales[0]
+    val timestamp = remember(instant) { LocalDateTime.ofInstant(instant, ZoneId.systemDefault()) }
     val today = LocalDate.now()
     val time = remember(timestamp, locale) {
-        timestamp.format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "jmm"), locale))
+        timestamp.format(localizedFormatter(locale, "jmm"))
     }
     return when (timestamp.toLocalDate()) {
         today -> stringResource(R.string.match_today_at, time)
@@ -407,7 +389,7 @@ private fun formatSheetTimestamp(timestamp: LocalDateTime): String {
                 true -> "EEEEMMMMdjmm"
                 else -> "EEEEMMMMdyjmm"
             }
-            timestamp.format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale))
+            timestamp.format(localizedFormatter(locale, skeleton))
         }
     }
 }
@@ -423,7 +405,7 @@ private fun MatchSheetContentPreview() = AppTheme {
                 "Details at www.example.com/pay or call +234 801 234 5678.",
             chat = "Accounts Payable",
             app = "com.whatsapp",
-            timestamp = LocalDateTime.now().minusHours(3),
+            timestamp = Instant.now().minus(3, ChronoUnit.HOURS),
         ),
         app = WatchedApp("com.whatsapp", "WhatsApp", ""),
         canOpenInApp = false,

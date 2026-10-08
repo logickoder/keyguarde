@@ -4,16 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -26,14 +20,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.AppIcon
+import dev.logickoder.keyguarde.app.components.AppPickerRow
+import dev.logickoder.keyguarde.app.components.PrimaryButton
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.app.theme.Spacing
 import kotlinx.collections.immutable.ImmutableList
@@ -102,25 +97,13 @@ fun MatchFilterSheet(
                         }
                     )
 
-                    Button(
+                    PrimaryButton(
+                        text = when (selected.isEmpty()) {
+                            true -> stringResource(R.string.filter_show_all)
+                            else -> pluralStringResource(R.plurals.filter_show_matches, matchCount, matchCount)
+                        },
                         onClick = onApply,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 52.dp)
-                            .padding(start = Spacing.xl, end = Spacing.xl, top = Spacing.l, bottom = Spacing.l),
-                        // Dark neutral like the reference sheet: teal is kept for matched keywords.
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onSurface,
-                            contentColor = MaterialTheme.colorScheme.surface,
-                        ),
-                        content = {
-                            Text(
-                                text = when (selected.isEmpty()) {
-                                    true -> stringResource(R.string.filter_show_all)
-                                    else -> pluralStringResource(R.plurals.filter_show_matches, matchCount, matchCount)
-                                }
-                            )
-                        }
+                        modifier = Modifier.padding(horizontal = Spacing.xl, vertical = Spacing.l),
                     )
                 }
             )
@@ -187,34 +170,13 @@ private fun FilterOption(
     checked: Boolean,
     onToggle: (String) -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .toggleable(value = checked, onValueChange = { onToggle(app.packageName) }, role = Role.Checkbox)
-            .padding(horizontal = Spacing.xl),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.l),
-        content = {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = null,
-                // Same neutral checks as selection mode on the list.
-                colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colorScheme.onSurface,
-                    checkmarkColor = MaterialTheme.colorScheme.surface,
-                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-            )
-            AppIcon(app = app, contentDescription = null)
-            Text(
-                text = app.name,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            val countLabel = pluralStringResource(R.plurals.filter_app_matches, count, count)
+    val countLabel = pluralStringResource(R.plurals.filter_app_matches, count, count)
+    AppPickerRow(
+        name = app.name,
+        checked = checked,
+        onToggle = { onToggle(app.packageName) },
+        icon = { AppIcon(app = app, contentDescription = null) },
+        trailing = {
             Text(
                 text = count.toString(),
                 style = MaterialTheme.typography.bodyMedium,
@@ -222,6 +184,6 @@ private fun FilterOption(
                 // A bare number after the app name is ambiguous when read aloud.
                 modifier = Modifier.clearAndSetSemantics { contentDescription = countLabel },
             )
-        }
+        },
     )
 }

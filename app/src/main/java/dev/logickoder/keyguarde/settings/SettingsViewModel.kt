@@ -8,36 +8,40 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.domain.SystemState
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import dev.logickoder.keyguarde.home.domain.ListenerHealth
-import dev.logickoder.keyguarde.onboarding.domain.SetupTest
-import dev.logickoder.keyguarde.onboarding.domain.caughtKeyword
+import dev.logickoder.keyguarde.onboarding.domain.SetupTestRunner
 import dev.logickoder.keyguarde.settings.domain.SettingsAction
 import dev.logickoder.keyguarde.settings.domain.SettingsState
 import dev.logickoder.keyguarde.settings.domain.ThemeMode
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val appRepository: AppRepository,
     private val settingsRepository: SettingsRepository,
+    systemState: Flow<SystemState>,
     listenerConnected: Flow<Boolean> = AppListenerService.isConnected,
     setupTestReceived: Flow<String> = AppListenerService.setupTestReceived,
 ) : ViewModel() {
-    private val listenerHealth = ListenerHealth(listenerConnected)
+    private val listenerHealth = ListenerHealth(
+        systemState.map { it.hasListenerAccess },
+        listenerConnected,
+        settingsRepository.isPaused,
+    )
 
-    private val inputs = MutableStateFlow(Inputs())
-
-    private var testTimeoutJob: Job? = null
+    private val setupTest = SetupTestRunner(
+        scope = viewModelScope,
+        received = setupTestReceived,
+        keywords = { appRepository.keywords.first().map { it.word } },
+    )
 
     private val alerts: Flow<Alerts> = combine(
         settingsRepository.showHeadsUpAlert,
@@ -47,7 +51,7 @@ class SettingsViewModel(
     )
 
     val state: StateFlow<SettingsState> = combine(
-        inputs,
+        combine(systemState, setupTest.state, ::Pair),
         listenerHealth.issue,
         appRepository.keywords,
         combine(appRepository.installedWatchedAppCount, alerts, ::Pair),
@@ -59,17 +63,17 @@ class SettingsViewModel(
             settingsRepository.batteryNoticeSeen,
             ::Extras,
         ),
-    ) { inputs, issue, keywords, (apps, alerts), extras ->
+    ) { (system, test), issue, keywords, (apps, alerts), extras ->
         SettingsState(
             listenerIssue = issue,
-            notificationsAllowed = inputs.notificationsAllowed,
-            test = inputs.test,
+            notificationsAllowed = system.notificationsAllowed,
+            test = test,
             testKeyword = keywords.firstOrNull()?.word,
             watchedAppCount = apps,
             showHeadsUpAlert = alerts.showHeadsUp,
             usePersistentNotification = alerts.usePersistent,
             resetCountOnOpen = alerts.resetOnOpen,
-            isBatteryUnrestricted = inputs.isBatteryUnrestricted,
+            isBatteryUnrestricted = system.isBatteryUnrestricted,
             themeMode = extras.themeMode,
             caughtCount = extras.caughtCount,
             ratePromptDone = extras.ratePromptDone,
@@ -82,32 +86,13 @@ class SettingsViewModel(
         initialValue = SettingsState(),
     )
 
-    init {
-        viewModelScope.launch {
-            setupTestReceived.collect { text -> onTestReceived(text) }
-        }
-    }
-
     fun onAction(action: SettingsAction) {
         when (action) {
-            is SettingsAction.SystemChecked -> {
-                listenerHealth.accessChecked(action.hasListenerAccess)
-                inputs.update {
-                    it.copy(
-                        notificationsAllowed = action.notificationsAllowed,
-                        isBatteryUnrestricted = action.isBatteryUnrestricted,
-                    )
-                }
-            }
-
             SettingsAction.ListenerRestartRequested -> listenerHealth.restartRequested()
 
-            SettingsAction.TestSent -> startTest()
+            SettingsAction.TestSent -> setupTest.start()
 
-            SettingsAction.ResetTest -> {
-                testTimeoutJob?.cancel()
-                inputs.update { it.copy(test = SetupTest.Idle) }
-            }
+            SettingsAction.ResetTest -> setupTest.reset()
 
             SettingsAction.ToggleHeadsUpAlert -> viewModelScope.launch {
                 settingsRepository.toggleShowHeadsUpAlert()
@@ -139,29 +124,6 @@ class SettingsViewModel(
         }
     }
 
-    private fun startTest() {
-        inputs.update { it.copy(test = SetupTest.Waiting) }
-        testTimeoutJob?.cancel()
-        testTimeoutJob = viewModelScope.launch {
-            delay(TEST_TIMEOUT_MILLIS)
-            inputs.update { if (it.test == SetupTest.Waiting) it.copy(test = SetupTest.Missed) else it }
-        }
-    }
-
-    private suspend fun onTestReceived(text: String) {
-        if (inputs.value.test != SetupTest.Waiting) return
-        testTimeoutJob?.cancel()
-        val keywords = appRepository.keywords.first().map { it.word }
-        val keyword = caughtKeyword(text, keywords)
-        inputs.update { it.copy(test = keyword?.let { word -> SetupTest.Caught(word) } ?: SetupTest.Missed) }
-    }
-
-    private data class Inputs(
-        val notificationsAllowed: Boolean = true,
-        val isBatteryUnrestricted: Boolean? = null,
-        val test: SetupTest = SetupTest.Idle,
-    )
-
     private data class Extras(
         val themeMode: ThemeMode,
         val caughtCount: Int,
@@ -177,9 +139,6 @@ class SettingsViewModel(
     )
 
     companion object {
-        // How long the listener gets to report the test back; usually it takes well under a second.
-        private const val TEST_TIMEOUT_MILLIS = 5_000L
-
         fun factory(context: Context): ViewModelProvider.Factory {
             val container = AppContainer.from(context)
             return viewModelFactory {
@@ -187,6 +146,7 @@ class SettingsViewModel(
                     SettingsViewModel(
                         appRepository = container.appRepository,
                         settingsRepository = container.settingsRepository,
+                        systemState = container.systemStatus.state,
                     )
                 }
             }

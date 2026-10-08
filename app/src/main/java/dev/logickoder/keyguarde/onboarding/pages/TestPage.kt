@@ -27,21 +27,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.highlightKeywords
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -141,7 +138,7 @@ private fun TestNotification(keyword: String, test: SetupTest) {
         label = "TestKeyword",
     )
     val text = stringResource(R.string.setup_test_notification_text, keyword)
-    val styled = remember(text, keyword, keywordColor) { highlight(text, keyword, keywordColor) }
+    val styled = remember(text, keyword, keywordColor) { highlightKeywords(text, listOf(keyword), keywordColor) }
 
     Column(
         modifier = Modifier
@@ -220,13 +217,6 @@ private fun TestStatus(test: SetupTest) {
 private fun StatusText(text: String) {
     Text(text = text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
 }
-
-private fun highlight(text: String, keyword: String, color: Color): AnnotatedString =
-    buildAnnotatedString {
-        append(text)
-        val start = text.indexOf(keyword, ignoreCase = true)
-        if (start >= 0) addStyle(SpanStyle(fontWeight = FontWeight.Bold, color = color), start, start + keyword.length)
-    }
 
 @Preview(showBackground = true, heightDp = 800)
 @Composable

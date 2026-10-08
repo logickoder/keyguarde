@@ -37,4 +37,12 @@ class ListenerIssueTest {
             listenerIssue(hasAccess = true, isConnected = false, isGraceOver = true, hasTriedRestart = true),
         )
     }
+
+    @Test
+    fun `paused hides every issue`() {
+        assertEquals(
+            ListenerIssue.None,
+            listenerIssue(hasAccess = false, isConnected = false, isGraceOver = true, hasTriedRestart = false, isPaused = true),
+        )
+    }
 }

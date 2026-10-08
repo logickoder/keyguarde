@@ -20,15 +20,18 @@ import androidx.paging.map
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
+import dev.logickoder.keyguarde.app.domain.SystemState
 import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.app.service.AppListenerService
+import dev.logickoder.keyguarde.home.HomeViewModel
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
 import dev.logickoder.keyguarde.home.domain.ListenerHealth
-import dev.logickoder.keyguarde.settings.SettingsRepository
 import dev.logickoder.keyguarde.home.domain.MatchListItem
-import kotlinx.collections.immutable.PersistentSet
+import dev.logickoder.keyguarde.settings.SettingsRepository
+import java.time.Instant
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
@@ -43,9 +46,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -54,42 +54,41 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 
 class HomeViewModel(
     private val repository: AppRepository,
     private val resetMatchCount: ResetMatchCountUsecase,
     private val settings: SettingsRepository,
+    private val systemState: Flow<SystemState>,
     listenerConnected: Flow<Boolean> = AppListenerService.isConnected,
 ) : ViewModel() {
     // Compose state, not a flow: a TextField value must update synchronously or the cursor jumps.
     var query by mutableStateOf("")
         private set
 
-    private val inputs = MutableStateFlow(Inputs())
+    // What the screen itself changes. Everything read from elsewhere is filled in by [state].
+    private val ui = MutableStateFlow(HomeState())
 
-    // Read once per visit, so the "new" divider holds still while the user scrolls. Null until
-    // read, so the list doesn't load once without it and then reload (a visible flash).
-    private val lastVisit = MutableStateFlow<Visit?>(null)
+    // Only written while the app is in the background (AppVisibilityObserver), so it holds still
+    // for the whole visit, and the "new" divider with it.
+    private val lastVisitAt: Flow<Instant?> = repository.lastVisitAt
 
-    private val listenerHealth = ListenerHealth(listenerConnected)
+    private val listenerHealth = ListenerHealth(systemState.map { it.hasListenerAccess }, listenerConnected, settings.isPaused)
 
     private val _effects = Channel<HomeEffect>(Channel.BUFFERED)
     val effects: Flow<HomeEffect> = _effects.receiveAsFlow()
 
-    // A saved filter for an app that's no longer watched would show an empty list, so it's ignored.
+    // Read straight from the saved setting, so the list waits for it instead of loading unfiltered
+    // first. A saved app that's no longer watched would show an empty list, so it's ignored.
     private val effectiveFilter: Flow<Set<String>> = combine(
-        // Waits for the saved filter, so the list doesn't load unfiltered first and then reload.
-        inputs.filter { it.isFilterLoaded }.map { it.filterPackages },
+        repository.matchesFilter,
         repository.watchedApps,
     ) { packageNames, apps ->
         packageNames intersect apps.mapTo(mutableSetOf()) { it.packageName }
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val newSinceLastVisit: Flow<Int> = combine(lastVisit.filterNotNull(), effectiveFilter) { visit, packageNames ->
-        visit.at to packageNames
-    }.flatMapLatest { (since, packageNames) ->
+    private val newSinceLastVisit: Flow<Int> = combine(lastVisitAt, effectiveFilter, ::Pair).flatMapLatest { (since, packageNames) ->
         when (since) {
             null -> flowOf(0)
             else -> repository.countMatchesSince(since, packageNames)
@@ -97,28 +96,21 @@ class HomeViewModel(
     }
 
     val state: StateFlow<HomeState> = combine(
-        inputs,
-        repository.watchedApps,
-        AppListenerService.notificationIntents,
+        ui,
+        combine(repository.watchedApps, effectiveFilter, ::Pair),
+        combine(AppListenerService.notificationIntents, systemState, ::Pair),
         combine(newSinceLastVisit, listenerHealth.issue, settings.isPaused, ::Triple),
         repository.matchCountsByApp,
-    ) { inputs, watchedApps, intents, (newCount, issue, isPaused), counts ->
-        HomeState(
+    ) { ui, (watchedApps, filter), (intents, system), (newCount, issue, isPaused), counts ->
+        ui.copy(
             listenerIssue = issue,
             isPaused = isPaused,
-            keywordFilter = inputs.keywordFilter,
-            notificationsAllowed = inputs.notificationsAllowed,
-            filter = watchedApps.filter { it.packageName in inputs.filterPackages }.toImmutableList(),
+            notificationsAllowed = system.notificationsAllowed,
+            filter = watchedApps.filter { it.packageName in filter }.toImmutableList(),
             watchedApps = watchedApps.toImmutableList(),
             matchCounts = counts.toImmutableMap(),
-            filterDraft = inputs.filterDraft,
-            openMatch = inputs.openMatch,
             newSinceLastVisit = newCount,
             openableMatchIds = intents.keys.toImmutableSet(),
-            isFilterSheetVisible = inputs.isFilterSheetVisible,
-            isClearAllConfirmVisible = inputs.isClearAllConfirmVisible,
-            isSelectionMode = inputs.isSelectionMode,
-            selectedMatches = inputs.selectedMatches,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -130,8 +122,8 @@ class HomeViewModel(
     val matches: Flow<PagingData<MatchListItem>> = combine(
         effectiveFilter,
         snapshotFlow { query },
-        inputs.map { it.keywordFilter }.distinctUntilChanged(),
-        lastVisit.filterNotNull().map { it.at },
+        ui.map { it.keywordFilter }.distinctUntilChanged(),
+        lastVisitAt,
     ) { packageNames, query, keyword, since -> ListQuery(packageNames, query, keyword, since) }
         .distinctUntilChanged()
         .flatMapLatest { (packageNames, query, keyword, since) ->
@@ -151,54 +143,39 @@ class HomeViewModel(
         .flowOn(Dispatchers.Default)
         .cachedIn(viewModelScope)
 
-    init {
-        refreshLastVisit()
-        viewModelScope.launch {
-            val saved = repository.matchesFilter.first()
-            inputs.update { it.copy(filterPackages = saved.toPersistentSet(), isFilterLoaded = true) }
-        }
-    }
-
     fun onAction(action: HomeAction) {
         when (action) {
             is HomeAction.SearchQueryChanged -> query = action.query
 
-            HomeAction.ShowFilterSheet -> inputs.update {
-                it.copy(isFilterSheetVisible = true, filterDraft = it.filterPackages)
+            HomeAction.ShowFilterSheet -> ui.update {
+                val current = state.value.filter.map { app -> app.packageName }
+                it.copy(isFilterSheetVisible = true, filterDraft = current.toPersistentSet())
             }
 
-            HomeAction.DismissFilterSheet -> inputs.update { it.copy(isFilterSheetVisible = false) }
+            HomeAction.DismissFilterSheet -> ui.update { it.copy(isFilterSheetVisible = false) }
 
-            is HomeAction.ToggleFilterApp -> inputs.update {
-                val draft = it.filterDraft
-                it.copy(
-                    filterDraft = when (action.packageName in draft) {
-                        true -> draft.remove(action.packageName)
-                        else -> draft.add(action.packageName)
-                    }
-                )
+            is HomeAction.ToggleFilterApp -> ui.update {
+                it.copy(filterDraft = it.filterDraft.toggle(action.packageName))
             }
 
-            HomeAction.ClearFilterDraft -> inputs.update { it.copy(filterDraft = persistentSetOf()) }
+            HomeAction.ClearFilterDraft -> ui.update { it.copy(filterDraft = persistentSetOf()) }
 
             HomeAction.ApplyFilter -> {
-                inputs.update { it.copy(filterPackages = it.filterDraft, isFilterSheetVisible = false) }
-                saveFilter()
+                val draft = ui.value.filterDraft
+                ui.update { it.copy(isFilterSheetVisible = false) }
+                viewModelScope.launch { repository.saveMatchesFilter(draft) }
             }
 
-            HomeAction.ClearFilter -> {
-                inputs.update { it.copy(filterPackages = persistentSetOf()) }
-                saveFilter()
-            }
+            HomeAction.ClearFilter -> viewModelScope.launch { repository.saveMatchesFilter(emptySet()) }
 
-            is HomeAction.OpenMatch -> inputs.update { it.copy(openMatch = action.match) }
+            is HomeAction.OpenMatch -> ui.update { it.copy(openMatch = action.match) }
 
-            HomeAction.DismissMatch -> inputs.update { it.copy(openMatch = null) }
+            HomeAction.DismissMatch -> ui.update { it.copy(openMatch = null) }
 
             is HomeAction.OpenInApp -> openInApp(action.match)
 
             is HomeAction.LaunchApp -> {
-                inputs.update { it.copy(openMatch = null) }
+                ui.update { it.copy(openMatch = null) }
                 _effects.trySend(HomeEffect.LaunchApp(action.packageName))
             }
 
@@ -206,68 +183,48 @@ class HomeViewModel(
 
             HomeAction.ResetCount -> viewModelScope.launch { resetMatchCount() }
 
-            HomeAction.RefreshLastVisit -> refreshLastVisit()
-
-            is HomeAction.PermissionsChecked -> {
-                listenerHealth.accessChecked(action.hasListenerAccess)
-                inputs.update { it.copy(notificationsAllowed = action.notificationsAllowed) }
-            }
-
             HomeAction.ListenerRestartRequested -> listenerHealth.restartRequested()
 
             HomeAction.Resume -> viewModelScope.launch { settings.setPaused(false) }
 
-            is HomeAction.FilterByKeyword -> inputs.update { it.copy(keywordFilter = action.word) }
+            is HomeAction.FilterByKeyword -> ui.update { it.copy(keywordFilter = action.word) }
 
-            HomeAction.ClearKeywordFilter -> inputs.update { it.copy(keywordFilter = null) }
+            HomeAction.ClearKeywordFilter -> ui.update { it.copy(keywordFilter = null) }
 
-            HomeAction.StartSelection -> inputs.update {
+            HomeAction.StartSelection -> ui.update {
                 it.copy(isSelectionMode = true, selectedMatches = persistentSetOf())
             }
 
-            is HomeAction.StartSelectionWith -> inputs.update {
+            is HomeAction.StartSelectionWith -> ui.update {
                 it.copy(isSelectionMode = true, selectedMatches = persistentSetOf(action.matchId))
             }
 
-            HomeAction.ExitSelection -> inputs.update {
+            HomeAction.ExitSelection -> ui.update {
                 it.copy(isSelectionMode = false, selectedMatches = persistentSetOf())
             }
 
-            is HomeAction.ToggleMatchSelection -> inputs.update {
-                val selected = it.selectedMatches
-                it.copy(
-                    selectedMatches = when (action.matchId in selected) {
-                        true -> selected.remove(action.matchId)
-                        else -> selected.add(action.matchId)
-                    }
-                )
+            is HomeAction.ToggleMatchSelection -> ui.update {
+                it.copy(selectedMatches = it.selectedMatches.toggle(action.matchId))
             }
 
-            is HomeAction.SelectVisibleMatches -> inputs.update {
-                it.copy(selectedMatches = it.selectedMatches.addAll(action.matchIds))
+            is HomeAction.SelectVisibleMatches -> ui.update {
+                it.copy(selectedMatches = it.selectedMatches.toPersistentSet().addingAll(action.matchIds))
             }
 
             HomeAction.DeleteSelectedMatches -> deleteSelectedMatches()
 
-            HomeAction.ShowClearAllConfirm -> inputs.update { it.copy(isClearAllConfirmVisible = true) }
+            HomeAction.ShowClearAllConfirm -> ui.update { it.copy(isClearAllConfirmVisible = true) }
 
-            HomeAction.DismissClearAllConfirm -> inputs.update { it.copy(isClearAllConfirmVisible = false) }
+            HomeAction.DismissClearAllConfirm -> ui.update { it.copy(isClearAllConfirmVisible = false) }
 
             HomeAction.ClearAllMatches -> clearAllMatches()
 
-            is HomeAction.UndoDelete -> viewModelScope.launch { repository.restoreMatches(action.matches) }
-        }
-    }
-
-    private fun saveFilter() {
-        val packageNames = inputs.value.filterPackages
-        viewModelScope.launch { repository.saveMatchesFilter(packageNames) }
-    }
-
-    private fun refreshLastVisit() {
-        viewModelScope.launch {
-            val at = repository.lastVisitAt.first()
-            lastVisit.update { Visit(at) }
+            is HomeAction.UndoDelete -> viewModelScope.launch {
+                repository.restoreMatches(action.matches)
+                action.matches.maxByOrNull { it.timestamp }?.let { newest ->
+                    _effects.send(HomeEffect.MatchesRestored(newest.id))
+                }
+            }
         }
     }
 
@@ -297,22 +254,22 @@ class HomeViewModel(
                     intent.send()
                 }
             }
-            inputs.update { it.copy(openMatch = null) }
+            ui.update { it.copy(openMatch = null) }
         } catch (e: Exception) {
             _effects.trySend(HomeEffect.OpenInAppFailed(e.message))
         }
     }
 
     private fun deleteSelectedMatches() {
-        val selected = inputs.value.selectedMatches.toList()
+        val selected = ui.value.selectedMatches.toList()
         if (selected.isEmpty()) return
-        inputs.update { it.copy(isSelectionMode = false, selectedMatches = persistentSetOf()) }
+        ui.update { it.copy(isSelectionMode = false, selectedMatches = persistentSetOf()) }
         deleteMatches(selected)
     }
 
     private fun deleteMatches(ids: List<Long>) {
         if (ids.isEmpty()) return
-        inputs.update { it.copy(openMatch = null) }
+        ui.update { it.copy(openMatch = null) }
         viewModelScope.launch {
             // Copied first, so Undo can put them back with their original ids.
             val removed = repository.getMatchesByIds(ids)
@@ -322,7 +279,7 @@ class HomeViewModel(
     }
 
     private fun clearAllMatches() {
-        inputs.update { it.copy(isClearAllConfirmVisible = false) }
+        ui.update { it.copy(isClearAllConfirmVisible = false) }
         viewModelScope.launch {
             val removed = repository.getAllMatches()
             repository.clearMatches()
@@ -330,28 +287,16 @@ class HomeViewModel(
         }
     }
 
-    private data class Visit(val at: LocalDateTime?)
-
     private data class ListQuery(
         val packageNames: Set<String>,
         val query: String,
         val keyword: String?,
-        val since: LocalDateTime?,
+        val since: Instant?,
     )
 
-    private data class Inputs(
-        val filterPackages: PersistentSet<String> = persistentSetOf(),
-        val isFilterLoaded: Boolean = false,
-        val notificationsAllowed: Boolean = true,
-        val filterDraft: PersistentSet<String> = persistentSetOf(),
-        // Not saved: a keyword's "See matches" is a one-off look, not a setting.
-        val keywordFilter: String? = null,
-        val isFilterSheetVisible: Boolean = false,
-        val isClearAllConfirmVisible: Boolean = false,
-        val isSelectionMode: Boolean = false,
-        val selectedMatches: PersistentSet<Long> = persistentSetOf(),
-        val openMatch: KeywordMatch? = null,
-    )
+    private fun <T> ImmutableSet<T>.toggle(item: T): ImmutableSet<T> = toPersistentSet().let {
+        if (item in it) it.removing(item) else it.adding(item)
+    }
 
     companion object {
         fun factory(context: Context): ViewModelProvider.Factory {
@@ -362,6 +307,7 @@ class HomeViewModel(
                         repository = container.appRepository,
                         resetMatchCount = container.resetMatchCount,
                         settings = container.settingsRepository,
+                        systemState = container.systemStatus.state,
                     )
                 }
             }

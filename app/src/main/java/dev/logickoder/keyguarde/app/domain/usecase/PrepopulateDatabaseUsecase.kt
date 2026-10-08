@@ -8,7 +8,8 @@ import dev.logickoder.keyguarde.app.data.dao.WatchedAppDao
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.random.Random
 
 /**
@@ -35,9 +36,9 @@ class PrepopulateDatabaseUsecase(
             val template = Templates[random.nextInt(Templates.size)]
             val message = template.replace("{kw}", keyword).replaceFirstChar { it.uppercase() }
             val age = when {
-                index < 6 -> LocalDateTime.now().minusMinutes(random.nextLong(1, 180))
-                index < 40 -> LocalDateTime.now().minusHours(random.nextLong(3, 72))
-                else -> LocalDateTime.now().minusDays(random.nextLong(3, 365))
+                index < 6 -> Instant.now().minus(random.nextLong(1, 180), ChronoUnit.MINUTES)
+                index < 40 -> Instant.now().minus(random.nextLong(3, 72), ChronoUnit.HOURS)
+                else -> Instant.now().minus(random.nextLong(3, 365), ChronoUnit.DAYS)
             }
             keywordMatchDao.insert(
                 KeywordMatch(

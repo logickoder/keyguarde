@@ -4,7 +4,7 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.LocalDateTime
+import java.time.Instant
 
 class KeywordSortTest {
 
@@ -14,7 +14,7 @@ class KeywordSortTest {
     private val unused = Keyword("unused", createdAt = 4)
     private val keywords = listOf(rent, exam, invoice, unused)
 
-    private fun stats(word: String, hour: Int) = word to KeywordStats(word, 1, LocalDateTime.of(2026, 10, 8, hour, 0))
+    private fun stats(word: String, hour: Int) = word to KeywordStats(word, 1, Instant.parse("2026-10-08T00:00:00Z").plusSeconds(hour * 3_600L))
 
     private val stats = mapOf(stats("rent", 9), stats("exam", 11), stats("invoice", 10))
 

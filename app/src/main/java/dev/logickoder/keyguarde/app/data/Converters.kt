@@ -3,15 +3,14 @@ package dev.logickoder.keyguarde.app.data
 import androidx.room3.ColumnTypeConverter
 import kotlinx.serialization.json.Json
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 object Converters {
+    // Seconds since the epoch: a real instant, so times read right after the phone changes zone.
     @ColumnTypeConverter
-    fun fromLocalDateTime(value: LocalDateTime?) = value?.toEpochSecond()
+    fun fromInstant(value: Instant?) = value?.epochSecond
 
     @ColumnTypeConverter
-    fun toLocalDateTime(value: Long?) = value?.let(::localDateTimeOfEpochSecond)
+    fun toInstant(value: Long?) = value?.let(Instant::ofEpochSecond)
 
     @ColumnTypeConverter
     fun fromStringSet(value: Set<String>?): String? {
@@ -25,14 +24,3 @@ object Converters {
         }
     }
 }
-/**
- * Seconds since the epoch for this phone-local time. Stored times are real instants, so they still
- * read right after the phone changes time zone or clocks change.
- */
-fun LocalDateTime.toEpochSecond(): Long = atZone(ZoneId.systemDefault()).toEpochSecond()
-
-/**
- * The phone-local time for [epochSecond], the reverse of [toEpochSecond].
- */
-fun localDateTimeOfEpochSecond(epochSecond: Long): LocalDateTime =
-    LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSecond), ZoneId.systemDefault())

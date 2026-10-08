@@ -1,14 +1,12 @@
 package dev.logickoder.keyguarde.onboarding
 
-import android.content.Intent
-import android.provider.Settings
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,15 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.domain.NotificationHelper.isListenerServiceEnabled
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingPopTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.onboardingTransition
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -36,11 +31,12 @@ import dev.logickoder.keyguarde.onboarding.domain.OnboardingAction
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
 import dev.logickoder.keyguarde.onboarding.domain.OnboardingState
 import dev.logickoder.keyguarde.onboarding.domain.SetupTest
+import dev.logickoder.keyguarde.onboarding.pages.AccessPage
 import dev.logickoder.keyguarde.onboarding.pages.AppsPage
 import dev.logickoder.keyguarde.onboarding.pages.IntroPage
 import dev.logickoder.keyguarde.onboarding.pages.KeywordsPage
-import dev.logickoder.keyguarde.onboarding.pages.AccessPage
 import dev.logickoder.keyguarde.onboarding.pages.TestPage
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun OnboardingScreen(
@@ -53,27 +49,7 @@ fun OnboardingScreen(
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val checkPermissions = {
-        viewModel.onAction(
-            OnboardingAction.PermissionsChecked(
-                listenerGranted = isListenerServiceEnabled(context),
-                alertsAllowed = NotificationHelper.isNotificationPermissionGranted(context),
-            )
-        )
-    }
-    // Both are granted in system screens, so re-read them whenever the user comes back.
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { checkPermissions() }
-
-    val alertsPermission = NotificationHelper.requestNotificationPermissionLauncher { granted ->
-        checkPermissions()
-        // Android stops showing the prompt after repeated denials; settings is the way left.
-        if (!granted) {
-            context.startActivity(
-                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-            )
-        }
-    }
+    val enableAlerts = NotificationHelper.rememberEnableNotifications()
 
     // A missed test was never read, so nothing cleared it from the shade.
     LaunchedEffect(state.test) {
@@ -97,12 +73,8 @@ fun OnboardingScreen(
                 viewModel.onAction(OnboardingAction.TestSent)
             }
         },
-        onEnableAlerts = {
-            // The row only shows on Android 13+, where alerts need asking for.
-            if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
-                alertsPermission.launch(NotificationHelper.PERMISSION)
-            }
-        },
+        // The row only shows on Android 13+, where alerts need asking for.
+        onEnableAlerts = enableAlerts,
     )
 }
 

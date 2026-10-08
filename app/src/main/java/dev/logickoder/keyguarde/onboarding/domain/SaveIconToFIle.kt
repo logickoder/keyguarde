@@ -9,8 +9,19 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
+import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import java.io.File
 import java.io.FileOutputStream
+
+/**
+ * The app as Keyguarde stores it, with its icon saved to a file. Encodes an image, so keep it off
+ * the main thread.
+ */
+fun AppInfo.toWatchedApp(context: Context): WatchedApp = WatchedApp(
+    packageName = packageName,
+    name = name,
+    icon = saveIconToFile(icon, packageName, context),
+)
 
 fun saveIconToFile(icon: Drawable, packageName: String, context: Context): String {
     val file = getIconFile(context, packageName)

@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
+import dev.logickoder.keyguarde.app.domain.SystemState
 import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
@@ -34,7 +35,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.LocalDateTime
+import java.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -48,19 +49,23 @@ class HomeViewModelTest {
         message = "Rent is due",
         chat = "Landlord",
         app = app1.packageName,
-        timestamp = LocalDateTime.of(2026, 10, 1, 9, 0),
+        timestamp = Instant.parse("2026-10-01T09:00:00Z"),
     )
+
+    // Stands in for the saved setting: what's saved is what's read back.
+    private val savedFilter = MutableStateFlow<Set<String>>(emptySet())
 
     private val repository = mockk<AppRepository> {
         every { watchedApps } returns flowOf(listOf(app1, app2))
         every { lastVisitAt } returns flowOf(null)
-        every { matchesFilter } returns flowOf(emptySet())
+        every { matchesFilter } returns savedFilter
         every { matchCountsByApp } returns flowOf(mapOf(app1.packageName to 3, app2.packageName to 5))
-        coEvery { saveMatchesFilter(any()) } just Runs
+        coEvery { saveMatchesFilter(any()) } answers { savedFilter.value = firstArg() }
         every { getMatches(any(), any(), any()) } returns flowOf(PagingData.empty())
     }
 
     private val listenerConnected = MutableStateFlow(false)
+    private val system = MutableStateFlow(SystemState())
     private val paused = MutableStateFlow(false)
     private val settings = mockk<SettingsRepository>(relaxed = true) {
         every { isPaused } returns paused
@@ -71,7 +76,7 @@ class HomeViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), settings, listenerConnected)
+        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), settings, system, listenerConnected)
     }
 
     @After
@@ -193,7 +198,6 @@ class HomeViewModelTest {
     fun `an unbound listener is reported stopped only after the grace period`() = runTest(dispatcher) {
         backgroundScope.launch { viewModel.state.collect {} }
 
-        viewModel.onAction(HomeAction.PermissionsChecked(hasListenerAccess = true, notificationsAllowed = true))
         advanceTimeBy(1_000)
         assertEquals(ListenerIssue.None, viewModel.state.value.listenerIssue)
 
@@ -208,7 +212,6 @@ class HomeViewModelTest {
     @Test
     fun `a restart request holds the warning back while the listener binds`() = runTest(dispatcher) {
         backgroundScope.launch { viewModel.state.collect {} }
-        viewModel.onAction(HomeAction.PermissionsChecked(hasListenerAccess = true, notificationsAllowed = true))
         advanceUntilIdle()
         assertEquals(ListenerIssue.Stopped, viewModel.state.value.listenerIssue)
 
@@ -223,7 +226,6 @@ class HomeViewModelTest {
     @Test
     fun `connecting clears a failed restart`() = runTest(dispatcher) {
         backgroundScope.launch { viewModel.state.collect {} }
-        viewModel.onAction(HomeAction.PermissionsChecked(hasListenerAccess = true, notificationsAllowed = true))
         viewModel.onAction(HomeAction.ListenerRestartRequested)
         advanceUntilIdle()
         assertEquals(ListenerIssue.StillStopped, viewModel.state.value.listenerIssue)
@@ -231,17 +233,16 @@ class HomeViewModelTest {
         listenerConnected.value = true
         advanceUntilIdle()
         listenerConnected.value = false
-        viewModel.onAction(HomeAction.PermissionsChecked(hasListenerAccess = true, notificationsAllowed = true))
         advanceUntilIdle()
 
         assertEquals(ListenerIssue.Stopped, viewModel.state.value.listenerIssue)
     }
 
     @Test
-    fun `access off and blocked alerts come from the screen's checks`() = runTest(dispatcher) {
+    fun `access off and blocked alerts come from the system state`() = runTest(dispatcher) {
         backgroundScope.launch { viewModel.state.collect {} }
 
-        viewModel.onAction(HomeAction.PermissionsChecked(hasListenerAccess = false, notificationsAllowed = false))
+        system.value = SystemState(hasListenerAccess = false, notificationsAllowed = false)
         advanceUntilIdle()
 
         assertEquals(ListenerIssue.AccessOff, viewModel.state.value.listenerIssue)
@@ -250,8 +251,8 @@ class HomeViewModelTest {
 
     @Test
     fun `the list waits for the saved filter before loading`() = runTest(dispatcher) {
-        every { repository.matchesFilter } returns flowOf(setOf(app2.packageName))
-        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), settings, listenerConnected)
+        savedFilter.value = setOf(app2.packageName)
+        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), settings, system, listenerConnected)
         backgroundScope.launch { viewModel.matches.collect {} }
         advanceUntilIdle()
 

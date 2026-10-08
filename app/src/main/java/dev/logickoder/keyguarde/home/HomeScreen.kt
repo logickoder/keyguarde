@@ -2,13 +2,10 @@ package dev.logickoder.keyguarde.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,11 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,8 +40,6 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
@@ -56,16 +48,19 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.AnimatedStatusBanner
 import dev.logickoder.keyguarde.app.components.LocalToastManager
-import dev.logickoder.keyguarde.app.components.StatusBanner
+import dev.logickoder.keyguarde.app.components.NeutralSnackbarHost
 import dev.logickoder.keyguarde.app.components.ToastType
+import dev.logickoder.keyguarde.app.components.showUndo
+import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.appBatterySettings
-import dev.logickoder.keyguarde.app.domain.appNotificationSettings
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.home.HomeViewModel
 import dev.logickoder.keyguarde.home.components.ClearAllDialog
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
 import dev.logickoder.keyguarde.home.components.HomeTopAppBar
@@ -85,20 +80,17 @@ import dev.logickoder.keyguarde.home.domain.ListenerIssue
 import dev.logickoder.keyguarde.home.domain.MatchListItem
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * @param onOpenKeywords switches to the Keywords tab, from the empty state.
- * @param keyword a keyword whose matches the Keywords tab asked to see; applied once, then
- * [onKeywordHandled] clears it.
  */
 @Composable
 fun HomeScreen(
     onOpenKeywords: () -> Unit,
     modifier: Modifier = Modifier,
-    keyword: String? = null,
-    onKeywordHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -139,52 +131,35 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(keyword) {
-        if (keyword != null) {
-            viewModel.onAction(HomeAction.FilterByKeyword(keyword))
-            onKeywordHandled()
-        }
-    }
-
-    LifecycleEventEffect(Lifecycle.Event.ON_START) {
-        viewModel.onAction(HomeAction.RefreshLastVisit)
-    }
-
-    val checkPermissions = {
-        viewModel.onAction(
-            HomeAction.PermissionsChecked(
-                hasListenerAccess = NotificationHelper.isListenerServiceEnabled(context),
-                notificationsAllowed = NotificationHelper.isNotificationPermissionGranted(context),
-            )
-        )
-    }
-    // Both can change in system settings while the app is in the background.
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { checkPermissions() }
-
-    val notificationPermission = NotificationHelper.requestNotificationPermissionLauncher { granted ->
-        checkPermissions()
-        // Android stops showing the prompt after repeated denials; settings is the only way left.
-        if (!granted) context.startActivitySafely(appNotificationSettings(context))
-    }
+    val enableNotifications = NotificationHelper.rememberEnableNotifications()
 
     LaunchedEffect(viewModel) {
-        viewModel.effects.collect { effect ->
-            val undoMessage = when (effect) {
-                is HomeEffect.MatchesDeleted -> resources.getQuantityString(
-                    R.plurals.deleted_match,
-                    effect.matches.size,
-                    effect.matches.size,
-                ) to effect.matches
+        // Launched, so a pending snackbar never holds up later effects.
+        fun offerUndo(message: String, removed: List<KeywordMatch>) = launch {
+            val undone = snackbarHostState.showUndo(
+                message = message,
+                undoLabel = resources.getString(R.string.undo),
+                duration = SnackbarDuration.Long,
+            )
+            if (undone) viewModel.onAction(HomeAction.UndoDelete(removed))
+        }
 
-                is HomeEffect.MatchesCleared -> resources.getQuantityString(
-                    R.plurals.cleared_match,
-                    effect.matches.size,
-                    effect.matches.size,
-                ) to effect.matches
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is HomeEffect.MatchesDeleted -> offerUndo(
+                    message = resources.getQuantityString(R.plurals.deleted_match, effect.matches.size, effect.matches.size),
+                    removed = effect.matches,
+                )
+
+                is HomeEffect.MatchesCleared -> offerUndo(
+                    message = resources.getQuantityString(R.plurals.cleared_match, effect.matches.size, effect.matches.size),
+                    removed = effect.matches,
+                )
+
+                is HomeEffect.MatchesRestored -> restoredMatchId = effect.newestId
 
                 is HomeEffect.LaunchApp -> {
-                    val intent = context.packageManager.getLaunchIntentForPackage(effect.packageName)
-                    when (intent) {
+                    when (val intent = context.packageManager.getLaunchIntentForPackage(effect.packageName)) {
                         null -> toastManager.show(
                             message = resources.getString(R.string.launch_app_failed),
                             type = ToastType.Error,
@@ -192,36 +167,15 @@ fun HomeScreen(
 
                         else -> context.startActivity(intent)
                     }
-                    null
                 }
 
-                is HomeEffect.OpenInAppFailed -> {
-                    toastManager.show(
-                        message = resources.getString(
-                            R.string.open_in_app_failed,
-                            effect.reason ?: resources.getString(R.string.unknown_error),
-                        ),
-                        type = ToastType.Error
-                    )
-                    null
-                }
-            }
-            if (undoMessage != null) {
-                val (message, removed) = undoMessage
-                // Launched, so a pending snackbar never holds up later effects, and a newer delete
-                // replaces it instead of queueing behind it.
-                launch {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    val result = snackbarHostState.showSnackbar(
-                        message = message,
-                        actionLabel = resources.getString(R.string.undo),
-                        duration = SnackbarDuration.Long,
-                    )
-                    if (result == SnackbarResult.ActionPerformed) {
-                        viewModel.onAction(HomeAction.UndoDelete(removed))
-                        restoredMatchId = removed.maxByOrNull { it.timestamp }?.id
-                    }
-                }
+                is HomeEffect.OpenInAppFailed -> toastManager.show(
+                    message = resources.getString(
+                        R.string.open_in_app_failed,
+                        effect.reason ?: resources.getString(R.string.unknown_error),
+                    ),
+                    type = ToastType.Error,
+                )
             }
         }
     }
@@ -237,20 +191,13 @@ fun HomeScreen(
         onOpenKeywords = onOpenKeywords,
         onOpenListenerSettings = { NotificationHelper.launchListenerSettings(context) },
         onRestartListener = {
-            NotificationHelper.startListenerService(context)
-            NotificationHelper.requestListenerServiceRebind(context)
+            NotificationHelper.restartListener(context)
             viewModel.onAction(HomeAction.ListenerRestartRequested)
         },
         onOpenBatterySettings = {
             context.startActivitySafely(appBatterySettings(context))
         },
-        onEnableNotifications = {
-            if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
-                notificationPermission.launch(NotificationHelper.PERMISSION)
-            } else {
-                context.startActivitySafely(appNotificationSettings(context))
-            }
-        },
+        onEnableNotifications = enableNotifications,
     )
 }
 
@@ -323,13 +270,7 @@ private fun HomeContent(
             }
         },
         snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                snackbar = { data ->
-                    // The default action colour is teal (inversePrimary); keep it neutral.
-                    Snackbar(snackbarData = data, actionColor = MaterialTheme.colorScheme.inverseOnSurface)
-                }
-            )
+            NeutralSnackbarHost(hostState = snackbarHostState)
         },
         content = { scaffoldPadding ->
             Column(
@@ -358,9 +299,11 @@ private fun HomeContent(
                         state = listState,
                         content = {
 
-                            // Row callbacks capture this, not the whole state, so opening a sheet or other
+                            // Rows capture these, not the whole state, so opening a sheet or other
                             // state changes don't recompose every visible row.
                             val isSelectionMode = state.isSelectionMode
+                            val selectedMatches = state.selectedMatches
+                            val newSinceLastVisit = state.newSinceLastVisit
 
                             val refresh = matches.loadState.refresh
                             // Before the first page arrives, the list reports "not loading" with nothing
@@ -393,7 +336,7 @@ private fun HomeContent(
                                             null -> Unit
 
                                             MatchListItem.NewDivider -> NewSinceLastVisitHeader(
-                                                count = state.newSinceLastVisit,
+                                                count = newSinceLastVisit,
                                                 modifier = Modifier.animateItem(),
                                             )
 
@@ -402,10 +345,11 @@ private fun HomeContent(
                                                 content = {
                                                     MatchRow(
                                                         match = item.match,
+                                                        snippet = item.snippet,
                                                         app = appsByPackage[item.match.app],
                                                         isNew = item.isNew,
                                                         isSelected = when (isSelectionMode) {
-                                                            true -> item.match.id in state.selectedMatches
+                                                            true -> item.match.id in selectedMatches
                                                             else -> null
                                                         },
                                                         onClick = {
@@ -502,36 +446,21 @@ private fun StatusBanners(
     Column(
         modifier = Modifier.padding(horizontal = Spacing.l),
         content = {
-            AnimatedVisibility(
+            AnimatedStatusBanner(
                 visible = isPaused,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-                content = {
-                    StatusBanner(
-                        message = stringResource(R.string.banner_paused),
-                        actions = listOf(stringResource(R.string.status_resume) to onResume),
-                        modifier = Modifier.padding(top = Spacing.s),
-                    )
-                }
+                message = stringResource(R.string.banner_paused),
+                actions = listOf(stringResource(R.string.status_resume) to onResume),
             )
-            // A paused listener is meant to be quiet, so its problems wait until Resume.
             ListenerIssueBanners(
-                issue = if (isPaused) ListenerIssue.None else listenerIssue,
+                issue = listenerIssue,
                 onOpenListenerSettings = onOpenListenerSettings,
                 onRestartListener = onRestartListener,
                 onOpenBatterySettings = onOpenBatterySettings,
             )
-            AnimatedVisibility(
+            AnimatedStatusBanner(
                 visible = !notificationsAllowed,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-                content = {
-                    StatusBanner(
-                        message = stringResource(R.string.banner_notifications_off),
-                        actions = listOf(stringResource(R.string.banner_turn_on) to onEnableNotifications),
-                        modifier = Modifier.padding(top = Spacing.s),
-                    )
-                }
+                message = stringResource(R.string.banner_notifications_off),
+                actions = listOf(stringResource(R.string.banner_turn_on) to onEnableNotifications),
             )
         }
     )

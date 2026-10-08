@@ -1,6 +1,7 @@
 package dev.logickoder.keyguarde.app.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,19 +13,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,10 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -47,16 +41,17 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.AppIcon
+import dev.logickoder.keyguarde.app.components.AppPickerRow
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.app.theme.neutralCheckboxColors
+import dev.logickoder.keyguarde.app.theme.neutralTextFieldColors
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.onboarding.domain.splitMessagingApps
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
-
-private val Monochrome = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
 
 /**
  * Picks which apps Keyguarde watches. Chat apps first, everything else folded away behind search,
@@ -141,16 +136,7 @@ private fun LazyListScope.appRows(
             onToggle = { onToggle(app.packageName) },
             modifier = Modifier.animateItem(),
             gutter = gutter,
-            icon = {
-                AsyncImage(
-                    model = app.icon,
-                    contentDescription = null,
-                    colorFilter = Monochrome,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape),
-                )
-            },
+            icon = { AppIcon(name = app.name, icon = app.icon, contentDescription = null, size = 32.dp) },
         )
     }
 }
@@ -198,6 +184,7 @@ fun AppPickerRow(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
     gutter: Dp = Spacing.xl,
+    trailing: @Composable () -> Unit = {},
     icon: @Composable () -> Unit,
 ) {
     Row(
@@ -212,11 +199,7 @@ fun AppPickerRow(
             Checkbox(
                 checked = checked,
                 onCheckedChange = null,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colorScheme.onSurface,
-                    checkmarkColor = MaterialTheme.colorScheme.surface,
-                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                colors = neutralCheckboxColors(),
             )
             icon()
             Text(
@@ -226,6 +209,7 @@ fun AppPickerRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
+            trailing()
         }
     )
 }
@@ -271,9 +255,6 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit, gutter: 
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         singleLine = true,
         shape = RoundedCornerShape(Radius.m),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.onSurface,
-            cursorColor = MaterialTheme.colorScheme.onSurface,
-        ),
+        colors = neutralTextFieldColors(),
     )
 }

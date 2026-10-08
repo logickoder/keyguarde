@@ -12,28 +12,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.highlightKeywords
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.app.theme.neutralSwitchColors
 import dev.logickoder.keyguarde.onboarding.components.HeroLayout
 
 /**
@@ -46,7 +43,7 @@ fun IntroPage(modifier: Modifier = Modifier) {
     val keywordColor = MaterialTheme.colorScheme.primary
     val headline = stringResource(R.string.intro_headline, keyword)
     val styledHeadline = remember(headline, keyword, keywordColor) {
-        highlight(headline, keyword, keywordColor)
+        highlightKeywords(headline, listOf(keyword), keywordColor)
     }
 
     HeroLayout(
@@ -99,7 +96,7 @@ private fun IntroIllustration(keyword: String, modifier: Modifier = Modifier) {
 private fun MockNotification(keyword: String) {
     val keywordColor = MaterialTheme.colorScheme.primary
     val message = stringResource(R.string.intro_sample_message, keyword)
-    val styledMessage = remember(message, keyword, keywordColor) { highlight(message, keyword, keywordColor) }
+    val styledMessage = remember(message, keyword, keywordColor) { highlightKeywords(message, listOf(keyword), keywordColor) }
 
     Row(
         modifier = Modifier
@@ -158,21 +155,10 @@ private fun MockAccessToggle(modifier: Modifier = Modifier) {
                 checked = true,
                 onCheckedChange = null,
                 // Neutral like the rest of the app; the real toggle in Settings uses the system colour.
-                colors = SwitchDefaults.colors(
-                    checkedTrackColor = MaterialTheme.colorScheme.onSurface,
-                    checkedThumbColor = MaterialTheme.colorScheme.surface,
-                ),
+                colors = neutralSwitchColors(),
             )
         }
     )
-}
-
-private fun highlight(text: String, keyword: String, color: Color): AnnotatedString = buildAnnotatedString {
-    append(text)
-    val start = text.indexOf(keyword, ignoreCase = true)
-    if (start >= 0) {
-        addStyle(SpanStyle(fontWeight = FontWeight.Bold, color = color), start, start + keyword.length)
-    }
 }
 
 @Preview(showBackground = true, heightDp = 800)

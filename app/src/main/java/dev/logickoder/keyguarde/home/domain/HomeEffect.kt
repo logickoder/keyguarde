@@ -12,6 +12,9 @@ sealed interface HomeEffect {
 
     data class MatchesCleared(val matches: List<KeywordMatch>) : HomeEffect
 
+    /** Undo put matches back; [newestId] is the one to bring into view. */
+    data class MatchesRestored(val newestId: Long) : HomeEffect
+
     data class OpenInAppFailed(val reason: String?) : HomeEffect
 
     /** Starting an activity needs a Context, so the screen does it. */
