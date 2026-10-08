@@ -212,9 +212,9 @@ private fun TitleContent(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         content = {
             // Decorative: the app name right after says the same thing. Small and grey so the
-            // solid shield doesn't pull the eye away from the list.
+            // mark doesn't pull the eye away from the list.
             Icon(
-                painter = painterResource(R.drawable.logo),
+                painter = painterResource(R.drawable.ic_keyguarde),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant

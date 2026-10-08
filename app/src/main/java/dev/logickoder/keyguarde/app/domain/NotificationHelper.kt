@@ -173,7 +173,7 @@ object NotificationHelper {
 
         // Build the notification
         val notification = NotificationCompat.Builder(context, CHANNEL_ID_BACKGROUND)
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_keyguarde)
             .setContentTitle(title)
             .setContentText(content)
             .setContentIntent(contentIntent)
@@ -212,7 +212,7 @@ object NotificationHelper {
         }
         createNotificationChannels(context)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID_SETUP_TEST)
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_keyguarde)
             .setContentTitle(context.getString(R.string.setup_test_notification_title))
             .setContentText(context.getString(R.string.setup_test_notification_text, keyword))
             .setAutoCancel(true)
@@ -272,7 +272,7 @@ object NotificationHelper {
 
         // Build the notification with or without heads-up based on user preference
         val builder = NotificationCompat.Builder(context, CHANNEL_ID_MATCH_ALERTS)
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_keyguarde)
             .setContentTitle(title)
             .setContentText(content)
             .setColor(ContextCompat.getColor(context, R.color.primary))
