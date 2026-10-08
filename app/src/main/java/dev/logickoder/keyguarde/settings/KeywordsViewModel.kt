@@ -12,6 +12,7 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
 import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import dev.logickoder.keyguarde.settings.domain.KeywordsState
+import dev.logickoder.keyguarde.settings.domain.sortKeywords
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.channels.Channel
@@ -35,12 +36,14 @@ class KeywordsViewModel(
 
     val state: StateFlow<KeywordsState> = combine(
         repository.keywords,
-        repository.matchCountsByKeyword,
+        repository.statsByKeyword,
+        repository.keywordSort,
         editing,
-    ) { keywords, counts, editing ->
+    ) { keywords, stats, sort, editing ->
         KeywordsState(
-            keywords = keywords.toImmutableList(),
-            matchCounts = counts.toImmutableMap(),
+            keywords = sortKeywords(keywords, stats, sort).toImmutableList(),
+            stats = stats.toImmutableMap(),
+            sort = sort,
             editing = editing,
         )
     }.stateIn(
@@ -56,6 +59,8 @@ class KeywordsViewModel(
             }
 
             is KeywordsAction.Edit -> editing.update { action.keyword }
+
+            is KeywordsAction.SetSort -> viewModelScope.launch { repository.saveKeywordSort(action.sort) }
 
             KeywordsAction.DismissEdit -> editing.update { null }
 

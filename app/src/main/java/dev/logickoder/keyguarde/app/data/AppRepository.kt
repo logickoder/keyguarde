@@ -7,14 +7,17 @@ import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
+import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
+import dev.logickoder.keyguarde.settings.domain.KeywordSort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -128,11 +131,18 @@ class AppRepository(
     }
 
     /**
-     * How many matches each keyword has, keyed by the lowercased word.
+     * Match count and last match per keyword, keyed by the lowercased word.
      */
-    val matchCountsByKeyword: Flow<Map<String, Int>> = database.keywordMatchDao().countByKeyword().map { counts ->
-        counts.associate { it.word to it.count }
+    val statsByKeyword: Flow<Map<String, KeywordStats>> = database.keywordMatchDao().statsByKeyword().map { stats ->
+        stats.associateBy { it.word }
     }
+
+    /** How the Keywords tab orders its list. An unknown saved name falls back to recent match. */
+    val keywordSort: Flow<KeywordSort> = localStore.get(KEYWORD_SORT).map { name ->
+        KeywordSort.entries.firstOrNull { it.name == name } ?: KeywordSort.RecentMatch
+    }
+
+    suspend fun saveKeywordSort(sort: KeywordSort) = localStore.save(KEYWORD_SORT, sort.name)
 
     /**
      * Copies of matches, taken before a delete so it can be undone.
@@ -350,6 +360,8 @@ class AppRepository(
         private val MATCHES_FILTER = stringSetPreferencesKey("matches_filter_apps")
 
         private val CAUGHT_COUNT = intPreferencesKey("caught_count")
+
+        private val KEYWORD_SORT = stringPreferencesKey("keyword_sort")
 
         // Package names of priority apps
         const val WHATSAPP_PACKAGE_NAME = "com.whatsapp"

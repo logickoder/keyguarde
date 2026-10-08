@@ -8,6 +8,8 @@ sealed interface KeywordsAction {
 
     data class Edit(val keyword: Keyword) : KeywordsAction
 
+    data class SetSort(val sort: KeywordSort) : KeywordsAction
+
     data object DismissEdit : KeywordsAction
 
     /** The edited word from the sheet; already checked by the sheet. */

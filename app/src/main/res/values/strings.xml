@@ -233,11 +233,11 @@
     <string name="keyword_edit_title">Edit keyword</string>
     <string name="keyword_delete">Delete keyword</string>
     <string name="keyword_deleted">Deleted “%1$s”</string>
+    <string name="keyword_sort_recent_match">Recent match</string>
+    <string name="keyword_sort_alphabetical">A to Z</string>
+    <string name="keyword_sort_recently_added">Recently added</string>
+    <string name="keyword_sort_by">Sort: %1$s</string>
     <string name="keyword_no_matches">No matches yet</string>
-    <plurals name="keyword_match_count">
-        <item quantity="one">%1$d match</item>
-        <item quantity="other">%1$d matches</item>
-    </plurals>
     <string name="no_keywords_added">No keywords yet</string>
     <string name="no_keywords_added_desc">Keyguarde catches nothing until you add one. Type your own above, or tap one below.</string>
 

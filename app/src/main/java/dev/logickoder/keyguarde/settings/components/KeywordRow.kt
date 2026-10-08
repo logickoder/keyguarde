@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
@@ -38,17 +37,19 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.home.components.formatRelativeTime
+import java.time.LocalDateTime
 import kotlin.math.abs
 
 /**
- * One keyword, in teal like everywhere a keyword shows, with how many matches it has caught, so a
- * keyword that never fires stands out. Tap to edit; swipe left to delete. TalkBack gets both as
+ * One keyword, in teal like everywhere a keyword shows, with when it last matched, so a keyword
+ * that stopped firing stands out. Tap to edit; swipe left to delete. TalkBack gets both as
  * actions, since a swipe is hard to find and harder to perform with a screen reader.
  */
 @Composable
 fun KeywordRow(
     word: String,
-    matchCount: Int,
+    lastMatchAt: LocalDateTime?,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -107,9 +108,9 @@ fun KeywordRow(
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        text = when (matchCount) {
-                            0 -> stringResource(R.string.keyword_no_matches)
-                            else -> pluralStringResource(R.plurals.keyword_match_count, matchCount, matchCount)
+                        text = when (lastMatchAt) {
+                            null -> stringResource(R.string.keyword_no_matches)
+                            else -> formatRelativeTime(lastMatchAt)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -146,5 +147,5 @@ private fun DeleteBackground() {
 @Preview(showBackground = true)
 @Composable
 private fun KeywordRowPreview() = AppTheme {
-    KeywordRow(word = "invoice", matchCount = 12, onClick = {}, onDelete = {})
+    KeywordRow(word = "invoice", lastMatchAt = LocalDateTime.now().minusHours(2), onClick = {}, onDelete = {})
 }

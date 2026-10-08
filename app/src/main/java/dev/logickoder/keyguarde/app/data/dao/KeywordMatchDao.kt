@@ -7,7 +7,7 @@ import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import dev.logickoder.keyguarde.app.data.model.AppMatchCount
-import dev.logickoder.keyguarde.app.data.model.KeywordMatchCount
+import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
@@ -60,14 +60,14 @@ interface KeywordMatchDao {
     fun countByApp(): Flow<List<AppMatchCount>>
 
     /**
-     * How many matches each keyword has. Keywords are stored as a JSON list per match, and
-     * lowercased here so older matches saved in another case still count.
+     * How many matches each keyword has and when it last matched. Keywords are stored as a JSON
+     * list per match, and lowercased here so older matches saved in another case still count.
      */
     @Query(
-        "SELECT lower(k.value) AS word, COUNT(*) AS count " +
+        "SELECT lower(k.value) AS word, COUNT(*) AS count, MAX(timestamp) AS lastMatchAt " +
             "FROM keyword_matches, json_each(keyword_matches.keywords) AS k GROUP BY lower(k.value)"
     )
-    fun countByKeyword(): Flow<List<KeywordMatchCount>>
+    fun statsByKeyword(): Flow<List<KeywordStats>>
 
     @Query("DELETE FROM keyword_matches WHERE rowid IN (:ids)")
     suspend fun delete(ids: List<Long>)

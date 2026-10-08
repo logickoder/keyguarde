@@ -1,14 +1,23 @@
 package dev.logickoder.keyguarde.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -17,32 +26,42 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.KeywordField
 import dev.logickoder.keyguarde.app.components.SuggestionPill
 import dev.logickoder.keyguarde.app.data.model.Keyword
+import dev.logickoder.keyguarde.app.data.model.KeywordStats
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.settings.components.KeywordEditSheet
 import dev.logickoder.keyguarde.settings.components.KeywordRow
 import dev.logickoder.keyguarde.settings.components.SettingsDivider
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
+import dev.logickoder.keyguarde.settings.domain.KeywordSort
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
 import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import dev.logickoder.keyguarde.settings.domain.KeywordsState
@@ -133,7 +152,13 @@ private fun KeywordsContent(
                         true -> item(key = "empty") { EmptyKeywords(onAdd = { onAction(KeywordsAction.Add(it)) }) }
 
                         else -> {
-                            item(key = "label") { ListLabel(count = state.keywords.size) }
+                            item(key = "label") {
+                                ListHeader(
+                                    count = state.keywords.size,
+                                    sort = state.sort,
+                                    onSort = { onAction(KeywordsAction.SetSort(it)) },
+                                )
+                            }
                             itemsIndexed(state.keywords, key = { _, keyword -> keyword.word }) { index, keyword ->
                                 Column(
                                     modifier = Modifier.animateItem(),
@@ -141,7 +166,7 @@ private fun KeywordsContent(
                                         if (index > 0) SettingsDivider()
                                         KeywordRow(
                                             word = keyword.word,
-                                            matchCount = state.matchCounts[keyword.word.lowercase()] ?: 0,
+                                            lastMatchAt = state.stats[keyword.word.lowercase()]?.lastMatchAt,
                                             onClick = { onAction(KeywordsAction.Edit(keyword)) },
                                             onDelete = { onAction(KeywordsAction.Delete(keyword)) },
                                         )
@@ -166,15 +191,70 @@ private fun KeywordsContent(
     }
 }
 
+/**
+ * How many keywords there are, and the order they're in. The sort sits here, next to what it
+ * sorts, not in a top-bar menu.
+ */
 @Composable
-private fun ListLabel(count: Int) {
-    Text(
-        text = pluralStringResource(R.plurals.keyword_count, count, count),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+private fun ListHeader(count: Int, sort: KeywordSort, onSort: (KeywordSort) -> Unit) {
+    var menuOpen by remember { mutableStateOf(false) }
+    Row(
         modifier = Modifier
-            .padding(start = Spacing.l, end = Spacing.l, top = Spacing.l, bottom = Spacing.xs)
-            .semantics { heading() },
+            .fillMaxWidth()
+            .padding(start = Spacing.l, end = Spacing.xs, top = Spacing.s),
+        verticalAlignment = Alignment.CenterVertically,
+        content = {
+            Text(
+                text = pluralStringResource(R.plurals.keyword_count, count, count),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { heading() },
+            )
+            Box(
+                content = {
+                    val sortLabel = stringResource(R.string.keyword_sort_by, stringResource(sort.label))
+                    TextButton(
+                        onClick = { menuOpen = true },
+                        modifier = Modifier.semantics { contentDescription = sortLabel },
+                        content = {
+                            Text(
+                                text = stringResource(sort.label),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                // The button already says "Sort: …"; reading the label again is noise.
+                                modifier = Modifier.clearAndSetSemantics {},
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    )
+                    DropdownMenu(
+                        expanded = menuOpen,
+                        onDismissRequest = { menuOpen = false },
+                        content = {
+                            KeywordSort.entries.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(option.label)) },
+                                    onClick = {
+                                        onSort(option)
+                                        menuOpen = false
+                                    },
+                                    modifier = Modifier.semantics { selected = option == sort },
+                                    trailingIcon = {
+                                        if (option == sort) Icon(Icons.Default.Check, contentDescription = null)
+                                    },
+                                )
+                            }
+                        }
+                    )
+                }
+            )
+        }
     )
 }
 
@@ -241,7 +321,7 @@ private fun KeywordsContentPreview() = AppTheme {
     KeywordsContent(
         state = KeywordsState(
             keywords = persistentListOf(Keyword(word = "urgent"), Keyword(word = "meeting")),
-            matchCounts = persistentMapOf("urgent" to 12),
+            stats = persistentMapOf("urgent" to KeywordStats("urgent", 12, LocalDateTime.now().minusHours(2))),
         ),
         snackbarHostState = remember { SnackbarHostState() },
         onAction = {},

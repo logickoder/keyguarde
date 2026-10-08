@@ -2,6 +2,9 @@ package dev.logickoder.keyguarde.settings
 
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
+import dev.logickoder.keyguarde.app.data.model.KeywordStats
+import dev.logickoder.keyguarde.settings.domain.KeywordSort
+import java.time.LocalDateTime
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
 import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import io.mockk.coVerify
@@ -28,7 +31,8 @@ class KeywordsViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val repository = mockk<AppRepository>(relaxed = true) {
         every { keywords } returns flowOf(listOf(Keyword("invoice"), Keyword("rent")))
-        every { matchCountsByKeyword } returns flowOf(mapOf("invoice" to 12))
+        every { statsByKeyword } returns flowOf(mapOf("invoice" to KeywordStats("invoice", 12, LocalDateTime.of(2026, 10, 1, 9, 0))))
+        every { keywordSort } returns flowOf(KeywordSort.RecentMatch)
     }
 
     @Before
@@ -42,15 +46,15 @@ class KeywordsViewModelTest {
     }
 
     @Test
-    fun `each keyword carries its match count`() = runTest(dispatcher) {
+    fun `keywords come with their stats, most recent match first`() = runTest(dispatcher) {
         val viewModel = KeywordsViewModel(repository)
         backgroundScope.launch { viewModel.state.collect {} }
         advanceUntilIdle()
 
         val state = viewModel.state.value
         assertEquals(listOf("invoice", "rent"), state.keywords.map { it.word })
-        assertEquals(12, state.matchCounts["invoice"])
-        assertEquals(null, state.matchCounts["rent"])
+        assertEquals(12, state.stats["invoice"]?.count)
+        assertEquals(null, state.stats["rent"])
     }
 
     @Test
@@ -120,5 +124,14 @@ class KeywordsViewModelTest {
 
         coVerify { repository.addKeyword(exam) }
         coVerify(exactly = 0) { repository.addKeyword(rent) }
+    }
+
+    @Test
+    fun `picking a sort saves it`() = runTest(dispatcher) {
+        val viewModel = KeywordsViewModel(repository)
+        viewModel.onAction(KeywordsAction.SetSort(KeywordSort.Alphabetical))
+        advanceUntilIdle()
+
+        coVerify { repository.saveKeywordSort(KeywordSort.Alphabetical) }
     }
 }
