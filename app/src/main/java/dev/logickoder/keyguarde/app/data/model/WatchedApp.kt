@@ -1,7 +1,7 @@
 package dev.logickoder.keyguarde.app.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room3.Entity
+import androidx.room3.PrimaryKey
 
 @Entity(tableName = "selected_apps")
 data class WatchedApp(

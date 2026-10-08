@@ -1,25 +1,29 @@
-import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import CookieBanner from './components/CookieBanner';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfUsePage from './pages/TermsOfUsePage';
-import ContactPage from './pages/ContactPage';
+import PageViews from './analytics/PageViews';
 
 export default function App() {
   return (
-    <div className="bg-background min-h-screen font-sans text-primary">
+    <div className="min-h-screen bg-paper font-sans text-ink">
       <HashRouter>
         <ScrollToTop />
+        <PageViews />
         <Navbar />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfUsePage />} />
-          <Route path="/contact" element={<ContactPage />} />
+          {/* Contact moved to the footer; old links land on the home page. */}
+          <Route path="/contact" element={<Navigate to="/" replace />} />
         </Routes>
         <Footer />
+        <CookieBanner />
       </HashRouter>
     </div>
   );

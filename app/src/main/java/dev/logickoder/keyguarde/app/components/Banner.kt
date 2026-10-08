@@ -6,85 +6,77 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.app.domain.NotificationHelper
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import dev.logickoder.keyguarde.app.components.AnimatedStatusBanner
+import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.Radius
+import dev.logickoder.keyguarde.app.theme.Spacing
 
+/**
+ * A neutral warning with explicit actions, for problems that stop Keyguarde catching messages.
+ * The icon and wording carry the warning, not colour.
+ *
+ * @param actions label and handler for each button, most useful first.
+ */
 @Composable
-fun Banner(
+fun StatusBanner(
     message: String,
-    visible: Boolean,
-    onClick: () -> Unit,
+    actions: List<Pair<String, () -> Unit>>,
     modifier: Modifier = Modifier,
-    showIcon: Boolean = true,
-    showDismiss: Boolean = false,
-    onDismiss: (() -> Unit)? = null
 ) {
-    AnimatedVisibility(
-        modifier = modifier,
-        visible = visible,
-        enter = expandVertically() + fadeIn(),
-        exit = shrinkVertically() + fadeOut(),
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(Radius.m),
         content = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = MaterialTheme.shapes.small,
-                onClick = onClick,
+            Column(
+                modifier = Modifier.padding(start = Spacing.l, end = Spacing.s, top = Spacing.m, bottom = Spacing.xs),
                 content = {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(end = Spacing.s),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
                         content = {
-                            if (showIcon) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Warning,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-
+                            Icon(
+                                imageVector = Icons.Outlined.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
                             Text(
                                 text = message,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.weight(1f)
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
                             )
-
-                            if (showDismiss && onDismiss != null) {
-                                IconButton(
-                                    onClick = onDismiss,
-                                    modifier = Modifier.size(24.dp),
+                        }
+                    )
+                    Row(
+                        modifier = Modifier.align(Alignment.End),
+                        content = {
+                            actions.forEach { (label, onClick) ->
+                                TextButton(
+                                    onClick = onClick,
                                     content = {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = stringResource(R.string.dismiss),
-                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                        Text(
+                                            text = label,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = FontWeight.SemiBold,
                                         )
                                     }
                                 )
@@ -97,46 +89,30 @@ fun Banner(
     )
 }
 
+/**
+ * A [StatusBanner] that slides in and out, so the content below moves instead of jumping.
+ */
 @Composable
-fun NotificationPermissionBanner(
-    modifier: Modifier = Modifier,
+fun ColumnScope.AnimatedStatusBanner(
+    visible: Boolean,
+    message: String,
+    actions: List<Pair<String, () -> Unit>>,
 ) {
-    if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
-        val context = LocalContext.current
-        var permissionGranted by remember {
-            mutableStateOf(NotificationHelper.isNotificationPermissionGranted(context))
+    AnimatedVisibility(
+        visible = visible,
+        enter = expandVertically() + fadeIn(),
+        exit = shrinkVertically() + fadeOut(),
+        content = {
+            StatusBanner(message = message, actions = actions, modifier = Modifier.padding(top = Spacing.s))
         }
-        val permissionLauncher = NotificationHelper.requestNotificationPermissionLauncher {
-            permissionGranted = it
-        }
-
-        Banner(
-            modifier = modifier,
-            visible = !permissionGranted,
-            message = stringResource(R.string.notification_permission_banner_message),
-            onClick = {
-                permissionLauncher.launch(NotificationHelper.PERMISSION)
-            },
-        )
-    }
+    )
 }
 
+@Preview
 @Composable
-fun NotificationListenerBanner(
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    val inPreview = LocalInspectionMode.current
-    var listenerEnabled by remember {
-        mutableStateOf(if (inPreview) false else NotificationHelper.isListenerServiceEnabled(context))
-    }
-
-    Banner(
-        message = stringResource(R.string.notification_listener_banner_message),
-        onClick = {
-            NotificationHelper.launchListenerSettings(context)
-        },
-        modifier = modifier,
-        visible = !listenerEnabled,
+private fun StatusBannerPreview() = AppTheme {
+    StatusBanner(
+        message = "Keyguarde stopped checking new messages. Android closed its listener in the background.",
+        actions = listOf("Restart" to {}, "Battery settings" to {}),
     )
 }

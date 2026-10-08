@@ -15,3 +15,5 @@
 local.properties
 app/release
 .kotlin
+# Local design review screenshots
+/docs/design/

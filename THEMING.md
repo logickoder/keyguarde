@@ -1,57 +1,50 @@
-## 🎨 Theming Specifications
+# Theming
 
-### Brand Name
+The app and the website share one look: a cool grey ramp, and teal only on matched keywords. Source of truth: `app/src/main/java/dev/logickoder/keyguarde/app/theme/` for the app, `website/src/main.css` for the site.
 
-**Keyguarde**
+## Colour
 
----
+Teal means "this word matched". Nothing else is teal: buttons, links, switches and icons stay neutral, and status uses icons and words, never colour alone.
 
-### Primary Colors
+| Role | Light | Dark |
+|---|---|---|
+| Keyword (`primary`) | `#0E716A` Teal 700 | `#2DD4BF` Teal 400 |
+| Background, surface | `#FFFFFF` | `#121214` |
+| Text (`onSurface`) | `#18181B` | `#F4F4F5` |
+| Secondary text (`onSurfaceVariant`) | `#52525B` | `#A1A1AA` |
+| Outline | `#8A8A93` | `#71717A` |
+| Divider (`outlineVariant`) | `#E4E4E7` | `#3F3F46` |
+| Error | `#B42318` | `#F97066` |
 
-* **Primary:** `#3B82F6` (Blue 500)
-* **Primary Container:** `#E0F2FE` (Light Blue)
-* **On Primary:** `#FFFFFF`
-* **Secondary:** `#14B8A6` (Teal 500)
-* **Secondary Container:** `#CCFBF1`
-* **On Secondary:** `#FFFFFF`
-* **Error:** `#EF4444` (Red 500)
-* **Error Container:** `#FEE2E2`
-* **On Error:** `#FFFFFF`
-* **Background:** `#FFFFFF`
-* **Surface:** `#FFFFFF`
-* **On Background/Surface:** `#1F2937` (Gray 800)
+- Every Material colour slot is set in `Theme.kt`, so nothing falls back to the stock palette.
+- Every text pair clears 4.5:1, and icons and outlines clear 3:1, in both themes.
+- Primary buttons are dark neutral (`onSurface` fill, `surface` text): `PrimaryButton`. Checkboxes, switches and text fields use `neutralCheckboxColors()`, `neutralSwitchColors()` and `neutralTextFieldColors()`.
+- Fallback avatars use grey tones picked from the chat name.
+- The theme follows the system setting by default. Settings, then Theme, can force light or dark.
 
----
+## Type
 
-### Typography
+- **Inter** for everything: regular, medium, semibold, bold.
+- **Oswald** only for keyword pills and the Keywords list.
+- Both are Google downloadable fonts, not bundled.
 
-* **Font Family:** Inter (Google Fonts)
-* **Weights:** 400, 500, 600, 700
-* **Example Usage:**
+## Spacing and shape
 
-    * Headline Medium: `fontSize = 24.sp`, `fontWeight = Bold`
-    * Body Medium: `fontSize = 16.sp`
-    * Label Small: `fontSize = 12.sp`
+- Spacing: `xs 4`, `s 8`, `m 12`, `l 16`, `xl 24`, `xxl 32` (dp). Use `Spacing`, not ad hoc values.
+- Radius: `s 8`, `m 12`, `l 20`, `pill`. Use `Radius`.
+- Touch targets are at least 48dp.
 
----
+## Icon
 
-### Iconography
+The Keyhole mark: a teal chat bubble with a keyhole. Sources are in `docs/brand/`:
 
-* Material Symbols Rounded
-* Consistent stroke width
-* Custom icons for:
+- `keyguarde-icon-master.svg`: the full-colour icon.
+- `keyguarde-mark-mono.svg`: one colour, for themed icons and the notification icon.
+- `play-store-icon-512.png`: the Play Store icon.
 
-    * Notification bell (`ic_notification_listen`)
-    * Filter (`ic_keyword_filter`)
-    * Privacy shield (`ic_privacy_shield`)
-    * Battery efficient (`ic_battery_efficient`)
+The launcher icon is adaptive, with a monochrome layer for Android themed icons.
 
----
+## Notifications
 
-### Notification Style
-
-* Silent persistent notification: Neutral background, counter badge
-* Heads-up alert: Highlights keyword in primary color
-* Tap to open chat
-
----
+- **Match alert:** names the matched keywords and the chat. Tapping opens Keyguarde.
+- **Match count:** a silent, ongoing notification, "8 new matches in 2 chats". It hides while Keyguarde is paused and clears when the count resets.

@@ -1,11 +1,14 @@
 package dev.logickoder.keyguarde.app.data
 
 import android.content.Context
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room3.ColumnTypeConverters
+import androidx.room3.DaoReturnTypeConverters
+import androidx.room3.Database
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.app.data.dao.KeywordDao
 import dev.logickoder.keyguarde.app.data.dao.KeywordMatchDao
@@ -19,7 +22,8 @@ import dev.logickoder.keyguarde.app.domain.usecase.PrepopulateDatabaseUsecase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@TypeConverters(Converters::class)
+@ColumnTypeConverters(Converters::class)
+@DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 @Database(
     entities = [
         Keyword::class,
@@ -27,7 +31,7 @@ import kotlinx.coroutines.launch
         KeywordMatch::class,
         KeywordMatchFts::class,
     ],
-    version = 2,
+    version = 3,
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -38,38 +42,33 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun keywordMatchDao(): KeywordMatchDao
 
     companion object {
-        @Volatile
-        private var instance: AppDatabase? = null
-
-        fun getInstance(context: Context): AppDatabase {
-            return instance ?: synchronized(this) {
-                instance = buildDatabase(context)
-                instance!!
-            }
-        }
-
-        private fun buildDatabase(context: Context): AppDatabase {
+        fun build(context: Context): AppDatabase {
+            lateinit var database: AppDatabase
             val callback = object : Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    val db = instance
-                    if (db == null || !BuildConfig.DEBUG) {
+                override suspend fun onCreate(connection: SQLiteConnection) {
+                    super.onCreate(connection)
+                    if (!BuildConfig.DEBUG) {
                         return
                     }
                     AppScope.launch(Dispatchers.IO) {
                         PrepopulateDatabaseUsecase(
-                            keywordDao = db.keywordDao(),
-                            watchedAppDao = db.watchedAppDao(),
-                            keywordMatchDao = db.keywordMatchDao(),
+                            keywordDao = database.keywordDao(),
+                            watchedAppDao = database.watchedAppDao(),
+                            keywordMatchDao = database.keywordMatchDao(),
                         )()
                     }
                 }
             }
-            return Room.databaseBuilder(
+            database = Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 "${BuildConfig.APPLICATION_ID}.db"
-            ).addMigrations(MIGRATION_1_2).addCallback(callback).build()
+            ).setDriver(BundledSQLiteDriver())
+                .setQueryCoroutineContext(Dispatchers.IO)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addCallback(callback)
+                .build()
+            return database
         }
     }
 }

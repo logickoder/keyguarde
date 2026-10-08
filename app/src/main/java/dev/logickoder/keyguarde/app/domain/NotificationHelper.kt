@@ -6,6 +6,7 @@ import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -13,12 +14,19 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -28,7 +36,7 @@ import androidx.core.graphics.drawable.toBitmap
 import dev.logickoder.keyguarde.BuildConfig
 import dev.logickoder.keyguarde.MainActivity
 import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
+import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.service.AppListenerService
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
@@ -40,10 +48,15 @@ object NotificationHelper {
     // Channel IDs
     private const val CHANNEL_ID_BACKGROUND = "background_info"
     private const val CHANNEL_ID_MATCH_ALERTS = "match_alerts"
+    private const val CHANNEL_ID_SETUP_TEST = "setup_test"
 
     // Notification IDs
     private const val NOTIFICATION_ID_PERSISTENT = 1001
     private const val NOTIFICATION_ID_MATCH = 2001
+    private const val NOTIFICATION_ID_SETUP_TEST = 3001
+
+    /** Marks Keyguarde's own setup test, the one notification of its own the listener reads. */
+    const val EXTRA_SETUP_TEST = "${BuildConfig.APPLICATION_ID}.SETUP_TEST"
 
     // Action IDs
     private const val ACTION_RESET_COUNT = "${BuildConfig.APPLICATION_ID}.RESET_COUNT"
@@ -85,13 +98,28 @@ object NotificationHelper {
             lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
         }
 
+        // Setup test channel: one notification during onboarding, removed as soon as it's read
+        val setupTestChannel = NotificationChannel(
+            CHANNEL_ID_SETUP_TEST,
+            context.getString(R.string.channel_setup_test_name),
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = context.getString(R.string.channel_setup_test_description)
+            setShowBadge(false)
+        }
+
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannels(
             listOf(
                 backgroundChannel,
-                matchAlertsChannel
+                matchAlertsChannel,
+                setupTestChannel
             )
         )
+    }
+
+    fun cancelPersistentNotification(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PERSISTENT)
     }
 
     /**
@@ -105,8 +133,8 @@ object NotificationHelper {
     @SuppressLint("MissingPermission")
     fun showPersistentNotification(
         context: Context,
-        matchCount: Int = 0,
-        chatCount: Int = 0
+        matchCount: Int,
+        chatCount: Int,
     ) {
         if (!isNotificationPermissionGranted(context)) {
             return
@@ -132,26 +160,15 @@ object NotificationHelper {
 
         // Notification content
         val title = context.getString(R.string.persistent_notification_title)
-        val content = when {
-            matchCount <= 0 -> context.getString(R.string.persistent_notification_content_no_matches)
-            chatCount == 1 -> context.resources.getQuantityString(
-                R.plurals.persistent_notification_matches,
-                matchCount,
-                matchCount,
-                chatCount
-            )
-
-            else -> context.resources.getQuantityString(
-                R.plurals.persistent_notification_matches_multiple_chats,
-                matchCount,
-                matchCount,
-                chatCount
-            )
-        }
+        val content = context.getString(
+            R.string.persistent_notification_matches,
+            context.resources.getQuantityString(R.plurals.persistent_notification_match_count, matchCount, matchCount),
+            context.resources.getQuantityString(R.plurals.persistent_notification_chat_count, chatCount, chatCount),
+        )
 
         // Build the notification
         val notification = NotificationCompat.Builder(context, CHANNEL_ID_BACKGROUND)
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_keyguarde)
             .setContentTitle(title)
             .setContentText(content)
             .setContentIntent(contentIntent)
@@ -169,6 +186,32 @@ object NotificationHelper {
             .build()
 
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_PERSISTENT, notification)
+    }
+
+    /**
+     * Posts the setup test: a notification containing [keyword] that the listener reports back
+     * instead of saving. Returns false when Android won't let Keyguarde post at all.
+     */
+    @SuppressLint("MissingPermission")
+    fun postSetupTest(context: Context, keyword: String): Boolean {
+        if (!isNotificationPermissionGranted(context)) {
+            return false
+        }
+        createNotificationChannels(context)
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID_SETUP_TEST)
+            .setSmallIcon(R.drawable.ic_keyguarde)
+            .setContentTitle(context.getString(R.string.setup_test_notification_title))
+            .setContentText(context.getString(R.string.setup_test_notification_text, keyword))
+            .setAutoCancel(true)
+            .addExtras(Bundle().apply { putBoolean(EXTRA_SETUP_TEST, true) })
+            .build()
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_SETUP_TEST, notification)
+        return true
+    }
+
+    /** Removes the setup test when the listener didn't, so it doesn't linger in the shade. */
+    fun cancelSetupTest(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_SETUP_TEST)
     }
 
     /**
@@ -224,7 +267,7 @@ object NotificationHelper {
 
         // Build the notification with or without heads-up based on user preference
         val builder = NotificationCompat.Builder(context, CHANNEL_ID_MATCH_ALERTS)
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_keyguarde)
             .setContentTitle(title)
             .setContentText(content)
             .setColor(ContextCompat.getColor(context, R.color.primary))
@@ -260,7 +303,7 @@ object NotificationHelper {
             override fun onReceive(context: Context, intent: Intent) {
                 if (intent.action == ACTION_RESET_COUNT) {
                     AppScope.launch {
-                        ResetMatchCountUsecase(context)
+                        AppContainer.from(context).resetMatchCount()
                     }
                 }
             }
@@ -294,6 +337,12 @@ object NotificationHelper {
         }
     }
 
+    /** Wakes a listener Android stopped: toggles the component, then asks Android to bind it again. */
+    fun restartListener(context: Context) {
+        startListenerService(context)
+        requestListenerServiceRebind(context)
+    }
+
     fun requestListenerServiceRebind(context: Context) {
         if (!isListenerServiceEnabled(context)) {
             return
@@ -318,8 +367,23 @@ object NotificationHelper {
         return enabledListeners?.split(":")?.contains(componentName) == true
     }
 
+    /**
+     * Opens Keyguarde's own access toggle where Android supports it (11+), so the user doesn't
+     * hunt for it in a list of every listener app. Falls back to that list elsewhere.
+     */
     fun launchListenerSettings(context: Context) {
-        context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        val component = ComponentName(context, AppListenerService::class.java).flattenToString()
+        val detail = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS)
+                .putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, component)
+
+            else -> null
+        }
+        try {
+            context.startActivity(detail ?: Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        } catch (_: ActivityNotFoundException) {
+            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        }
     }
 
     @Composable
@@ -328,6 +392,35 @@ object NotificationHelper {
             contract = ActivityResultContracts.RequestPermission(),
             onResult = onResult
         )
+
+    /**
+     * What an "Enable notifications" button does: ask for the permission where Android has one,
+     * else open Keyguarde's notification settings.
+     */
+    @Composable
+    fun rememberEnableNotifications(): () -> Unit {
+        val context = LocalContext.current
+        val activity = LocalActivity.current
+        // Whether Android would explain the request before this launch; see the result below.
+        var hadRationale by remember { mutableStateOf(false) }
+        val launcher = requestNotificationPermissionLauncher { granted ->
+            // The prompt is a dialog, so the app never leaves the foreground to refresh on return.
+            AppContainer.from(context).systemStatus.refresh()
+            // After repeated denials Android skips the prompt and reports a denial at once, with
+            // no rationale before or after. Only then is settings the way left; a user who just
+            // tapped "Don't allow" in the prompt meant it.
+            val promptSkipped = !hadRationale && activity != null && !canRequestNotificationPermission(activity)
+            if (!granted && promptSkipped) context.startActivitySafely(appNotificationSettings(context))
+        }
+        return {
+            if (REQUIRES_NOTIFICATION_PERMISSION) {
+                hadRationale = activity != null && canRequestNotificationPermission(activity)
+                launcher.launch(PERMISSION)
+            } else {
+                context.startActivitySafely(appNotificationSettings(context))
+            }
+        }
+    }
 
     @SuppressLint("NewApi")
     fun canRequestNotificationPermission(activity: Activity): Boolean {

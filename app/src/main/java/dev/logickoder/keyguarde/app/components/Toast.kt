@@ -67,30 +67,15 @@ fun Toast(
     data: ToastData,
     onDismiss: () -> Unit
 ) {
-    val (backgroundColor, textColor, icon) = when (data.type) {
-        ToastType.Success -> Triple(
-            MaterialTheme.colorScheme.secondary,
-            MaterialTheme.colorScheme.onSecondary,
-            Icons.Default.CheckCircle
-        )
-
-        ToastType.Error -> Triple(
-            MaterialTheme.colorScheme.error,
-            MaterialTheme.colorScheme.onError,
-            Icons.Default.Error
-        )
-
-        ToastType.Info -> Triple(
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.onPrimary,
-            Icons.Default.Info
-        )
-
-        ToastType.Warning -> Triple(
-            MaterialTheme.colorScheme.tertiary,
-            MaterialTheme.colorScheme.onTertiary,
-            Icons.Default.Warning
-        )
+    // Dark neutral for every type, like the snackbar: teal is reserved for matched keywords, and
+    // the icon and wording carry the type, not colour.
+    val backgroundColor = MaterialTheme.colorScheme.inverseSurface
+    val textColor = MaterialTheme.colorScheme.inverseOnSurface
+    val icon = when (data.type) {
+        ToastType.Success -> Icons.Default.CheckCircle
+        ToastType.Error -> Icons.Default.Error
+        ToastType.Info -> Icons.Default.Info
+        ToastType.Warning -> Icons.Default.Warning
     }
 
     // Auto-dismiss logic

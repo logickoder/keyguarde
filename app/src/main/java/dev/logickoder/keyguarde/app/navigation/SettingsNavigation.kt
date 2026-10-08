@@ -1,95 +1,74 @@
 package dev.logickoder.keyguarde.app.navigation
 
-import android.os.Parcelable
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsEnterTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsExitTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopEnterTransition
-import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopExitTransition
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopTransition
+import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsTransition
 import dev.logickoder.keyguarde.settings.BatterySettingsScreen
-import dev.logickoder.keyguarde.settings.ContactScreen
-import dev.logickoder.keyguarde.settings.FaqScreen
-import dev.logickoder.keyguarde.settings.KeywordsScreen
-import dev.logickoder.keyguarde.settings.NotificationSettingsScreen
+import dev.logickoder.keyguarde.settings.HelpScreen
 import dev.logickoder.keyguarde.settings.PrivacySettingsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
 import dev.logickoder.keyguarde.settings.WatchedAppsScreen
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 @Composable
 fun SettingsNavigation(
     modifier: Modifier = Modifier,
-    onBack: () -> Unit,
 ) {
-    val navController = rememberNavController()
+    val backStack = rememberNavBackStack(SettingsRoute.Main)
 
-    val goBack: () -> Unit = remember(navController) {
+    val goBack: () -> Unit = remember(backStack) {
         {
-            navController.popBackStack()
+            backStack.removeLastOrNull()
         }
     }
 
-    NavHost(
+    NavDisplay(
         modifier = modifier,
-        navController = navController,
-        startDestination = SettingsRoute.Main,
-        builder = {
-            screen<SettingsRoute.Main> {
+        backStack = backStack,
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        transitionSpec = settingsTransition,
+        popTransitionSpec = settingsPopTransition,
+        predictivePopTransitionSpec = { settingsPopTransition() },
+        entryProvider = entryProvider {
+            entry<SettingsRoute.Main> {
                 SettingsScreen(
-                    onBack = onBack,
                     onNavigate = {
-                        navController.navigate(it)
+                        backStack.add(it)
                     },
                 )
             }
 
-            screen<SettingsRoute.Keywords> {
-                KeywordsScreen(
-                    onBack = goBack,
-                )
-            }
-
-            screen<SettingsRoute.Apps> {
+            entry<SettingsRoute.Apps> {
                 WatchedAppsScreen(
                     onBack = goBack,
                 )
             }
 
-            screen<SettingsRoute.Notifications> {
-                NotificationSettingsScreen(
-                    onBack = goBack,
-                )
-            }
-
-            screen<SettingsRoute.Battery> {
+            entry<SettingsRoute.Battery> {
                 BatterySettingsScreen(
                     onBack = goBack,
                 )
             }
 
-            screen<SettingsRoute.Privacy> {
+            entry<SettingsRoute.Privacy> {
                 PrivacySettingsScreen(
                     onBack = goBack,
                 )
             }
 
-            screen<SettingsRoute.Faqs> {
-                FaqScreen(
-                    onBack = goBack,
-                )
-            }
-
-            screen<SettingsRoute.Contact> {
-                ContactScreen(
+            entry<SettingsRoute.Help> {
+                HelpScreen(
                     onBack = goBack,
                 )
             }
@@ -97,46 +76,19 @@ fun SettingsNavigation(
     )
 }
 
-private inline fun <reified T : SettingsRoute> NavGraphBuilder.screen(
-    noinline content: @Composable() (AnimatedContentScope.(NavBackStackEntry) -> Unit)
-) = composable<T>(
-    enterTransition = settingsEnterTransition,
-    exitTransition = settingsExitTransition,
-    popEnterTransition = settingsPopEnterTransition,
-    popExitTransition = settingsPopExitTransition,
-    content = content
-)
-
-sealed interface SettingsRoute : Parcelable {
+sealed interface SettingsRoute : NavKey {
     @Serializable
-    @Parcelize
     data object Main : SettingsRoute
 
     @Serializable
-    @Parcelize
-    data object Keywords : SettingsRoute
-
-    @Serializable
-    @Parcelize
     data object Apps : SettingsRoute
 
     @Serializable
-    @Parcelize
-    data object Notifications : SettingsRoute
-
-    @Serializable
-    @Parcelize
     data object Battery : SettingsRoute
 
     @Serializable
-    @Parcelize
     data object Privacy : SettingsRoute
 
     @Serializable
-    @Parcelize
-    data object Faqs : SettingsRoute
-
-    @Serializable
-    @Parcelize
-    data object Contact : SettingsRoute
+    data object Help : SettingsRoute
 }

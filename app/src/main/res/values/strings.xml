@@ -1,51 +1,170 @@
 <resources>
+    <!-- Common -->
+    <string name="tab_matches">Matches</string>
+    <string name="tab_keywords">Keywords</string>
+    <string name="undo">Undo</string>
+    <string name="clear">Clear</string>
+    <string name="more_options">More options</string>
     <string name="app_name">Keyguarde</string>
-    <string name="previous">Previous</string>
-    <string name="next">Next</string>
-    <string name="welcome_to_app">Welcome to Keyguarde</string>
-    <string name="never_miss_important_messages_again">Never miss important messages again</string>
-    <string name="what_app_does">Keyguarde watches for keywords in your notifications so you\'ll know when something
-        important arrives.
-    </string>
-    <string name="how_app_works_title">How Keyguarde Works</string>
-    <string name="notification_listening">Notification Listening</string>
-    <string name="notification_listening_desc">Keyguarde monitors notifications from your selected apps</string>
-    <string name="keyword_filtering">Keyword Filtering</string>
-    <string name="keyword_filtering_desc">When keywords you care about appear, Keyguarde keeps track</string>
-    <string name="privacy_focused">Privacy Focused</string>
-    <string name="privacy_focused_desc">Everything happens locally on your device, no data is sent anywhere</string>
-    <string name="battery_efficient">Battery Efficient</string>
-    <string name="battery_efficient_desc">Designed to use minimal resources while protecting your privacy</string>
-    <string name="notification_access">Notification Access</string>
-    <string name="notifications_access_desc">This is necessary to scan for your keywords. Your privacy is our priority -
-        all processing happens on your device and no data leaves it.
-    </string>
-    <string name="permission_granted">Permission Granted</string>
-    <string name="grant_permission">Grant Permission</string>
-    <string name="why_is_this_needed">Why is this needed?</string>
-    <string name="notifications_access_desc_1">Keyguarde works by looking at notification content to match your
-        keywords. This permission is essential for the app to work correctly.
-    </string>
-    <string name="notifications_access_desc_2">We take your privacy seriously. All processing happens locally on your
-        device and no data is stored or transmitted elsewhere.
-    </string>
-    <string name="select_apps_to_monitor">Select Apps to Monitor</string>
-    <string name="select_apps_to_monitor_desc">Choose which apps Keyguarde should watch for your keywords</string>
-    <string name="you_can_change_selections_later">You can change these selections later in Settings</string>
-    <string name="permissions_needed">Required Permissions</string>
-    <string name="post_notifications">Post Notifications</string>
-    <string name="post_notifications_desc">Allow Keyguarde to show you alerts when keywords are detected</string>
-    <string name="why_are_these_needed">Why are these needed?</string>
-    <string name="post_notification_desc_details">The persistent notification lets Keyguarde run reliably in the
-        background and show you alerts when your keywords are detected.
-    </string>
-    <string name="notification_permission_banner_message">
-        Notifications are currently disabled. Tap here to enable.
-    </string>
-    <string name="notification_listener_banner_message">
-        Enable notification access for full functionality.
-    </string>
-    <string name="dismiss">Dismiss</string>
+    <string name="settings">Settings</string>
+    <string name="search">Search</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="expanded">Expanded</string>
+    <string name="collapsed">Collapsed</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="keyword">Keyword</string>
+    <string name="add_keyword">Add Keyword</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_step">Step %1$d of %2$d</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_hint_keywords">Add at least one keyword to continue.</string>
+    <string name="onboarding_hint_apps">Pick at least one app to continue.</string>
+    <string name="intro_sample_keyword">invoice</string>
+    <string name="intro_headline">Never miss an %1$s again</string>
+    <string name="intro_body">Pick the words that matter. Keyguarde watches your chat notifications and keeps every message that mentions them.</string>
+    <string name="intro_privacy">Your messages never leave your phone. Keyguarde reads them on-device and keeps matches only here.</string>
+    <string name="intro_sample_chat">Design Team</string>
+    <string name="intro_sample_initials">DT</string>
+    <string name="keywords_title">What should Keyguarde look for?</string>
+    <string name="keywords_body">Add words or short phrases. Keyguarde matches whole words in any case, so “rent” catches “Rent due” but not “current”.</string>
+    <string name="keywords_placeholder">Type a word or phrase</string>
+    <string name="keywords_added_label">Your keywords</string>
+    <string name="keywords_suggestions_label">Suggestions</string>
+    <string name="keywords_remove">Remove %1$s</string>
+    <string name="keywords_add_suggestion">Add %1$s</string>
+    <string name="keyword_duplicate">You already added “%1$s”.</string>
+    <string-array name="keyword_suggestions">
+        <item>urgent</item>
+        <item>payment</item>
+        <item>invoice</item>
+        <item>meeting</item>
+        <item>deadline</item>
+        <item>delivery</item>
+        <item>interview</item>
+        <item>call me</item>
+    </string-array>
+    <string name="apps_title">Which apps should it watch?</string>
+    <string name="apps_body">Keyguarde only reads notifications from the apps you pick. You can change this later in Settings.</string>
+    <string name="apps_suggested">Chat apps on this phone</string>
+    <string name="apps_no_suggested">No common chat apps found. Pick from all apps below.</string>
+    <string name="apps_loading">Finding your apps…</string>
+    <string name="apps_search">Search apps</string>
+    <plurals name="apps_all">
+        <item quantity="one">All apps (%1$d)</item>
+        <item quantity="other">All apps (%1$d)</item>
+    </plurals>
+    <string name="access_title">Let Keyguarde read notifications</string>
+    <string name="access_body">Turn on Keyguarde on the next screen, then come back. Android\'s warning lists everything a listener could do. Keyguarde only reads.</string>
+    <string name="access_title_done">Keyguarde can read notifications</string>
+    <string name="access_body_done">It only checks the apps you picked, and only for your keywords.</string>
+    <string name="access_toggle_label">Notification access</string>
+    <string name="access_allow">Allow notification access</string>
+    <string name="access_alerts_title">Alerts for new matches</string>
+    <string name="access_alerts_body">Optional. Matches are saved either way.</string>
+    <string name="access_alerts_turn_on">Turn on</string>
+    <string name="access_alerts_on">On</string>
+    <string name="test_title">Try it once</string>
+    <string name="test_body">Keyguarde sends itself a notification with “%1$s” in it. If it catches it, you\'re set.</string>
+    <string name="test_title_waiting">Sending a test…</string>
+    <string name="test_title_caught">It works</string>
+    <string name="test_body_caught">From now on, matches from %1$s show up in Matches.</string>
+    <string name="test_title_missed">The test didn\'t arrive</string>
+    <string name="test_body_missed">Android didn\'t pass the notification to Keyguarde. Turn Keyguarde\'s notification access off and on, then come back to test again.</string>
+    <string name="test_title_no_alerts">Almost done</string>
+    <string name="test_body_no_alerts">Turn on alerts to send yourself a test, or finish now. Matches are saved either way.</string>
+    <string name="test_status_waiting">Waiting for it…</string>
+    <string name="test_status_missed">Didn\'t arrive</string>
+    <string name="test_send">Send a test match</string>
+    <string name="test_try_again">Try again</string>
+    <string name="test_go_to_matches">Go to Matches</string>
+    <string name="test_finish">Finish setup</string>
+    <string name="test_skip">Skip and finish</string>
+    <string name="test_finish_anyway">Finish anyway</string>
+    <string name="test_turn_on_alerts">Turn on alerts</string>
+    <string name="test_open_access">Open access settings</string>
+    <string name="setup_test_notification_title">Keyguarde setup test</string>
+    <string name="setup_test_notification_text">Testing Keyguarde: does it catch “%1$s”?</string>
+    <string name="channel_setup_test_name">Setup test</string>
+    <string name="channel_setup_test_description">One notification during setup, to check Keyguarde can read notifications</string>
+    <string name="intro_sample_message">The %1$s for March is still open. Can you check?</string>
+
+    <!-- Home -->
+    <string name="search_matches">Search matches…</string>
+    <string name="clear_search">Clear search</string>
+    <string name="select_matches">Select matches</string>
+    <string name="clear_all_matches">Clear all matches</string>
+    <string name="exit_selection">Exit selection</string>
+    <string name="select_all">Select all</string>
+    <string name="reset_counter">Reset counter</string>
+    <string name="filter">Filter</string>
+    <plurals name="filter_active">
+        <item quantity="one">Filter, %1$d app selected</item>
+        <item quantity="other">Filter, %1$d apps selected</item>
+    </plurals>
+    <string name="clear_keyword_filter">Show all keywords, not only “%1$s”</string>
+    <string name="clear_keyword">Show all keywords</string>
+    <string name="filtered_by">Filtered: %1$s</string>
+    <string name="clear_filter">Clear filter</string>
+    <string name="filter_sheet_title">Show matches from</string>
+    <string name="all_apps">All apps</string>
+    <string name="filter_group_selected">Selected</string>
+    <string name="filter_show_all">Show all</string>
+    <plurals name="filter_show_matches">
+        <item quantity="one">Show %1$d match</item>
+        <item quantity="other">Show %1$d matches</item>
+    </plurals>
+    <plurals name="filter_app_matches">
+        <item quantity="one">%1$d match</item>
+        <item quantity="other">%1$d matches</item>
+    </plurals>
+    <string name="clear_all_title">Clear all matches?</string>
+    <string name="clear_all_body">This removes every saved match. You can undo it right after.</string>
+    <string name="clear_all_confirm">Clear all</string>
+    <string name="selected_count">%1$d selected</string>
+    <string name="empty_title">No matches yet</string>
+    <string name="empty_body">When a message in a watched app contains one of your keywords, it shows up here.</string>
+    <string name="empty_review_keywords">Review keywords</string>
+    <string name="empty_filtered_title">No matches here</string>
+    <string name="empty_search_body">Nothing matches “%1$s”.</string>
+    <string name="empty_keyword_body">Nothing caught by “%1$s” here.</string>
+    <string name="empty_filter_body">Nothing from %1$s yet.</string>
+    <string name="empty_search_filter_body">Nothing from %2$s matches “%1$s”.</string>
+    <string name="loading_matches">Loading matches</string>
+    <string name="banner_access_off">Keyguarde isn\'t checking new messages. Notification access is off.</string>
+    <string name="banner_turn_on_access">Turn on access</string>
+    <string name="banner_listener_stopped">Keyguarde stopped checking new messages. Android closed its listener in the background.</string>
+    <string name="banner_restart">Restart</string>
+    <string name="banner_battery_settings">Battery settings</string>
+    <string name="banner_listener_still_stopped">Restart didn\'t reconnect the listener. Turn Keyguarde\'s notification access off, then on again.</string>
+    <string name="banner_open_access">Open access settings</string>
+    <string name="banner_notifications_off">Match alerts won\'t show. Notifications are off for Keyguarde.</string>
+    <string name="banner_turn_on">Turn on</string>
+    <string name="banner_paused">Keyguarde is paused. It isn\'t checking new messages.</string>
+    <string name="open_in_app_failed">Failed to open app: %1$s</string>
+    <string name="launch_app_failed">Can\'t open this app. It isn\'t installed, or it has no main screen. Find the chat in the app directly.</string>
+    <string name="match_open_in">Open in %1$s</string>
+    <string name="match_open_app">Open %1$s app</string>
+    <string name="match_expired">This notification expired, so Keyguarde can\'t jump to the chat.</string>
+    <string name="delete_match">Delete match</string>
+    <string name="copy_message">Copy message</string>
+    <string name="message_copied">Message copied</string>
+    <string name="match_source_time">%1$s · %2$s</string>
+    <string name="match_today_at">Today, %1$s</string>
+    <string name="match_yesterday_at">Yesterday, %1$s</string>
+    <string name="just_now">Just now</string>
+    <string name="match_new">New</string>
+    <string name="minutes_ago">%1$d min ago</string>
+    <string name="hours_ago">%1$d hr ago</string>
+    <string name="yesterday">Yesterday</string>
+    <plurals name="new_since_last_visit">
+        <item quantity="one">%1$d new since last visit</item>
+        <item quantity="other">%1$d new since last visit</item>
+    </plurals>
     <plurals name="deleted_match">
         <item quantity="one">Deleted 1 match</item>
         <item quantity="other">Deleted %1$d matches</item>
@@ -55,7 +174,138 @@
         <item quantity="other">Cleared all %1$d matches</item>
     </plurals>
 
-    <!-- Notification Channel Names -->
+    <!-- Keyword dialog -->
+    <string name="keyword_too_short">Keyword must be at least 2 characters</string>
+
+    <!-- Settings -->
+    <string name="section_watching">Watching</string>
+    <string name="section_alerts">Alerts</string>
+    <string name="section_reliability">Reliability</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="section_about">About</string>
+    <string name="settings_apps">Apps</string>
+    <string name="settings_apps_keep_one">Can\'t untick %1$s. Keyguarde needs at least one app to watch. Tick another app first, or pause Keyguarde in Settings.</string>
+    <string name="settings_apps_missing">Not on this phone</string>
+    <string name="settings_apps_body">Keyguarde only reads notifications from the apps you tick.</string>
+    <plurals name="settings_app_count">
+        <item quantity="one">%1$d app</item>
+        <item quantity="other">%1$d apps</item>
+    </plurals>
+    <string name="alerts_heads_up">Pop-up alerts</string>
+    <string name="alerts_persistent">Match count in notification bar</string>
+    <string name="alerts_reset_on_open">Reset count when I open Keyguarde</string>
+    <string name="alerts_preview">Send a sample alert</string>
+    <string name="settings_battery">Battery use</string>
+    <string name="battery_unrestricted">Unrestricted</string>
+    <string name="battery_restricted">Restricted</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_help">Help</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="status_listening">Listening</string>
+    <string name="status_body">Keyguarde checks new messages in your watched apps.</string>
+    <string name="status_body_no_alerts">Turn on alerts to run a test.</string>
+    <plurals name="status_caught">
+        <item quantity="one">Caught 1 message so far.</item>
+        <item quantity="other">Caught %1$d messages so far.</item>
+    </plurals>
+    <string name="rate_prompt">Finding Keyguarde useful?</string>
+    <string name="rate_prompt_action">Rate it</string>
+    <string name="rate_prompt_dismiss">Don\'t ask again</string>
+    <string name="status_no_keywords">Add a keyword in the Keywords tab to start catching messages.</string>
+    <string name="status_body_caught">Keyguarde caught “%1$s” in a test message.</string>
+    <string name="status_run_test">Run a test</string>
+    <string name="status_battery_restricted">Battery saving can pause it while your phone sits idle.</string>
+    <string name="status_fix_battery">Fix</string>
+    <string name="status_done">Done</string>
+    <string name="status_pause">Pause</string>
+    <string name="status_resume">Resume</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_paused_body">Not checking new messages. Matches you already have stay here.</string>
+    <string name="privacy">Privacy</string>
+
+    <!-- Keyword filters -->
+    <plurals name="keyword_count">
+        <item quantity="one">%1$d keyword</item>
+        <item quantity="other">%1$d keywords</item>
+    </plurals>
+    <string name="keyword_edit_label">edit</string>
+    <string name="keyword_edit_title">Edit keyword</string>
+    <string name="keyword_delete">Delete keyword</string>
+    <string name="keyword_deleted">Deleted “%1$s”</string>
+    <string name="keyword_sort_recent_match">Recent match</string>
+    <string name="keyword_sort_alphabetical">A to Z</string>
+    <string name="keyword_sort_recently_added">Recently added</string>
+    <string name="keyword_sort_by">Sort: %1$s</string>
+    <plurals name="keyword_see_matches">
+        <item quantity="one">See 1 match</item>
+        <item quantity="other">See %1$d matches</item>
+    </plurals>
+    <string name="keyword_no_matches">No matches yet</string>
+    <string name="no_keywords_added">No keywords yet</string>
+    <string name="no_keywords_added_desc">Keyguarde catches nothing until you add one. Type your own above, or tap one below.</string>
+
+    <!-- Battery settings -->
+    <string name="battery_title_restricted">Battery use is restricted</string>
+    <string name="battery_body_restricted">Android can pause Keyguarde to save battery while your phone sits idle. Messages that arrive then won\'t be caught.</string>
+    <string name="battery_allow">Open battery settings</string>
+    <string name="battery_steps">Tap App battery usage, then Unrestricted.</string>
+    <string name="battery_steps_background_usage">Tap App battery usage, then Allow background usage, then Unrestricted.</string>
+    <string name="battery_steps_legacy">Pick All apps, find Keyguarde, then pick Don\'t optimize.</string>
+    <string name="battery_title_unrestricted">Battery use is unrestricted</string>
+    <string name="battery_body_unrestricted">Android won\'t pause Keyguarde to save battery.</string>
+    <string name="battery_open_settings">Battery settings</string>
+    <string name="autostart_title">Some phones need one more step</string>
+    <string name="autostart_body">Xiaomi, Huawei, Oppo, Vivo and some Samsung phones also stop apps that can\'t start on their own. In Keyguarde\'s app settings, turn on Autostart or Background activity.</string>
+    <string name="autostart_open">Open app settings</string>
+
+    <!-- Privacy -->
+    <string name="privacy_stays_title">Stays on this phone</string>
+    <string name="privacy_stays_body">Your messages, matches and keywords. Keyguarde reads notifications on the phone and never uploads them. They\'re left out of Android backups too, so a new phone starts with a fresh setup.</string>
+    <string name="privacy_leaves_title">Leaves this phone</string>
+    <string name="privacy_leaves_body">Keyguarde uses Google services that send some data. None of it includes your messages or keywords.</string>
+    <string name="privacy_analytics_title">Usage stats</string>
+    <string name="privacy_analytics_body">Firebase Analytics records app opens, screens viewed, which features you use (like pausing or running a test), device model and country. Never message text, chat names or keywords.</string>
+    <string name="privacy_crashes_title">Crash reports</string>
+    <string name="privacy_crashes_body">Firebase Crashlytics records what broke, with device model and Android version.</string>
+    <string name="privacy_performance_title">Performance</string>
+    <string name="privacy_performance_body">Firebase Performance records how long the app takes to start and load.</string>
+    <string name="privacy_ads_title">Ads</string>
+    <string name="privacy_ads_body">Google AdMob shows the banner and uses your advertising ID to pick ads. Reset or delete the ID in Android settings, under Privacy, then Ads.</string>
+    <string name="privacy_policy">Read the privacy policy</string>
+
+    <!-- Help -->
+    <string name="help_questions">Questions</string>
+    <string name="help_contact">Get in touch</string>
+    <string name="faq_notification_access_q">Why does Keyguarde need notification access?</string>
+    <string name="faq_notification_access_a">It checks each new notification for your keywords. Without access, Android doesn\'t show it any.</string>
+    <string name="faq_reads_messages_q">Does it read my messages?</string>
+    <string name="faq_reads_messages_a">Only the text of notifications from the apps you pick, as they arrive. It can\'t open your chats, see older messages or read media.</string>
+    <string name="faq_battery_q">Will it drain my battery?</string>
+    <string name="faq_battery_a">No. It does nothing between notifications, and each check is a short text search.</string>
+    <string name="faq_no_matches_q">Why am I not getting matches?</string>
+    <string name="faq_no_matches_a">Go back to Settings and tap Run a test. If the test fails, turn Keyguarde\'s notification access off, then on. Also check the app is ticked under Apps, and Battery use says Unrestricted.</string>
+    <string name="faq_manage_keywords_q">How do I add or remove keywords?</string>
+    <string name="faq_manage_keywords_a">Open the Keywords tab. Tap + to add one. Each keyword has its own edit and delete buttons.</string>
+    <string name="faq_select_apps_q">Can I pick which apps it watches?</string>
+    <string name="faq_select_apps_a">Yes. Open Settings, then Apps. Chat apps on your phone are listed first.</string>
+    <string name="faq_privacy_q">Where does my data go?</string>
+    <string name="faq_privacy_a">Messages, matches and keywords stay on this phone. Keyguarde sends usage stats, crash reports and performance data to Google Firebase, and shows Google AdMob ads. Settings, then Privacy, lists exactly what.</string>
+    <string name="faq_matching_q">How do matches work?</string>
+    <string name="faq_matching_a">Whole words, any case. “rent” matches “Rent due” but not “current”. One message can match several keywords.</string>
+    <string name="send_feedback">Email feedback</string>
+    <string name="send_feedback_desc">Adds the app version, Android version and phone model, so bugs are easier to find.</string>
+    <string name="feedback_email_subject">Keyguarde feedback</string>
+    <string name="feedback_email_body">App version: %1$s\nAndroid version: %2$s\nDevice: %3$s\n\n</string>
+    <string name="rate_app">Rate Keyguarde</string>
+    <string name="visit_website">Website</string>
+    <string name="open_source">Source code</string>
+    <string name="link_app_missing">Can\'t open the link. No browser is installed or turned on. Turn one on in Android settings, then try again.</string>
+    <string name="email_app_missing">Can\'t open email. No email app is installed. Write to %1$s instead.</string>
+
+    <!-- Notification channel names -->
     <string name="channel_background_name">Background Notifications</string>
     <string name="channel_background_description">
         Silent notifications showing Keyguarde status and match counts
@@ -63,26 +313,23 @@
     <string name="channel_match_alerts_name">Match Alerts</string>
     <string name="channel_match_alerts_description">Alerts when your important keywords are detected</string>
 
-    <!-- Persistent Notification Content -->
+    <!-- Persistent notification content -->
     <string name="persistent_notification_title">Keyword Matches</string>
-    <string name="persistent_notification_content_no_matches">Monitoring for keyword matches</string>
-    <plurals name="persistent_notification_matches">
-        <item quantity="one">%1$d new match found in %2$d chat</item>
-        <item quantity="other">%1$d new matches found in %2$d chats</item>
+    <!-- e.g. "7 new matches in 2 chats"; each count picks its own plural. -->
+    <string name="persistent_notification_matches">%1$s in %2$s</string>
+    <plurals name="persistent_notification_match_count">
+        <item quantity="one">%d new match</item>
+        <item quantity="other">%d new matches</item>
     </plurals>
-
-    <plurals name="persistent_notification_matches_multiple_chats">
-        <item quantity="one">%1$d new match found in %2$d chats</item>
-        <item quantity="other">%1$d new matches found in %2$d chats</item>
+    <plurals name="persistent_notification_chat_count">
+        <item quantity="one">%d chat</item>
+        <item quantity="other">%d chats</item>
     </plurals>
     <string name="action_reset">Reset</string>
 
-    <!-- Keyword Match Notification Content -->
+    <!-- Keyword match notification content -->
     <string name="keyword_match_notification_title">Keywords matched: %1$s</string>
     <string name="keyword_match_notification_content">From: %1$s</string>
-    <string name="settings">Settings</string>
-    <string name="search_matches">Search matches...</string>
-    <string name="search">Search</string>
     <plurals name="keyword_match_notification_title_plural">
         <item quantity="one">Keyword matched: %1$s</item>
         <item quantity="other">Keywords matched: %1$s</item>
@@ -91,4 +338,9 @@
         <item quantity="one">%1$d keyword matched</item>
         <item quantity="other">%1$d keywords matched</item>
     </plurals>
+
+    <!-- Test notification -->
+    <string name="test_notification_keyword_1">test 1</string>
+    <string name="test_notification_keyword_2">test 2</string>
+    <string name="test_notification_app">test app</string>
 </resources>

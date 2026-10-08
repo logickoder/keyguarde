@@ -1,77 +1,82 @@
----
+# Keyguarde: product requirements
 
-## 📄 Product Requirements Document (PRD)
+## Purpose
 
-# Keyguarde – Smart Chat Alerts
+Help people in busy chat groups catch the few messages that matter, without reading everything and without their messages leaving the phone.
 
-### Purpose
+## Target users
 
-Help users filter noisy chat notifications and get alerted only when specific keywords are detected, without compromising privacy.
+- Job seekers in busy WhatsApp and Telegram groups
+- Freelancers and small businesses waiting on invoices, orders and payments
+- Traders and community members watching for specific words
 
----
+## Core features
 
-### Core Features
+### Notification listening
 
-* **Notification Listening**
+- Reads new notifications from the apps the user picks, through Android's notification listener.
+- Needs notification access. Can't open chats, read older messages or read media.
+- Notifications from other apps, and messages without a keyword, are ignored and never stored.
 
-    * Monitors notifications from selected apps (WhatsApp, Telegram, etc.)
-    * Requires Notification Listener permission
+### Keyword matching
 
-* **Keyword Matching**
+- The user keeps a list of keywords.
+- Matching is case-insensitive and whole word: "rent" doesn't match "current".
+- One message can match several keywords.
 
-    * Users define a list of keywords
-    * Matching is **case-insensitive**
-    * Matches only **whole words** (e.g., “react” doesn’t match “reacted”)
-    * Multiple keywords can be matched in the same message
+### Matches
 
-* **Notification Alerts**
+- Every matched message is saved on the device, newest first, with its keywords highlighted.
+- A divider marks matches that arrived since the last visit.
+- Search, filter by app, and see one keyword's matches from the Keywords tab.
+- Open a match in its app while the original notification is still live. Otherwise, open the app.
+- Select and delete matches, with undo.
 
-    * Optional persistent silent notification showing the number of matches since last opened
-    * Optional heads-up alerts
-    * Tapping a match opens the corresponding app
+### Keywords
 
-* **App Selection**
+- Add, edit and delete keywords. Delete has undo.
+- Each keyword shows when it last matched.
+- Sort by recent match, A to Z, or recently added.
 
-    * User selects which apps to monitor (default: WhatsApp and Telegram)
+### Alerts
 
-* **Match Counter**
+- Optional pop-up alert for each match.
+- Optional silent count notification ("8 new matches in 2 chats"), cleared by a reset.
+- Optional reset of the count each time Keyguarde opens.
 
-    * Resets when the app is opened (configurable)
+### Reliability
 
-* **Privacy**
+- A live test posts a notification and checks the listener catches it.
+- Warnings when notification access is off, when Android stops the listener, or when alerts are blocked.
+- A battery screen walks the user through lifting Android's battery limits.
+- Pause stops catching messages without losing setup.
 
-    * No data ever leaves the device
-    * No accounts or cloud storage
-    * No analytics collecting notification data
+### Setup
 
----
+Onboarding walks through: what Keyguarde does, picking keywords, picking apps, granting access, and a live test.
 
-### Future Enhancements (v2+)
+## Privacy
 
-* Chat-specific filters (enable filtering by chat name)
-* Fuzzy matching and typo tolerance
-* Threshold-based semantic tags matching (e.g., related keywords)
+- Messages, matches and keywords never leave the phone. No server, no account.
+- App data is excluded from Android backups and device transfers.
+- Google services: Firebase Analytics (screens viewed, features used), Crashlytics, Performance Monitoring and AdMob. None receive message text, chat names or keywords.
+- The website loads analytics only after the visitor accepts cookies.
 
----
+## Permissions
 
-### Permissions
+- Notification listener
+- Post notifications (Android 13+)
+- Ignore battery optimizations (to ask Android not to pause the listener)
+- Internet and advertising ID (for the Google services above)
 
-* Notification Listener
-* Post Notifications
+## Monetization
 
----
+- Free with a banner ad.
+- Planned: a one-time purchase to remove ads.
 
-### Monetization
+## Future ideas
 
-* Free with ads
-* Optional in-app purchase to remove ads
-
----
-
-### Target Users
-
-* Job seekers in busy WhatsApp/Telegram groups
-* Traders monitoring keywords
-* Power users who need focused alerts
-
----
+- Filters per chat, not only per app
+- Typo-tolerant matching
+- Related keyword groups
+- Export and import of keywords and settings

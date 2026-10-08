@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/typography';
+
+/*
+  The same palette as the app: a cool grey ramp, and teal only on keywords. Light and dark
+  follow the system setting, like the app's default theme.
+*/
+:root {
+  color-scheme: light dark;
+
+  --paper: #ffffff;
+  --surface: #f7f7f8;
+  --surface-high: #efeff1;
+  --ink: #18181b;
+  --ink-muted: #52525b;
+  --line: #e4e4e7;
+  --line-strong: #8a8a93;
+  --accent: #0e716a;
+  /* The phone outline: near-black like real hardware, lifted to grey on dark pages to stay visible. */
+  --device: #0b0b0d;
+  /* The one dark band on the page, for privacy. Dark in both modes; white would glare at night. */
+  --band: #18181b;
+  --on-band: #f4f4f5;
+  --on-band-muted: #a1a1aa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #121214;
+    --surface: #18181b;
+    --surface-high: #27272a;
+    --ink: #f4f4f5;
+    --ink-muted: #a1a1aa;
+    --line: #3f3f46;
+    --line-strong: #71717a;
+    --accent: #2dd4bf;
+    --device: #27272a;
+    /* Lifted well clear of the page, so the one band still reads as a band at night. */
+    --band: #232327;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-high: var(--surface-high);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  /* Keywords only. Buttons, links and icons stay ink. */
+  --color-accent: var(--accent);
+  --color-device: var(--device);
+  --color-band: var(--band);
+  --color-on-band: var(--on-band);
+  --color-on-band-muted: var(--on-band-muted);
+
+  --font-sans: Inter, sans-serif;
+  /* The app's keyword pills and section labels. */
+  --font-label: Oswald, Inter, sans-serif;
+
+  --shadow-soft: 0 2px 8px -2px rgb(0 0 0 / 0.08);
+  --shadow-medium: 0 4px 16px -4px rgb(0 0 0 / 0.12);
+
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--line);
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: Inter, sans-serif;
+  }
+}
+
+/* The typography plugin's colours, on the app tokens, so legal pages follow light and dark. */
+.prose.legal {
+  --tw-prose-body: var(--ink-muted);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-links: var(--ink);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-bullets: var(--line-strong);
+  --tw-prose-counters: var(--ink-muted);
+  --tw-prose-hr: var(--line);
+  --tw-prose-quotes: var(--ink);
+}

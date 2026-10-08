@@ -1,12 +1,12 @@
 package dev.logickoder.keyguarde.app.data.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Fts4
-import androidx.room.Index
-import androidx.room.PrimaryKey
-import java.time.LocalDateTime
+import androidx.room3.ColumnInfo
+import androidx.room3.Entity
+import androidx.room3.ForeignKey
+import androidx.room3.Fts4
+import androidx.room3.Index
+import androidx.room3.PrimaryKey
+import java.time.Instant
 
 
 /**
@@ -34,7 +34,7 @@ data class KeywordMatch(
     val message: String,
     val chat: String,
     val app: String,
-    val timestamp: LocalDateTime
+    val timestamp: Instant
 )
 
 @Fts4(contentEntity = KeywordMatch::class)

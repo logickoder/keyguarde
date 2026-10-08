@@ -1,6 +1,6 @@
 package dev.logickoder.keyguarde.app.data.dao
 
-import androidx.room.*
+import androidx.room3.*
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import kotlinx.coroutines.flow.Flow
 
@@ -18,6 +18,7 @@ interface KeywordDao {
         insert(newKeyword.copy(createdAt = oldKeyword.createdAt))
     }
 
-    @Query("SELECT * FROM keywords ORDER BY createdAt DESC")
+    // Ties broken by word, so a keyword restored by Undo comes back in the same place.
+    @Query("SELECT * FROM keywords ORDER BY createdAt DESC, word")
     fun getAll(): Flow<List<Keyword>>
 }

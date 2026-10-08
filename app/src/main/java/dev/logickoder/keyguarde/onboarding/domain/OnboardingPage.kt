@@ -1,16 +1,17 @@
 package dev.logickoder.keyguarde.onboarding.domain
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-@Parcelize
+/**
+ * The setup steps, in order. Access comes after keywords and apps, so the user knows what the
+ * permission is for before Android asks.
+ */
 @Serializable
-enum class OnboardingPage : Parcelable {
-    Welcome,
-    HowItWorks,
-    Permissions,
-    AppSelection,
-    KeywordSetup,
-    ReadyScreen
+enum class OnboardingPage : NavKey {
+    Intro,
+    Keywords,
+    Apps,
+    Access,
+    Test,
 }

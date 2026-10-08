@@ -1,11 +1,11 @@
 package dev.logickoder.keyguarde.app.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import dev.logickoder.keyguarde.BuildConfig
-import dev.logickoder.keyguarde.app.domain.SingletonCompanion
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -42,15 +42,20 @@ class AppStore(
         }
     }
 
+    /**
+     * Reads and writes several keys as one change, so concurrent writers can't lose an update.
+     */
+    suspend fun edit(transform: suspend (MutablePreferences) -> Unit) {
+        context.app.edit { preferences -> transform(preferences) }
+    }
+
     suspend fun clear() = context.app.edit { preferences ->
         preferences.clear()
     }
 
-    companion object : SingletonCompanion<AppStore, Context>() {
+    companion object {
         private val Context.app: androidx.datastore.core.DataStore<Preferences> by preferencesDataStore(
             name = BuildConfig.APPLICATION_ID
         )
-
-        override fun createInstance(dependency: Context) = AppStore(dependency)
     }
 }

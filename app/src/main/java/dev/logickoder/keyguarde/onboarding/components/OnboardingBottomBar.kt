@@ -1,119 +1,79 @@
 package dev.logickoder.keyguarde.onboarding.components
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.onboarding.domain.OnboardingPage
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import dev.logickoder.keyguarde.app.components.PrimaryButton
+import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.Spacing
 
+/**
+ * One full-width action per step. When it's disabled, [hint] says what unlocks it, so a grey
+ * button never sits there without a reason. [secondaryLabel] adds a quiet way out underneath.
+ */
 @Composable
 fun OnboardingBottomBar(
-    currentPage: OnboardingPage,
-    nextEnabled: Boolean,
+    label: String,
+    enabled: Boolean,
+    hint: String?,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp,
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.l),
+        horizontalAlignment = Alignment.CenterHorizontally,
         content = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            AnimatedVisibility(
+                visible = !enabled && hint != null,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
                 content = {
-                    AnimatedContent(
-                        targetState = currentPage != OnboardingPage.Welcome,
-                        content = { showPrevious ->
-                            when (showPrevious) {
-                                true -> TextButton(
-                                    onClick = onPrevious,
-                                    content = {
-                                        Text(
-                                            text = stringResource(R.string.previous),
-                                            style = MaterialTheme.typography.labelLarge
-                                        )
-                                    }
-                                )
-
-                                else -> Spacer(modifier = Modifier.width(64.dp))
-                            }
-                        }
-                    )
-
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        content = {
-                            OnboardingPage.entries.forEachIndexed { index, page ->
-                                AnimatedVisibility(
-                                    visible = page != OnboardingPage.ReadyScreen,
-                                    content = {
-                                        Box(
-                                            modifier = Modifier
-                                                .padding(
-                                                    end = when (index < OnboardingPage.entries.size - 2) {
-                                                        true -> 8.dp
-                                                        else -> 0.dp
-                                                    }
-                                                )
-                                                .size(8.dp)
-                                                .clip(CircleShape)
-                                                .background(
-                                                    when (currentPage.ordinal >= index) {
-                                                        true -> MaterialTheme.colorScheme.primary
-                                                        else -> MaterialTheme.colorScheme.primary.copy(
-                                                            alpha = 0.3f
-                                                        )
-                                                    }
-                                                )
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    )
-
-                    Button(
-                        onClick = onNext,
-                        enabled = nextEnabled,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        content = {
-                            Text(
-                                text = stringResource(R.string.next),
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                        }
+                    Text(
+                        text = hint.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = Spacing.m),
                     )
                 }
             )
+            PrimaryButton(text = label, onClick = onClick, enabled = enabled)
+            if (secondaryLabel != null) {
+                TextButton(
+                    onClick = onSecondary,
+                    modifier = Modifier.padding(top = Spacing.xs),
+                    content = {
+                        Text(
+                            text = secondaryLabel,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                )
+            }
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OnboardingBottomBarPreview() = AppTheme {
+    OnboardingBottomBar(label = "Continue", enabled = false, hint = "Add at least one keyword.", onClick = {})
 }

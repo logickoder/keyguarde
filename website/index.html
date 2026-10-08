@@ -6,47 +6,50 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 
     <!-- Primary Meta Tags -->
-    <title>Keyguarde - Smart Chat Alerts | Notification Filtering App for WhatsApp & Telegram</title>
-    <meta content="Keyguarde - Smart Chat Alerts | Notification Filtering App for WhatsApp & Telegram" name="title"/>
-    <meta content="Never miss important messages again! Keyguarde filters notifications from WhatsApp, Telegram, and other apps using smart keyword detection. Perfect for job seekers and traders. Free download available."
+    <title>Keyguarde: keyword alerts for WhatsApp, Telegram and other chats</title>
+    <meta content="Keyguarde: keyword alerts for WhatsApp, Telegram and other chats" name="title"/>
+    <meta content="Keyguarde watches your chat notifications for the words you pick, and keeps every message that has one. Free on Android. Your messages never leave your phone."
           name="description"/>
-    <meta content="Keyguarde, keyword notification app, WhatsApp filter, Telegram message filter, job alert app, smart notification manager, notification filtering, Android app, message alerts, keyword detection"
+    <meta content="Keyguarde, keyword notification app, WhatsApp filter, Telegram message filter, job alert app, notification manager, notification filtering, Android app, message alerts, keyword detection"
           name="keywords"/>
-    <meta content="logickCoder" name="author"/>
+    <meta content="logickoder" name="author"/>
     <link href="https://logickoder.dev/keyguarde/" rel="canonical"/>
     <meta content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" name="robots"/>
 
     <!-- Additional SEO Meta Tags -->
-    <meta content="#1a202c" name="theme-color"/>
+    <meta content="#ffffff" media="(prefers-color-scheme: light)" name="theme-color"/>
+    <meta content="#121214" media="(prefers-color-scheme: dark)" name="theme-color"/>
     <meta content="light dark" name="color-scheme"/>
     <meta content="telephone=no" name="format-detection"/>
 
     <!-- Preconnect for Performance -->
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect"/>
+    <!-- In the head, not a CSS @import, so fonts start loading before the app's CSS arrives -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Oswald:wght@500;600&display=swap" rel="stylesheet"/>
 
     <!-- Open Graph (Facebook, LinkedIn, etc.) -->
     <meta content="website" property="og:type"/>
     <meta content="Keyguarde" property="og:site_name"/>
-    <meta content="Keyguarde - Smart Notification Filtering App" property="og:title"/>
-    <meta content="Never miss an important message again. Keyguarde filters your notifications based on smart keywords and custom alerts. Perfect for job seekers monitoring WhatsApp groups and traders tracking keywords."
+    <meta content="Keyguarde: never miss an invoice again" property="og:title"/>
+    <meta content="Keyguarde watches your chat notifications for the words you pick, and keeps every message that has one. Free on Android. Your messages never leave your phone."
           property="og:description"/>
     <meta content="https://logickoder.dev/keyguarde/" property="og:url"/>
     <meta content="https://logickoder.dev/keyguarde/og-image.png" property="og:image"/>
     <meta content="1200" property="og:image:width"/>
     <meta content="630" property="og:image:height"/>
-    <meta content="Keyguarde App - Smart Notification Filtering" property="og:image:alt"/>
+    <meta content="Keyguarde's Matches screen beside the headline Never miss an invoice again" property="og:image:alt"/>
     <meta content="en_US" property="og:locale"/>
 
     <!-- Twitter Card -->
     <meta content="summary_large_image" name="twitter:card"/>
     <meta content="@logickoder" name="twitter:site"/>
     <meta content="@logickoder" name="twitter:creator"/>
-    <meta content="Keyguarde - Smart Notification Filtering App" name="twitter:title"/>
-    <meta content="Filter and prioritize important messages with smart keyword detection. Perfect for job seekers and traders monitoring WhatsApp/Telegram groups."
+    <meta content="Keyguarde: never miss an invoice again" name="twitter:title"/>
+    <meta content="Keyguarde watches your chat notifications for the words you pick, and keeps every message that has one. Free on Android. Your messages never leave your phone."
           name="twitter:description"/>
-    <meta content="https://logickoder.dev/keyguarde/twitter-image.png" name="twitter:image"/>
-    <meta content="Keyguarde App Screenshot" name="twitter:image:alt"/>
+    <meta content="https://logickoder.dev/keyguarde/og-image.png" name="twitter:image"/>
+    <meta content="Keyguarde's Matches screen beside the headline Never miss an invoice again" name="twitter:image:alt"/>
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -54,7 +57,7 @@
             "@context": "https://schema.org",
             "@type": "MobileApplication",
             "name": "Keyguarde",
-            "description": "Smart notification filtering app that helps users filter noisy chat notifications and get alerted only when specific keywords are detected.",
+            "description": "Watches chat notifications for the words you pick and keeps every message that has one. Matching happens on the phone.",
             "url": "https://logickoder.dev/keyguarde/",
             "image": "https://logickoder.dev/keyguarde/og-image.png",
             "applicationCategory": "ProductivityApplication",
@@ -64,33 +67,29 @@
                 "price": "0",
                 "priceCurrency": "USD"
             },
-            "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": "4.5",
-                "ratingCount": "100"
-            },
             "author": {
-                "@type": "Organization",
-                "name": "logickCoder",
+                "@type": "Person",
+                "name": "Jeffery Orazulike",
                 "url": "https://logickoder.dev"
             },
             "publisher": {
-                "@type": "Organization",
-                "name": "logickCoder",
+                "@type": "Person",
+                "name": "Jeffery Orazulike",
                 "url": "https://logickoder.dev"
             },
             "featureList": [
                 "Keyword-based notification filtering",
-                "WhatsApp and Telegram integration",
-                "Privacy-focused design",
-                "Smart notification alerts",
-                "App selection controls"
+                "Works with WhatsApp, Telegram and other chat apps",
+                "Matching happens on the phone",
+                "Pop-up alerts for matches",
+                "Choose which apps to watch"
             ]
         }
     </script>
 
     <!-- Favicon and App Icons -->
-    <link href="/src/assets/favicon.ico" rel="icon"/>
+    <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+    <link href="/src/assets/favicon.ico" rel="icon" sizes="48x48"/>
     <!--  <link rel="apple-touch-icon" sizes="180x180" href="/src/assets/apple-touch-icon.png" />-->
     <!--  <link rel="icon" type="image/png" sizes="32x32" href="/src/assets/favicon-32x32.png" />-->
     <!--  <link rel="icon" type="image/png" sizes="16x16" href="/src/assets/favicon-16x16.png" />-->
