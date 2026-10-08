@@ -12,13 +12,14 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -34,7 +35,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -55,10 +59,11 @@ import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.components.ToastType
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
-import dev.logickoder.keyguarde.app.domain.appNotificationSettings
 import dev.logickoder.keyguarde.app.domain.appBatterySettings
+import dev.logickoder.keyguarde.app.domain.appNotificationSettings
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.components.ClearAllDialog
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
@@ -77,8 +82,10 @@ import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
 import dev.logickoder.keyguarde.home.domain.MatchListItem
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * @param onOpenKeywords switches to the Keywords tab, from the empty state.
@@ -99,6 +106,24 @@ fun HomeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val matches = viewModel.matches.collectAsLazyPagingItems()
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    // The newest match an Undo put back. Rows restored above the screen would otherwise return
+    // unseen, since the list holds its scroll position when rows are inserted above it.
+    var restoredMatchId by remember { mutableStateOf<Long?>(null) }
+
+    LaunchedEffect(restoredMatchId) {
+        val id = restoredMatchId ?: return@LaunchedEffect
+        val index = withTimeoutOrNull(RESTORE_SCROLL_TIMEOUT_MILLIS) {
+            snapshotFlow {
+                matches.itemSnapshotList.indexOfFirst { (it as? MatchListItem.Match)?.match?.id == id }
+            }.first { it >= 0 }
+        }
+        // By key, not index: the layout can still be the one from before the row came back.
+        if (index != null && listState.layoutInfo.visibleItemsInfo.none { it.key == id }) {
+            listState.animateScrollToItem(index)
+        }
+        restoredMatchId = null
+    }
 
     LaunchedEffect(keyword) {
         if (keyword != null) {
@@ -180,6 +205,7 @@ fun HomeScreen(
                     )
                     if (result == SnackbarResult.ActionPerformed) {
                         viewModel.onAction(HomeAction.UndoDelete(removed))
+                        restoredMatchId = removed.maxByOrNull { it.timestamp }?.id
                     }
                 }
             }
@@ -192,6 +218,7 @@ fun HomeScreen(
         query = viewModel.query,
         matches = matches,
         snackbarHostState = snackbarHostState,
+        listState = listState,
         onAction = viewModel::onAction,
         onOpenKeywords = onOpenKeywords,
         onOpenListenerSettings = { NotificationHelper.launchListenerSettings(context) },
@@ -226,6 +253,7 @@ private fun HomeContent(
     onOpenBatterySettings: () -> Unit,
     onEnableNotifications: () -> Unit,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
 ) {
     val appsByPackage = remember(state.watchedApps) { state.watchedApps.associateBy { it.packageName } }
 
@@ -313,6 +341,7 @@ private fun HomeContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),
+                        state = listState,
                         content = {
 
                             // Row callbacks capture this, not the whole state, so opening a sheet or other
@@ -550,3 +579,6 @@ private fun FilterChips(state: HomeState, onAction: (HomeAction) -> Unit) {
         }
     )
 }
+
+// How long Undo waits for its restored row to reload before giving up on scrolling to it.
+private const val RESTORE_SCROLL_TIMEOUT_MILLIS = 2_000L
