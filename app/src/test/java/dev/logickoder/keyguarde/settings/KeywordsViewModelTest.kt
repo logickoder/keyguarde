@@ -72,9 +72,9 @@ class KeywordsViewModelTest {
         viewModel.onAction(KeywordsAction.Delete(rent))
         advanceUntilIdle()
         coVerify { repository.deleteKeyword(rent) }
-        assertEquals(listOf(KeywordsEffect.Deleted("rent")), effects)
+        assertEquals(listOf(KeywordsEffect.Deleted(rent)), effects)
 
-        viewModel.onAction(KeywordsAction.UndoDelete)
+        viewModel.onAction(KeywordsAction.UndoDelete(rent))
         advanceUntilIdle()
         coVerify { repository.addKeyword(rent) }
     }
@@ -105,5 +105,20 @@ class KeywordsViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 0) { repository.updateKeyword(any(), any()) }
+    }
+
+    @Test
+    fun `undo restores the keyword its snackbar named, not the latest delete`() = runTest(dispatcher) {
+        val viewModel = KeywordsViewModel(repository)
+        val exam = Keyword("exam", createdAt = 1L)
+        val rent = Keyword("rent", createdAt = 2L)
+
+        viewModel.onAction(KeywordsAction.Delete(exam))
+        viewModel.onAction(KeywordsAction.Delete(rent))
+        viewModel.onAction(KeywordsAction.UndoDelete(exam))
+        advanceUntilIdle()
+
+        coVerify { repository.addKeyword(exam) }
+        coVerify(exactly = 0) { repository.addKeyword(rent) }
     }
 }

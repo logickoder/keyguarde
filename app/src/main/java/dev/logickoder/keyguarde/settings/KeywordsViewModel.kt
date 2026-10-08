@@ -30,9 +30,6 @@ class KeywordsViewModel(
 ) : ViewModel() {
     private val editing = MutableStateFlow<Keyword?>(null)
 
-    // The last deleted keyword, kept so the snackbar's Undo can put it back in its old place.
-    private var lastDeleted: Keyword? = null
-
     private val _effects = Channel<KeywordsEffect>(Channel.BUFFERED)
     val effects: Flow<KeywordsEffect> = _effects.receiveAsFlow()
 
@@ -66,11 +63,8 @@ class KeywordsViewModel(
 
             is KeywordsAction.Delete -> delete(action.keyword)
 
-            KeywordsAction.UndoDelete -> {
-                val keyword = lastDeleted ?: return
-                lastDeleted = null
-                viewModelScope.launch { repository.addKeyword(keyword) }
-            }
+            // Same createdAt, so it returns to its old place.
+            is KeywordsAction.UndoDelete -> viewModelScope.launch { repository.addKeyword(action.keyword) }
         }
     }
 
@@ -85,10 +79,9 @@ class KeywordsViewModel(
 
     private fun delete(keyword: Keyword) {
         editing.update { null }
-        lastDeleted = keyword
         viewModelScope.launch {
             repository.deleteKeyword(keyword)
-            _effects.send(KeywordsEffect.Deleted(keyword.word))
+            _effects.send(KeywordsEffect.Deleted(keyword))
         }
     }
 

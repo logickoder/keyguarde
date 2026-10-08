@@ -2,6 +2,8 @@ package dev.logickoder.keyguarde.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,14 +24,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.KeywordField
+import dev.logickoder.keyguarde.app.components.SuggestionPill
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -57,13 +62,17 @@ fun KeywordsScreen(
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                is KeywordsEffect.Deleted -> {
+                is KeywordsEffect.Deleted -> launch {
+                    // A newer delete replaces the snackbar instead of queueing behind it.
+                    snackbarHostState.currentSnackbarData?.dismiss()
                     val result = snackbarHostState.showSnackbar(
-                        message = resources.getString(R.string.keyword_deleted, effect.word),
+                        message = resources.getString(R.string.keyword_deleted, effect.keyword.word),
                         actionLabel = resources.getString(R.string.undo),
                         duration = SnackbarDuration.Short,
                     )
-                    if (result == SnackbarResult.ActionPerformed) viewModel.onAction(KeywordsAction.UndoDelete)
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.onAction(KeywordsAction.UndoDelete(effect.keyword))
+                    }
                 }
             }
         }
@@ -120,7 +129,7 @@ private fun KeywordsContent(
                     }
 
                     when (state.keywords.isEmpty()) {
-                        true -> item(key = "empty") { EmptyKeywords() }
+                        true -> item(key = "empty") { EmptyKeywords(onAdd = { onAction(KeywordsAction.Add(it)) }) }
 
                         else -> {
                             item(key = "label") { ListLabel() }
@@ -168,22 +177,60 @@ private fun ListLabel() {
     )
 }
 
+/**
+ * With nothing to list, the screen offers the same starting words as setup. Keyguarde catches
+ * nothing without a keyword, so getting one in is the only job here.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun EmptyKeywords() {
+private fun EmptyKeywords(onAdd: (String) -> Unit) {
+    val suggestions = stringArrayResource(R.array.keyword_suggestions)
     Column(
-        modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xl),
-        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+        modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.l),
+        verticalArrangement = Arrangement.spacedBy(Spacing.l),
         content = {
-            Text(
-                text = stringResource(R.string.no_keywords_added),
-                style = MaterialTheme.typography.titleMedium,
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                content = {
+                    Text(
+                        text = stringResource(R.string.no_keywords_added),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.semantics { heading() },
+                    )
+                    Text(
+                        text = stringResource(R.string.no_keywords_added_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             )
-            Text(
-                text = stringResource(R.string.no_keywords_added_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                content = {
+                    Text(
+                        text = stringResource(R.string.keywords_suggestions_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                        content = {
+                            suggestions.forEach { word -> SuggestionPill(word = word, onAdd = { onAdd(word) }) }
+                        }
+                    )
+                }
             )
         }
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun KeywordsEmptyPreview() = AppTheme {
+    KeywordsContent(
+        state = KeywordsState(),
+        snackbarHostState = remember { SnackbarHostState() },
+        onAction = {},
     )
 }
 

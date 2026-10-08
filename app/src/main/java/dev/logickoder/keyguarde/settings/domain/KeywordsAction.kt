@@ -16,5 +16,6 @@ sealed interface KeywordsAction {
     /** From a swipe, the edit sheet, or TalkBack's Delete action. Undoable from the snackbar. */
     data class Delete(val keyword: Keyword) : KeywordsAction
 
-    data object UndoDelete : KeywordsAction
+    /** Carries the keyword, so a snackbar from an earlier delete can't restore a later one. */
+    data class UndoDelete(val keyword: Keyword) : KeywordsAction
 }

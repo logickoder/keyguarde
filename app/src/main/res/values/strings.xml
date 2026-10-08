@@ -235,8 +235,8 @@
         <item quantity="one">%1$d match</item>
         <item quantity="other">%1$d matches</item>
     </plurals>
-    <string name="no_keywords_added">No keywords added yet</string>
-    <string name="no_keywords_added_desc">Add keywords to get alerts when they appear in messages</string>
+    <string name="no_keywords_added">No keywords yet</string>
+    <string name="no_keywords_added_desc">Keyguarde catches nothing until you add one. Type your own above, or tap one below.</string>
 
     <!-- Battery settings -->
     <string name="battery_title_restricted">Battery use is restricted</string>
