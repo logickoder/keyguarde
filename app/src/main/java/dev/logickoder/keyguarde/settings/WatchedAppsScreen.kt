@@ -7,9 +7,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -17,12 +19,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.AppPicker
+import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.AppPickerRow
 import dev.logickoder.keyguarde.app.components.AppPickerSectionLabel
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.components.AppIcon
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
+import dev.logickoder.keyguarde.settings.domain.WatchedAppsEffect
 import dev.logickoder.keyguarde.settings.domain.WatchedAppsState
 
 @Composable
@@ -35,6 +39,18 @@ fun WatchedAppsScreen(
         factory = WatchedAppsViewModel.factory(context)
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val toastManager = LocalToastManager.current
+    val resources = LocalResources.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is WatchedAppsEffect.LastAppKept -> toastManager.show(
+                    resources.getString(R.string.settings_apps_keep_one, effect.appName)
+                )
+            }
+        }
+    }
 
     WatchedAppsContent(
         modifier = modifier,

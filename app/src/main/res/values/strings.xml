@@ -184,6 +184,7 @@
     <string name="section_appearance">Appearance</string>
     <string name="section_about">About</string>
     <string name="settings_apps">Apps</string>
+    <string name="settings_apps_keep_one">Can\'t untick %1$s. Keyguarde needs at least one app to watch. Tick another app first.</string>
     <string name="settings_apps_missing">Not on this phone</string>
     <string name="settings_apps_body">Keyguarde only reads notifications from the apps you tick.</string>
     <plurals name="settings_app_count">

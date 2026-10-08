@@ -11,24 +11,33 @@ import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.onboarding.domain.saveIconToFile
+import dev.logickoder.keyguarde.settings.domain.WatchedAppsEffect
 import dev.logickoder.keyguarde.settings.domain.WatchedAppsState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class WatchedAppsViewModel(
     private val repository: AppRepository,
+    backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
     private val installedApps = flow {
         emit(repository.getInstalledApps())
-    }.flowOn(Dispatchers.Default)
+    }.flowOn(backgroundDispatcher)
+
+    private val _effects = Channel<WatchedAppsEffect>(Channel.BUFFERED)
+    val effects: Flow<WatchedAppsEffect> = _effects.receiveAsFlow()
 
     val state: StateFlow<WatchedAppsState> = combine(
         installedApps,
@@ -49,12 +58,21 @@ class WatchedAppsViewModel(
     /**
      * Watches the app if it isn't watched yet, otherwise stops watching it. Takes a context to save
      * the app's icon, which the Matches list shows.
+     *
+     * The last installed app stays ticked: with none left, Keyguarde would quietly catch nothing.
+     * Apps no longer on the phone can always be unticked, since they send nothing anyway.
      */
     fun toggleApp(context: Context, packageName: String) {
         val state = state.value
-        when (packageName in state.watchedPackages) {
-            true -> removeApp(packageName)
-            else -> state.apps.firstOrNull { it.packageName == packageName }?.let { addApp(context, it) }
+        val installedWatched = state.apps.filter { it.packageName in state.watchedPackages }
+        when {
+            packageName !in state.watchedPackages ->
+                state.apps.firstOrNull { it.packageName == packageName }?.let { addApp(context, it) }
+
+            installedWatched.singleOrNull()?.packageName == packageName ->
+                _effects.trySend(WatchedAppsEffect.LastAppKept(installedWatched.single().name))
+
+            else -> removeApp(packageName)
         }
     }
 
