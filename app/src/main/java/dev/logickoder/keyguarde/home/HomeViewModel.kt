@@ -26,6 +26,7 @@ import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
 import dev.logickoder.keyguarde.home.domain.ListenerHealth
+import dev.logickoder.keyguarde.settings.SettingsRepository
 import dev.logickoder.keyguarde.home.domain.MatchListItem
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
@@ -58,6 +59,7 @@ import java.time.LocalDateTime
 class HomeViewModel(
     private val repository: AppRepository,
     private val resetMatchCount: ResetMatchCountUsecase,
+    private val settings: SettingsRepository,
     listenerConnected: Flow<Boolean> = AppListenerService.isConnected,
 ) : ViewModel() {
     // Compose state, not a flow: a TextField value must update synchronously or the cursor jumps.
@@ -101,11 +103,12 @@ class HomeViewModel(
         inputs,
         repository.watchedApps,
         AppListenerService.notificationIntents,
-        combine(newSinceLastVisit, listenerHealth.issue, ::Pair),
+        combine(newSinceLastVisit, listenerHealth.issue, settings.isPaused, ::Triple),
         repository.matchCountsByApp,
-    ) { inputs, watchedApps, intents, (newCount, issue), counts ->
+    ) { inputs, watchedApps, intents, (newCount, issue, isPaused), counts ->
         HomeState(
             listenerIssue = issue,
+            isPaused = isPaused,
             notificationsAllowed = inputs.notificationsAllowed,
             filter = watchedApps.filter { it.packageName in inputs.filterPackages }.toImmutableList(),
             watchedApps = watchedApps.toImmutableList(),
@@ -211,6 +214,8 @@ class HomeViewModel(
             }
 
             HomeAction.ListenerRestartRequested -> listenerHealth.restartRequested()
+
+            HomeAction.Resume -> viewModelScope.launch { settings.setPaused(false) }
 
             HomeAction.StartSelection -> inputs.update {
                 it.copy(isSelectionMode = true, selectedMatches = persistentSetOf())
@@ -348,6 +353,7 @@ class HomeViewModel(
                     HomeViewModel(
                         repository = container.appRepository,
                         resetMatchCount = container.resetMatchCount,
+                        settings = container.settingsRepository,
                     )
                 }
             }

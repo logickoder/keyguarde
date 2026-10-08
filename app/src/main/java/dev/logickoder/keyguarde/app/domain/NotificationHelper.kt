@@ -112,6 +112,10 @@ object NotificationHelper {
         )
     }
 
+    fun cancelPersistentNotification(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_PERSISTENT)
+    }
+
     /**
      * Create the persistent silent notification showing keyword match count
      *

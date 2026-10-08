@@ -22,6 +22,8 @@ data class HomeState(
     /** The match shown in the detail sheet, or null when it's closed. */
     val openMatch: KeywordMatch? = null,
     val listenerIssue: ListenerIssue = ListenerIssue.None,
+    /** The user paused Keyguarde in Settings; nothing new is caught until they resume. */
+    val isPaused: Boolean = false,
     /** False when Android blocks Keyguarde's own notifications, so match alerts can't show. */
     val notificationsAllowed: Boolean = true,
     val isFilterSheetVisible: Boolean = false,

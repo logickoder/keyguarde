@@ -38,6 +38,7 @@ class SettingsViewModelTest {
     private val listenerConnected = MutableStateFlow(true)
     private val caughtCount = MutableStateFlow(0)
     private val ratePromptDone = MutableStateFlow(false)
+    private val paused = MutableStateFlow(false)
 
     private val appRepository = mockk<AppRepository> {
         every { keywords } returns this@SettingsViewModelTest.keywords
@@ -50,6 +51,7 @@ class SettingsViewModelTest {
         every { resetMatchCountOnAppOpen } returns flowOf(false)
         every { themeMode } returns flowOf(ThemeMode.Dark)
         every { ratePromptDone } returns this@SettingsViewModelTest.ratePromptDone
+        every { isPaused } returns this@SettingsViewModelTest.paused
     }
 
     @Before
@@ -191,6 +193,20 @@ class SettingsViewModelTest {
         viewModel.onAction(SettingsAction.SystemChecked(true, notificationsAllowed = true, isBatteryUnrestricted = false))
         advanceUntilIdle()
 
+        assertFalse(viewModel.state.value.showRatePrompt)
+    }
+
+    @Test
+    fun `pausing saves it and hides the rate prompt`() = runTest(dispatcher) {
+        caughtCount.value = 50
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.state.collect {} }
+        viewModel.onAction(SettingsAction.SetPaused(true))
+        paused.value = true
+        advanceUntilIdle()
+
+        coVerify { settingsRepository.setPaused(true) }
+        assertTrue(viewModel.state.value.isPaused)
         assertFalse(viewModel.state.value.showRatePrompt)
     }
 }

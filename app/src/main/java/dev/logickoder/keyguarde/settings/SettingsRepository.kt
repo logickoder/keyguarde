@@ -29,6 +29,14 @@ class SettingsRepository(private val localStore: AppStore) {
 
     suspend fun setThemeMode(mode: ThemeMode) = localStore.save(THEME_MODE, mode.name)
 
+    /**
+     * While paused, the listener ignores every notification. Notification access stays on, so
+     * resuming takes one tap instead of a trip through Android settings.
+     */
+    val isPaused = localStore.get(PAUSED).map { it ?: false }
+
+    suspend fun setPaused(paused: Boolean) = localStore.save(PAUSED, paused)
+
     /** True once the user rated or dismissed the rate prompt; it never comes back after that. */
     val ratePromptDone = localStore.get(RATE_PROMPT_DONE).map { it ?: false }
 
@@ -55,5 +63,6 @@ class SettingsRepository(private val localStore: AppStore) {
         private val RESET_MATCH_COUNT_ON_APP_OPEN = booleanPreferencesKey("reset_match_count_on_app_open")
         private val THEME_MODE = stringPreferencesKey("theme_mode")
         private val RATE_PROMPT_DONE = booleanPreferencesKey("rate_prompt_done")
+        private val PAUSED = booleanPreferencesKey("paused")
     }
 }

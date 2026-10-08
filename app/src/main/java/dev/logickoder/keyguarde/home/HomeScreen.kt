@@ -295,6 +295,8 @@ private fun HomeContent(
                     // however far the user scrolls, and opening it pushes the list down instead of
                     // growing off-screen above the first row.
                     StatusBanners(
+                        isPaused = state.isPaused,
+                        onResume = { onAction(HomeAction.Resume) },
                         listenerIssue = state.listenerIssue,
                         notificationsAllowed = state.notificationsAllowed,
                         onOpenListenerSettings = onOpenListenerSettings,
@@ -439,6 +441,8 @@ private fun HomeContentPreview() = AppTheme {
  */
 @Composable
 private fun StatusBanners(
+    isPaused: Boolean,
+    onResume: () -> Unit,
     listenerIssue: ListenerIssue,
     notificationsAllowed: Boolean,
     onOpenListenerSettings: () -> Unit,
@@ -449,8 +453,21 @@ private fun StatusBanners(
     Column(
         modifier = Modifier.padding(horizontal = Spacing.l),
         content = {
+            AnimatedVisibility(
+                visible = isPaused,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+                content = {
+                    StatusBanner(
+                        message = stringResource(R.string.banner_paused),
+                        actions = listOf(stringResource(R.string.status_resume) to onResume),
+                        modifier = Modifier.padding(top = Spacing.s),
+                    )
+                }
+            )
+            // A paused listener is meant to be quiet, so its problems wait until Resume.
             ListenerIssueBanners(
-                issue = listenerIssue,
+                issue = if (isPaused) ListenerIssue.None else listenerIssue,
                 onOpenListenerSettings = onOpenListenerSettings,
                 onRestartListener = onRestartListener,
                 onOpenBatterySettings = onOpenBatterySettings,

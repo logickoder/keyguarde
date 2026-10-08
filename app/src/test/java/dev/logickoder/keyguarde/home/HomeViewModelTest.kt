@@ -8,6 +8,7 @@ import dev.logickoder.keyguarde.app.domain.usecase.ResetMatchCountUsecase
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
+import dev.logickoder.keyguarde.settings.SettingsRepository
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -60,13 +61,17 @@ class HomeViewModelTest {
     }
 
     private val listenerConnected = MutableStateFlow(false)
+    private val paused = MutableStateFlow(false)
+    private val settings = mockk<SettingsRepository>(relaxed = true) {
+        every { isPaused } returns paused
+    }
 
     private lateinit var viewModel: HomeViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), listenerConnected)
+        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), settings, listenerConnected)
     }
 
     @After
@@ -246,7 +251,7 @@ class HomeViewModelTest {
     @Test
     fun `the list waits for the saved filter before loading`() = runTest(dispatcher) {
         every { repository.matchesFilter } returns flowOf(setOf(app2.packageName))
-        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), listenerConnected)
+        viewModel = HomeViewModel(repository, mockk<ResetMatchCountUsecase>(relaxed = true), settings, listenerConnected)
         backgroundScope.launch { viewModel.matches.collect {} }
         advanceUntilIdle()
 
@@ -265,5 +270,18 @@ class HomeViewModelTest {
 
         // The paging pipeline runs on Dispatchers.Default (flowOn), outside the test scheduler.
         verify(timeout = 2_000) { repository.getMatches(setOf(app1.packageName), "") }
+    }
+
+    @Test
+    fun `a pause set in Settings shows on Matches and Resume clears it`() = runTest {
+        backgroundScope.launch { viewModel.state.collect {} }
+        paused.value = true
+        advanceUntilIdle()
+        assertTrue(viewModel.state.value.isPaused)
+
+        viewModel.onAction(HomeAction.Resume)
+        advanceUntilIdle()
+
+        coVerify { settings.setPaused(false) }
     }
 }

@@ -47,6 +47,9 @@ sealed interface HomeAction {
     /** The user asked to restart the listener; wait a moment for it to bind before warning again. */
     data object ListenerRestartRequested : HomeAction
 
+    /** Undo a pause set in Settings, from the banner on Matches. */
+    data object Resume : HomeAction
+
     /** The screen became visible; re-read when the user last left so "new" is measured from then. */
     data object RefreshLastVisit : HomeAction
 

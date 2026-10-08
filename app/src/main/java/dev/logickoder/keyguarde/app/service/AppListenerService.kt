@@ -27,7 +27,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,6 +46,7 @@ class AppListenerService : NotificationListenerService() {
     private var keywords = emptyList<Pair<String, Regex>>()
     private var showHeadsUpNotifications = true
     private var usePersistentSilentNotification = true
+    private var isPaused = false
 
     private var componentName: ComponentName? = null
 
@@ -86,6 +89,8 @@ class AppListenerService : NotificationListenerService() {
             }
             return
         }
+
+        if (isPaused) return
 
         // Early return if keywords or watched packages are empty
         if (keywords.isEmpty() || watchedPackages.isEmpty()) return
@@ -164,6 +169,29 @@ class AppListenerService : NotificationListenerService() {
         scope.launch {
             settings.usePersistentSilentNotification.collectLatest {
                 usePersistentSilentNotification = it
+            }
+        }
+
+        scope.launch {
+            // Only a change of state touches the count notification, not the value read at start.
+            settings.isPaused.distinctUntilChanged().withIndex().collectLatest { (index, paused) ->
+                isPaused = paused
+                if (index == 0) return@collectLatest
+                // The match count would read as "still watching", so it hides while paused.
+                when {
+                    paused -> NotificationHelper.cancelPersistentNotification(this@AppListenerService)
+
+                    settings.usePersistentSilentNotification.first() -> {
+                        val count = repository.recentMatchCount.first()
+                        if (count > 0) {
+                            NotificationHelper.showPersistentNotification(
+                                this@AppListenerService,
+                                count,
+                                repository.recentChats.first().size,
+                            )
+                        }
+                    }
+                }
             }
         }
     }

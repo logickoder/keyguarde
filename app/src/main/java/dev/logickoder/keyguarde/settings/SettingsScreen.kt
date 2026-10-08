@@ -268,14 +268,15 @@ private fun Status(
     Column(
         modifier = Modifier.padding(horizontal = Spacing.l),
         content = {
+            // A paused listener is meant to be quiet, so its problems wait until Resume.
             ListenerIssueBanners(
-                issue = state.listenerIssue,
+                issue = if (state.isPaused) ListenerIssue.None else state.listenerIssue,
                 onOpenListenerSettings = onOpenListenerSettings,
                 onRestartListener = onRestartListener,
                 onOpenBatterySettings = onOpenBatterySettings,
             )
             AnimatedVisibility(
-                visible = state.listenerIssue == ListenerIssue.None,
+                visible = state.isPaused || state.listenerIssue == ListenerIssue.None,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut(),
                 content = {
@@ -286,7 +287,10 @@ private fun Status(
                         caughtCount = state.caughtCount,
                         showRatePrompt = state.showRatePrompt,
                         batteryRestricted = state.isBatteryUnrestricted == false,
+                        isPaused = state.isPaused,
                         onRunTest = onRunTest,
+                        onPause = { onAction(SettingsAction.SetPaused(true)) },
+                        onResume = { onAction(SettingsAction.SetPaused(false)) },
                         onFixBattery = onOpenBatteryScreen,
                         onResetTest = { onAction(SettingsAction.ResetTest) },
                         onOpenListenerSettings = {

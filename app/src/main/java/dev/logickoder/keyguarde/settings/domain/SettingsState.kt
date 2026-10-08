@@ -18,12 +18,14 @@ data class SettingsState(
     val themeMode: ThemeMode = ThemeMode.System,
     val caughtCount: Int = 0,
     val ratePromptDone: Boolean = true,
+    val isPaused: Boolean = false,
 ) {
     /**
      * Asks for a rating only once Keyguarde has proved itself, and never next to a problem.
      */
     val showRatePrompt: Boolean
         get() = !ratePromptDone &&
+            !isPaused &&
             caughtCount >= RATE_PROMPT_MIN_CATCHES &&
             listenerIssue == ListenerIssue.None &&
             isBatteryUnrestricted != false &&

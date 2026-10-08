@@ -143,6 +143,7 @@
     <string name="banner_open_access">Open access settings</string>
     <string name="banner_notifications_off">Match alerts won\'t show. Notifications are off for Keyguarde.</string>
     <string name="banner_turn_on">Turn on</string>
+    <string name="banner_paused">Keyguarde is paused. It isn\'t checking new messages.</string>
     <string name="open_in_app_failed">Failed to open app: %1$s</string>
     <string name="launch_app_failed">Can\'t open this app. It isn\'t installed, or it has no main screen. Find the chat in the app directly.</string>
     <string name="match_open_in">Open in %1$s</string>
@@ -184,7 +185,7 @@
     <string name="section_appearance">Appearance</string>
     <string name="section_about">About</string>
     <string name="settings_apps">Apps</string>
-    <string name="settings_apps_keep_one">Can\'t untick %1$s. Keyguarde needs at least one app to watch. Tick another app first.</string>
+    <string name="settings_apps_keep_one">Can\'t untick %1$s. Keyguarde needs at least one app to watch. Tick another app first, or pause Keyguarde in Settings.</string>
     <string name="settings_apps_missing">Not on this phone</string>
     <string name="settings_apps_body">Keyguarde only reads notifications from the apps you tick.</string>
     <plurals name="settings_app_count">
@@ -220,6 +221,10 @@
     <string name="status_battery_restricted">Battery saving can pause it while your phone sits idle.</string>
     <string name="status_fix_battery">Fix</string>
     <string name="status_done">Done</string>
+    <string name="status_pause">Pause</string>
+    <string name="status_resume">Resume</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_paused_body">Not checking new messages. Matches you already have stay here.</string>
     <string name="privacy">Privacy</string>
 
     <!-- Keyword filters -->

@@ -14,6 +14,7 @@ import dev.logickoder.keyguarde.onboarding.domain.SetupTest
 import dev.logickoder.keyguarde.onboarding.domain.caughtKeyword
 import dev.logickoder.keyguarde.settings.domain.SettingsAction
 import dev.logickoder.keyguarde.settings.domain.SettingsState
+import dev.logickoder.keyguarde.settings.domain.ThemeMode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -50,8 +51,14 @@ class SettingsViewModel(
         listenerHealth.issue,
         appRepository.keywords,
         combine(appRepository.installedWatchedAppCount, alerts, ::Pair),
-        combine(settingsRepository.themeMode, appRepository.caughtCount, settingsRepository.ratePromptDone, ::Triple),
-    ) { inputs, issue, keywords, (apps, alerts), (themeMode, caughtCount, ratePromptDone) ->
+        combine(
+            settingsRepository.themeMode,
+            appRepository.caughtCount,
+            settingsRepository.ratePromptDone,
+            settingsRepository.isPaused,
+            ::Extras,
+        ),
+    ) { inputs, issue, keywords, (apps, alerts), extras ->
         SettingsState(
             listenerIssue = issue,
             notificationsAllowed = inputs.notificationsAllowed,
@@ -62,9 +69,10 @@ class SettingsViewModel(
             usePersistentNotification = alerts.usePersistent,
             resetCountOnOpen = alerts.resetOnOpen,
             isBatteryUnrestricted = inputs.isBatteryUnrestricted,
-            themeMode = themeMode,
-            caughtCount = caughtCount,
-            ratePromptDone = ratePromptDone,
+            themeMode = extras.themeMode,
+            caughtCount = extras.caughtCount,
+            ratePromptDone = extras.ratePromptDone,
+            isPaused = extras.isPaused,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -115,6 +123,10 @@ class SettingsViewModel(
                 settingsRepository.setThemeMode(action.mode)
             }
 
+            is SettingsAction.SetPaused -> viewModelScope.launch {
+                settingsRepository.setPaused(action.paused)
+            }
+
             SettingsAction.RatePromptDone -> viewModelScope.launch {
                 settingsRepository.markRatePromptDone()
             }
@@ -142,6 +154,13 @@ class SettingsViewModel(
         val notificationsAllowed: Boolean = true,
         val isBatteryUnrestricted: Boolean? = null,
         val test: SetupTest = SetupTest.Idle,
+    )
+
+    private data class Extras(
+        val themeMode: ThemeMode,
+        val caughtCount: Int,
+        val ratePromptDone: Boolean,
+        val isPaused: Boolean,
     )
 
     private data class Alerts(

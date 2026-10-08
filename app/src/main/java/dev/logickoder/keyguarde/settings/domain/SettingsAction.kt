@@ -19,6 +19,8 @@ sealed interface SettingsAction {
     data object ToggleResetCountOnOpen : SettingsAction
     data class SetThemeMode(val mode: ThemeMode) : SettingsAction
 
+    data class SetPaused(val paused: Boolean) : SettingsAction
+
     /** The user rated or dismissed the prompt. */
     data object RatePromptDone : SettingsAction
 }

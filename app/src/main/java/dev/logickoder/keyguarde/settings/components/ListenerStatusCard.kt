@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.PauseCircle
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -50,6 +51,7 @@ import dev.logickoder.keyguarde.onboarding.domain.SetupTest
  * @param canSendTest false when Keyguarde can't post notifications, so a test can't be sent.
  * @param showRatePrompt whether to ask for a rating under the status, once it has proved itself.
  * @param batteryRestricted Android may pause the listener while idle; the card says so, with a fix.
+ * @param isPaused the user paused Keyguarde; the card says so and offers Resume, nothing else.
  */
 @Composable
 fun ListenerStatusCard(
@@ -59,7 +61,10 @@ fun ListenerStatusCard(
     caughtCount: Int,
     showRatePrompt: Boolean,
     batteryRestricted: Boolean,
+    isPaused: Boolean,
     onRunTest: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onFixBattery: () -> Unit,
     onResetTest: () -> Unit,
     onOpenListenerSettings: () -> Unit,
@@ -67,32 +72,40 @@ fun ListenerStatusCard(
     onDismissRate: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val (title, body) = when (test) {
-        SetupTest.Idle -> stringResource(R.string.status_listening) to when (keyword) {
-            null -> stringResource(R.string.status_no_keywords)
-            else -> listOfNotNull(
-                caughtText(caughtCount),
-                stringResource(R.string.status_battery_restricted).takeIf { batteryRestricted },
-                stringResource(R.string.status_body_no_alerts).takeIf { !canSendTest },
-            ).joinToString(" ")
+    val (title, body) = when {
+        isPaused -> stringResource(R.string.status_paused) to stringResource(R.string.status_paused_body)
+        else -> when (test) {
+            SetupTest.Idle -> stringResource(R.string.status_listening) to when (keyword) {
+                null -> stringResource(R.string.status_no_keywords)
+                else -> listOfNotNull(
+                    caughtText(caughtCount),
+                    stringResource(R.string.status_battery_restricted).takeIf { batteryRestricted },
+                    stringResource(R.string.status_body_no_alerts).takeIf { !canSendTest },
+                ).joinToString(" ")
+            }
+            SetupTest.Waiting -> stringResource(R.string.test_title_waiting) to
+                stringResource(R.string.test_body, keyword.orEmpty())
+            is SetupTest.Caught -> stringResource(R.string.test_title_caught) to
+                stringResource(R.string.status_body_caught, test.keyword)
+            SetupTest.Missed -> stringResource(R.string.test_title_missed) to
+                stringResource(R.string.test_body_missed)
         }
-        SetupTest.Waiting -> stringResource(R.string.test_title_waiting) to
-            stringResource(R.string.test_body, keyword.orEmpty())
-        is SetupTest.Caught -> stringResource(R.string.test_title_caught) to
-            stringResource(R.string.status_body_caught, test.keyword)
-        SetupTest.Missed -> stringResource(R.string.test_title_missed) to stringResource(R.string.test_body_missed)
     }
-    val actions = when (test) {
-        SetupTest.Idle -> listOfNotNull(
-            (stringResource(R.string.status_fix_battery) to onFixBattery).takeIf { batteryRestricted },
-            (stringResource(R.string.status_run_test) to onRunTest).takeIf { keyword != null && canSendTest },
-        )
-        SetupTest.Waiting -> emptyList()
-        is SetupTest.Caught -> listOf(stringResource(R.string.status_done) to onResetTest)
-        SetupTest.Missed -> listOf(
-            stringResource(R.string.test_try_again) to onResetTest,
-            stringResource(R.string.test_open_access) to onOpenListenerSettings,
-        )
+    val actions = when {
+        isPaused -> listOf(stringResource(R.string.status_resume) to onResume)
+        else -> when (test) {
+            SetupTest.Idle -> listOfNotNull(
+                stringResource(R.string.status_pause) to onPause,
+                (stringResource(R.string.status_fix_battery) to onFixBattery).takeIf { batteryRestricted },
+                (stringResource(R.string.status_run_test) to onRunTest).takeIf { keyword != null && canSendTest },
+            )
+            SetupTest.Waiting -> emptyList()
+            is SetupTest.Caught -> listOf(stringResource(R.string.status_done) to onResetTest)
+            SetupTest.Missed -> listOf(
+                stringResource(R.string.test_try_again) to onResetTest,
+                stringResource(R.string.test_open_access) to onOpenListenerSettings,
+            )
+        }
     }
 
     Surface(
@@ -113,7 +126,7 @@ fun ListenerStatusCard(
                         modifier = Modifier.padding(end = Spacing.s),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
                         content = {
-                            StatusIcon(test)
+                            StatusIcon(test, isPaused)
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
@@ -210,18 +223,23 @@ private fun RatePrompt(onRate: () -> Unit, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun StatusIcon(test: SetupTest) {
+private fun StatusIcon(test: SetupTest, isPaused: Boolean) {
     Box(
         modifier = Modifier.size(24.dp),
         contentAlignment = Alignment.Center,
         content = {
-            when (test) {
-                SetupTest.Waiting -> CircularProgressIndicator(
+            when {
+                isPaused -> Icon(
+                    imageVector = Icons.Outlined.PauseCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+                test == SetupTest.Waiting -> CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                SetupTest.Missed -> Icon(
+                test == SetupTest.Missed -> Icon(
                     imageVector = Icons.Outlined.Warning,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
@@ -246,7 +264,10 @@ private fun ListenerStatusCardPreview() = AppTheme {
         caughtCount = 128,
         showRatePrompt = true,
         batteryRestricted = false,
+        isPaused = false,
         onRunTest = {},
+        onPause = {},
+        onResume = {},
         onFixBattery = {},
         onResetTest = {},
         onOpenListenerSettings = {},
