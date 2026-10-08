@@ -25,9 +25,8 @@ import dev.logickoder.keyguarde.app.service.AppListenerService
 import dev.logickoder.keyguarde.home.domain.HomeAction
 import dev.logickoder.keyguarde.home.domain.HomeEffect
 import dev.logickoder.keyguarde.home.domain.HomeState
-import dev.logickoder.keyguarde.home.domain.ListenerIssue
+import dev.logickoder.keyguarde.home.domain.ListenerHealth
 import dev.logickoder.keyguarde.home.domain.MatchListItem
-import dev.logickoder.keyguarde.home.domain.listenerIssue
 import kotlinx.collections.immutable.PersistentSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
@@ -37,7 +36,6 @@ import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,11 +46,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -74,11 +70,7 @@ class HomeViewModel(
     // read, so the list doesn't load once without it and then reload (a visible flash).
     private val lastVisit = MutableStateFlow<Visit?>(null)
 
-    // Bumped on each restart request; every bump restarts the grace period.
-    private val listenerRestarts = MutableStateFlow(0)
-
-    // Cleared when the listener connects, so a later stop starts again from plain "Restart".
-    private val hasTriedRestart = MutableStateFlow(false)
+    private val listenerHealth = ListenerHealth(listenerConnected)
 
     // Copies of the last deleted or cleared matches, so the snackbar's Undo can put them back.
     private var undoable: List<KeywordMatch> = emptyList()
@@ -105,28 +97,11 @@ class HomeViewModel(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val isListenerGraceOver: Flow<Boolean> = listenerRestarts.flatMapLatest {
-        flow {
-            emit(false)
-            delay(LISTENER_GRACE_MILLIS)
-            emit(true)
-        }
-    }
-
-    private val listenerIssue: Flow<ListenerIssue> = combine(
-        inputs.map { it.hasListenerAccess }.distinctUntilChanged(),
-        listenerConnected.onEach { connected -> if (connected) hasTriedRestart.update { false } },
-        isListenerGraceOver,
-        hasTriedRestart,
-        ::listenerIssue,
-    ).distinctUntilChanged()
-
     val state: StateFlow<HomeState> = combine(
         inputs,
         repository.watchedApps,
         AppListenerService.notificationIntents,
-        combine(newSinceLastVisit, listenerIssue, ::Pair),
+        combine(newSinceLastVisit, listenerHealth.issue, ::Pair),
         repository.matchCountsByApp,
     ) { inputs, watchedApps, intents, (newCount, issue), counts ->
         HomeState(
@@ -230,14 +205,12 @@ class HomeViewModel(
 
             HomeAction.RefreshLastVisit -> refreshLastVisit()
 
-            is HomeAction.PermissionsChecked -> inputs.update {
-                it.copy(hasListenerAccess = action.hasListenerAccess, notificationsAllowed = action.notificationsAllowed)
+            is HomeAction.PermissionsChecked -> {
+                listenerHealth.accessChecked(action.hasListenerAccess)
+                inputs.update { it.copy(notificationsAllowed = action.notificationsAllowed) }
             }
 
-            HomeAction.ListenerRestartRequested -> {
-                hasTriedRestart.update { true }
-                listenerRestarts.update { it + 1 }
-            }
+            HomeAction.ListenerRestartRequested -> listenerHealth.restartRequested()
 
             HomeAction.StartSelection -> inputs.update {
                 it.copy(isSelectionMode = true, selectedMatches = persistentSetOf())
@@ -358,7 +331,6 @@ class HomeViewModel(
     private data class Inputs(
         val filterPackages: PersistentSet<String> = persistentSetOf(),
         val isFilterLoaded: Boolean = false,
-        val hasListenerAccess: Boolean? = null,
         val notificationsAllowed: Boolean = true,
         val filterDraft: PersistentSet<String> = persistentSetOf(),
         val isFilterSheetVisible: Boolean = false,
@@ -369,9 +341,6 @@ class HomeViewModel(
     )
 
     companion object {
-        // How long the system gets to bind the listener before the screen calls it stopped.
-        private const val LISTENER_GRACE_MILLIS = 3_000L
-
         fun factory(context: Context): ViewModelProvider.Factory {
             val container = AppContainer.from(context)
             return viewModelFactory {

@@ -62,6 +62,7 @@ import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.components.ClearAllDialog
 import dev.logickoder.keyguarde.home.components.EmptyMatchesState
 import dev.logickoder.keyguarde.home.components.HomeTopAppBar
+import dev.logickoder.keyguarde.home.components.ListenerIssueBanners
 import dev.logickoder.keyguarde.home.components.LoadingMatchRows
 import dev.logickoder.keyguarde.home.components.MatchFilterSheet
 import dev.logickoder.keyguarde.home.components.MatchRow
@@ -450,47 +451,11 @@ private fun StatusBanners(
     Column(
         modifier = Modifier.padding(horizontal = Spacing.l),
         content = {
-            AnimatedVisibility(
-                visible = listenerIssue == ListenerIssue.AccessOff,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-                content = {
-                    StatusBanner(
-                        message = stringResource(R.string.banner_access_off),
-                        actions = listOf(stringResource(R.string.banner_turn_on_access) to onOpenListenerSettings),
-                        modifier = Modifier.padding(top = Spacing.s),
-                    )
-                }
-            )
-            AnimatedVisibility(
-                visible = listenerIssue == ListenerIssue.Stopped,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-                content = {
-                    StatusBanner(
-                        message = stringResource(R.string.banner_listener_stopped),
-                        actions = listOf(
-                            stringResource(R.string.banner_battery_settings) to onOpenBatterySettings,
-                            stringResource(R.string.banner_restart) to onRestartListener,
-                        ),
-                        modifier = Modifier.padding(top = Spacing.s),
-                    )
-                }
-            )
-            AnimatedVisibility(
-                visible = listenerIssue == ListenerIssue.StillStopped,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-                content = {
-                    StatusBanner(
-                        message = stringResource(R.string.banner_listener_still_stopped),
-                        actions = listOf(
-                            stringResource(R.string.banner_battery_settings) to onOpenBatterySettings,
-                            stringResource(R.string.banner_open_access) to onOpenListenerSettings,
-                        ),
-                        modifier = Modifier.padding(top = Spacing.s),
-                    )
-                }
+            ListenerIssueBanners(
+                issue = listenerIssue,
+                onOpenListenerSettings = onOpenListenerSettings,
+                onRestartListener = onRestartListener,
+                onOpenBatterySettings = onOpenBatterySettings,
             )
             AnimatedVisibility(
                 visible = !notificationsAllowed,
