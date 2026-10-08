@@ -78,6 +78,7 @@ import dev.logickoder.keyguarde.home.domain.HomeState
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
 import dev.logickoder.keyguarde.home.domain.MatchListItem
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 
 /**
  * @param onOpenKeywords switches to the Keywords tab, from the empty state.
@@ -132,15 +133,15 @@ fun HomeScreen(
             val undoMessage = when (effect) {
                 is HomeEffect.MatchesDeleted -> resources.getQuantityString(
                     R.plurals.deleted_match,
-                    effect.count,
-                    effect.count,
-                )
+                    effect.matches.size,
+                    effect.matches.size,
+                ) to effect.matches
 
                 is HomeEffect.MatchesCleared -> resources.getQuantityString(
                     R.plurals.cleared_match,
-                    effect.count,
-                    effect.count,
-                )
+                    effect.matches.size,
+                    effect.matches.size,
+                ) to effect.matches
 
                 is HomeEffect.LaunchApp -> {
                     val intent = context.packageManager.getLaunchIntentForPackage(effect.packageName)
@@ -167,13 +168,19 @@ fun HomeScreen(
                 }
             }
             if (undoMessage != null) {
-                val result = snackbarHostState.showSnackbar(
-                    message = undoMessage,
-                    actionLabel = resources.getString(R.string.undo),
-                    duration = SnackbarDuration.Long,
-                )
-                if (result == SnackbarResult.ActionPerformed) {
-                    viewModel.onAction(HomeAction.UndoDelete)
+                val (message, removed) = undoMessage
+                // Launched, so a pending snackbar never holds up later effects, and a newer delete
+                // replaces it instead of queueing behind it.
+                launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    val result = snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = resources.getString(R.string.undo),
+                        duration = SnackbarDuration.Long,
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.onAction(HomeAction.UndoDelete(removed))
+                    }
                 }
             }
         }

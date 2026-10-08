@@ -78,6 +78,9 @@ sealed interface HomeAction {
 
     data object ClearAllMatches : HomeAction
 
-    /** Put back whatever the last delete or clear removed. */
-    data object UndoDelete : HomeAction
+    /**
+     * Put back what one delete or clear removed. Carries the matches, so a snackbar from an
+     * earlier delete can't restore a later one.
+     */
+    data class UndoDelete(val matches: List<KeywordMatch>) : HomeAction
 }

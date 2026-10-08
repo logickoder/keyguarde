@@ -74,9 +74,6 @@ class HomeViewModel(
 
     private val listenerHealth = ListenerHealth(listenerConnected)
 
-    // Copies of the last deleted or cleared matches, so the snackbar's Undo can put them back.
-    private var undoable: List<KeywordMatch> = emptyList()
-
     private val _effects = Channel<HomeEffect>(Channel.BUFFERED)
     val effects: Flow<HomeEffect> = _effects.receiveAsFlow()
 
@@ -258,7 +255,7 @@ class HomeViewModel(
 
             HomeAction.ClearAllMatches -> clearAllMatches()
 
-            HomeAction.UndoDelete -> undoDelete()
+            is HomeAction.UndoDelete -> viewModelScope.launch { repository.restoreMatches(action.matches) }
         }
     }
 
@@ -317,25 +314,20 @@ class HomeViewModel(
         if (ids.isEmpty()) return
         inputs.update { it.copy(openMatch = null) }
         viewModelScope.launch {
-            undoable = repository.getMatchesByIds(ids)
+            // Copied first, so Undo can put them back with their original ids.
+            val removed = repository.getMatchesByIds(ids)
             repository.deleteKeywordMatches(ids)
-            _effects.send(HomeEffect.MatchesDeleted(ids.size))
+            _effects.send(HomeEffect.MatchesDeleted(removed))
         }
     }
 
     private fun clearAllMatches() {
         inputs.update { it.copy(isClearAllConfirmVisible = false) }
         viewModelScope.launch {
-            undoable = repository.getAllMatches()
-            _effects.send(HomeEffect.MatchesCleared(repository.clearMatches()))
+            val removed = repository.getAllMatches()
+            repository.clearMatches()
+            _effects.send(HomeEffect.MatchesCleared(removed))
         }
-    }
-
-    private fun undoDelete() {
-        val matches = undoable
-        undoable = emptyList()
-        if (matches.isEmpty()) return
-        viewModelScope.launch { repository.restoreMatches(matches) }
     }
 
     private data class Visit(val at: LocalDateTime?)

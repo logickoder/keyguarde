@@ -168,9 +168,9 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         assertNull(viewModel.state.value.openMatch)
-        assertEquals(listOf<HomeEffect>(HomeEffect.MatchesDeleted(1)), effects)
+        assertEquals(listOf<HomeEffect>(HomeEffect.MatchesDeleted(listOf(match))), effects)
 
-        viewModel.onAction(HomeAction.UndoDelete)
+        viewModel.onAction(HomeAction.UndoDelete(listOf(match)))
         advanceUntilIdle()
         coVerify { repository.restoreMatches(listOf(match)) }
     }
@@ -298,5 +298,26 @@ class HomeViewModelTest {
         viewModel.onAction(HomeAction.ClearKeywordFilter)
         advanceUntilIdle()
         assertNull(viewModel.state.value.keywordFilter)
+    }
+
+    @Test
+    fun `each undo restores the matches its own delete removed`() = runTest(dispatcher) {
+        val other = match.copy(id = 8, message = "Rent again")
+        coEvery { repository.getMatchesByIds(listOf(match.id)) } returns listOf(match)
+        coEvery { repository.getMatchesByIds(listOf(other.id)) } returns listOf(other)
+        coEvery { repository.deleteKeywordMatches(any()) } just Runs
+        coEvery { repository.restoreMatches(any()) } just Runs
+        val effects = mutableListOf<HomeEffect>()
+        backgroundScope.launch { viewModel.effects.collect { effects += it } }
+
+        viewModel.onAction(HomeAction.DeleteMatch(match))
+        viewModel.onAction(HomeAction.DeleteMatch(other))
+        advanceUntilIdle()
+        val first = effects.filterIsInstance<HomeEffect.MatchesDeleted>().first()
+        viewModel.onAction(HomeAction.UndoDelete(first.matches))
+        advanceUntilIdle()
+
+        coVerify { repository.restoreMatches(listOf(match)) }
+        coVerify(exactly = 0) { repository.restoreMatches(listOf(other)) }
     }
 }
