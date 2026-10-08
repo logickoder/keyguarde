@@ -22,13 +22,14 @@ data class SettingsState(
 ) {
     /**
      * Asks for a rating only once Keyguarde has proved itself, and never next to a problem.
+     * Restricted battery doesn't block it: most phones restrict by default, so almost nobody
+     * would ever see the prompt.
      */
     val showRatePrompt: Boolean
         get() = !ratePromptDone &&
             !isPaused &&
             caughtCount >= RATE_PROMPT_MIN_CATCHES &&
             listenerIssue == ListenerIssue.None &&
-            isBatteryUnrestricted != false &&
             test == SetupTest.Idle
 
     val canPreviewAlerts: Boolean

@@ -186,14 +186,14 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `the rate prompt hides while battery saving can pause Keyguarde`() = runTest(dispatcher) {
+    fun `the rate prompt still shows when battery use is restricted`() = runTest(dispatcher) {
         caughtCount.value = 50
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
         viewModel.onAction(SettingsAction.SystemChecked(true, notificationsAllowed = true, isBatteryUnrestricted = false))
         advanceUntilIdle()
 
-        assertFalse(viewModel.state.value.showRatePrompt)
+        assertTrue(viewModel.state.value.showRatePrompt)
     }
 
     @Test
