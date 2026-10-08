@@ -18,4 +18,7 @@ sealed interface SettingsAction {
     data object TogglePersistentNotification : SettingsAction
     data object ToggleResetCountOnOpen : SettingsAction
     data class SetThemeMode(val mode: ThemeMode) : SettingsAction
+
+    /** The user rated or dismissed the prompt. */
+    data object RatePromptDone : SettingsAction
 }

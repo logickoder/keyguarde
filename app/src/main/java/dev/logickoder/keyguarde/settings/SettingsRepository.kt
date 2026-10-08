@@ -29,6 +29,11 @@ class SettingsRepository(private val localStore: AppStore) {
 
     suspend fun setThemeMode(mode: ThemeMode) = localStore.save(THEME_MODE, mode.name)
 
+    /** True once the user rated or dismissed the rate prompt; it never comes back after that. */
+    val ratePromptDone = localStore.get(RATE_PROMPT_DONE).map { it ?: false }
+
+    suspend fun markRatePromptDone() = localStore.save(RATE_PROMPT_DONE, true)
+
     suspend fun toggleUsePersistentSilentNotification() = localStore.save(
         USE_PERSISTENT_SILENT_NOTIFICATION,
         !usePersistentSilentNotification.first()
@@ -49,5 +54,6 @@ class SettingsRepository(private val localStore: AppStore) {
         private val SHOW_HEADS_UP_ALERT = booleanPreferencesKey("show_heads_up_alert")
         private val RESET_MATCH_COUNT_ON_APP_OPEN = booleanPreferencesKey("reset_match_count_on_app_open")
         private val THEME_MODE = stringPreferencesKey("theme_mode")
+        private val RATE_PROMPT_DONE = booleanPreferencesKey("rate_prompt_done")
     }
 }

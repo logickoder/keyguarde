@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.core.net.toUri
 
 fun appNotificationSettings(context: Context): Intent =
     Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
@@ -23,6 +24,20 @@ fun Context.startActivitySafely(intent: Intent) {
     } catch (_: ActivityNotFoundException) {
         startActivity(
             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
+        )
+    }
+}
+
+/**
+ * Opens Keyguarde's Play Store page, in the Play Store app when it's installed, else the browser.
+ * Not the in-app review API: Google rate-limits its dialog, so a tap could show nothing.
+ */
+fun Context.openStoreListing() {
+    try {
+        startActivity(Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri()))
+    } catch (_: ActivityNotFoundException) {
+        startActivity(
+            Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri())
         )
     }
 }

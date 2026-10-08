@@ -50,8 +50,8 @@ class SettingsViewModel(
         listenerHealth.issue,
         appRepository.keywords,
         combine(appRepository.watchedApps, alerts, ::Pair),
-        settingsRepository.themeMode,
-    ) { inputs, issue, keywords, (apps, alerts), themeMode ->
+        combine(settingsRepository.themeMode, appRepository.catchStats, settingsRepository.ratePromptDone, ::Triple),
+    ) { inputs, issue, keywords, (apps, alerts), (themeMode, catches, ratePromptDone) ->
         SettingsState(
             listenerIssue = issue,
             notificationsAllowed = inputs.notificationsAllowed,
@@ -63,6 +63,8 @@ class SettingsViewModel(
             resetCountOnOpen = alerts.resetOnOpen,
             isBatteryUnrestricted = inputs.isBatteryUnrestricted,
             themeMode = themeMode,
+            catches = catches,
+            ratePromptDone = ratePromptDone,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -111,6 +113,10 @@ class SettingsViewModel(
 
             is SettingsAction.SetThemeMode -> viewModelScope.launch {
                 settingsRepository.setThemeMode(action.mode)
+            }
+
+            SettingsAction.RatePromptDone -> viewModelScope.launch {
+                settingsRepository.markRatePromptDone()
             }
         }
     }

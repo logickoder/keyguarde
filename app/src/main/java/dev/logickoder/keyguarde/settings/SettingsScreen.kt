@@ -33,6 +33,7 @@ import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.appNotificationSettings
 import dev.logickoder.keyguarde.app.domain.batteryOptimizationSettings
 import dev.logickoder.keyguarde.app.domain.isBatteryUnrestricted
+import dev.logickoder.keyguarde.app.domain.openStoreListing
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.navigation.SettingsRoute
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -114,6 +115,10 @@ fun SettingsScreen(
                 context.startActivitySafely(appNotificationSettings(context))
             }
         },
+        onRate = {
+            context.openStoreListing()
+            viewModel.onAction(SettingsAction.RatePromptDone)
+        },
         onPreviewAlerts = {
             if (state.usePersistentNotification) {
                 NotificationHelper.showPersistentNotification(context, 5, 1)
@@ -135,6 +140,7 @@ private fun SettingsContent(
     onRestartListener: () -> Unit,
     onOpenBatterySettings: () -> Unit,
     onEnableNotifications: () -> Unit,
+    onRate: () -> Unit,
     onPreviewAlerts: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -160,6 +166,7 @@ private fun SettingsContent(
                         onOpenListenerSettings = onOpenListenerSettings,
                         onRestartListener = onRestartListener,
                         onOpenBatterySettings = onOpenBatterySettings,
+                        onRate = onRate,
                     )
 
                     SettingsSection(
@@ -259,6 +266,7 @@ private fun Status(
     onOpenListenerSettings: () -> Unit,
     onRestartListener: () -> Unit,
     onOpenBatterySettings: () -> Unit,
+    onRate: () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = Spacing.l),
@@ -278,12 +286,16 @@ private fun Status(
                         test = state.test,
                         keyword = state.testKeyword,
                         canSendTest = state.notificationsAllowed,
+                        catches = state.catches,
+                        showRatePrompt = state.showRatePrompt,
                         onRunTest = onRunTest,
                         onResetTest = { onAction(SettingsAction.ResetTest) },
                         onOpenListenerSettings = {
                             onAction(SettingsAction.ResetTest)
                             onOpenListenerSettings()
                         },
+                        onRate = onRate,
+                        onDismissRate = { onAction(SettingsAction.RatePromptDone) },
                         modifier = Modifier.padding(top = Spacing.s),
                     )
                 }
@@ -354,6 +366,7 @@ private fun SettingsContentPreview() = AppTheme {
         onRestartListener = {},
         onOpenBatterySettings = {},
         onEnableNotifications = {},
+        onRate = {},
         onPreviewAlerts = {},
     )
 }

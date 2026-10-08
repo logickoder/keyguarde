@@ -1,6 +1,7 @@
 package dev.logickoder.keyguarde.settings
 
 import dev.logickoder.keyguarde.app.data.AppRepository
+import dev.logickoder.keyguarde.app.data.model.CatchStats
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
@@ -24,6 +25,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
@@ -35,9 +38,12 @@ class SettingsViewModelTest {
     private val keywords = MutableStateFlow(listOf(Keyword("invoice")))
     private val testReceived = MutableSharedFlow<String>(extraBufferCapacity = 1)
     private val listenerConnected = MutableStateFlow(true)
+    private val catches = MutableStateFlow(CatchStats())
+    private val ratePromptDone = MutableStateFlow(false)
 
     private val appRepository = mockk<AppRepository> {
         every { keywords } returns this@SettingsViewModelTest.keywords
+        every { catchStats } returns this@SettingsViewModelTest.catches
         every { watchedApps } returns flowOf(
             listOf(WatchedApp("com.whatsapp", "WhatsApp", ""), WatchedApp("org.telegram.messenger", "Telegram", ""))
         )
@@ -47,6 +53,7 @@ class SettingsViewModelTest {
         every { usePersistentSilentNotification } returns flowOf(false)
         every { resetMatchCountOnAppOpen } returns flowOf(false)
         every { themeMode } returns flowOf(ThemeMode.Dark)
+        every { ratePromptDone } returns this@SettingsViewModelTest.ratePromptDone
     }
 
     @Before
@@ -134,5 +141,49 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         coVerify { settingsRepository.setThemeMode(ThemeMode.Light) }
+    }
+
+    @Test
+    fun `the rate prompt waits for ten catches`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.state.collect {} }
+        catches.value = CatchStats(messages = 9, apps = 2)
+        advanceUntilIdle()
+        assertFalse(viewModel.state.value.showRatePrompt)
+
+        catches.value = CatchStats(messages = 10, apps = 2)
+        advanceUntilIdle()
+        assertTrue(viewModel.state.value.showRatePrompt)
+    }
+
+    @Test
+    fun `the rate prompt never returns once rated or dismissed`() = runTest(dispatcher) {
+        catches.value = CatchStats(messages = 50, apps = 2)
+        ratePromptDone.value = true
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.state.collect {} }
+        advanceUntilIdle()
+
+        assertFalse(viewModel.state.value.showRatePrompt)
+    }
+
+    @Test
+    fun `the rate prompt hides while a listener problem shows`() = runTest(dispatcher) {
+        catches.value = CatchStats(messages = 50, apps = 2)
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.state.collect {} }
+        viewModel.onAction(SettingsAction.SystemChecked(false, notificationsAllowed = true, isBatteryUnrestricted = true))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.state.value.showRatePrompt)
+    }
+
+    @Test
+    fun `dismissing the rate prompt saves it`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        viewModel.onAction(SettingsAction.RatePromptDone)
+        advanceUntilIdle()
+
+        coVerify { settingsRepository.markRatePromptDone() }
     }
 }

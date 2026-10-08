@@ -1,6 +1,7 @@
 package dev.logickoder.keyguarde.app.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -39,6 +40,13 @@ class AppStore(
             Napier.e(e) { "Datastore error" }
             null
         }
+    }
+
+    /**
+     * Reads and writes several keys as one change, so concurrent writers can't lose an update.
+     */
+    suspend fun edit(transform: suspend (MutablePreferences) -> Unit) {
+        context.app.edit { preferences -> transform(preferences) }
     }
 
     suspend fun clear() = context.app.edit { preferences ->
