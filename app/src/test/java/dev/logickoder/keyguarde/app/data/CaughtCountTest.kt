@@ -5,10 +5,8 @@ import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.mutablePreferencesOf
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import dev.logickoder.keyguarde.app.data.dao.KeywordMatchDao
 import dev.logickoder.keyguarde.app.data.model.AppMatchCount
-import dev.logickoder.keyguarde.app.data.model.CatchStats
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -21,7 +19,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class CatchStatsTest {
+class CaughtCountTest {
 
     private val saved = listOf(AppMatchCount("com.whatsapp", 4), AppMatchCount("org.telegram.messenger", 2))
 
@@ -52,25 +50,22 @@ class CatchStatsTest {
     )
 
     @Test
-    fun `before the first catch, stats start from the saved matches`() = runTest {
-        assertEquals(CatchStats(messages = 6, apps = 2), repository.catchStats.first())
+    fun `before the first catch, the count starts from the saved matches`() = runTest {
+        assertEquals(6, repository.caughtCount.first())
     }
 
     @Test
     fun `the first catch seeds from the saved matches, which already include it`() = runTest {
-        repository.recordCatch("com.whatsapp")
+        repository.recordCatch()
 
-        assertEquals(CatchStats(messages = 6, apps = 2), repository.catchStats.first())
+        assertEquals(6, repository.caughtCount.first())
         assertEquals(6, preferences.value[intPreferencesKey("caught_count")])
     }
 
     @Test
-    fun `later catches count up and add new apps once`() = runTest {
-        repository.recordCatch("com.whatsapp")
-        repository.recordCatch("com.whatsapp")
-        repository.recordCatch("org.thoughtcrime.securesms")
+    fun `later catches count up one at a time`() = runTest {
+        repeat(3) { repository.recordCatch() }
 
-        assertEquals(CatchStats(messages = 8, apps = 3), repository.catchStats.first())
-        assertEquals(3, preferences.value[stringSetPreferencesKey("caught_apps")]?.size)
+        assertEquals(8, repository.caughtCount.first())
     }
 }

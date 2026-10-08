@@ -37,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.app.data.model.CatchStats
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -56,7 +55,7 @@ fun ListenerStatusCard(
     test: SetupTest,
     keyword: String?,
     canSendTest: Boolean,
-    catches: CatchStats,
+    caughtCount: Int,
     showRatePrompt: Boolean,
     onRunTest: () -> Unit,
     onResetTest: () -> Unit,
@@ -69,7 +68,7 @@ fun ListenerStatusCard(
         SetupTest.Idle -> stringResource(R.string.status_listening) to when (keyword) {
             null -> stringResource(R.string.status_no_keywords)
             else -> listOfNotNull(
-                catchesText(catches),
+                caughtText(caughtCount),
                 stringResource(R.string.status_body_no_alerts).takeIf { !canSendTest },
             ).joinToString(" ")
         }
@@ -153,10 +152,9 @@ fun ListenerStatusCard(
  * What Keyguarde has done so far, or what it does when it hasn't caught anything yet.
  */
 @Composable
-private fun catchesText(catches: CatchStats): String = when {
-    catches.messages == 0 -> stringResource(R.string.status_body)
-    catches.apps <= 1 -> pluralStringResource(R.plurals.status_catches_one_app, catches.messages, catches.messages)
-    else -> pluralStringResource(R.plurals.status_catches, catches.messages, catches.messages, catches.apps)
+private fun caughtText(count: Int): String = when (count) {
+    0 -> stringResource(R.string.status_body)
+    else -> pluralStringResource(R.plurals.status_caught, count, count)
 }
 
 @Composable
@@ -240,7 +238,7 @@ private fun ListenerStatusCardPreview() = AppTheme {
         test = SetupTest.Idle,
         keyword = "invoice",
         canSendTest = true,
-        catches = CatchStats(messages = 128, apps = 3),
+        caughtCount = 128,
         showRatePrompt = true,
         onRunTest = {},
         onResetTest = {},

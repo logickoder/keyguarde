@@ -1,6 +1,5 @@
 package dev.logickoder.keyguarde.settings.domain
 
-import dev.logickoder.keyguarde.app.data.model.CatchStats
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
 import dev.logickoder.keyguarde.onboarding.domain.SetupTest
 
@@ -17,7 +16,7 @@ data class SettingsState(
     /** Null until the screen has checked. */
     val isBatteryUnrestricted: Boolean? = null,
     val themeMode: ThemeMode = ThemeMode.System,
-    val catches: CatchStats = CatchStats(),
+    val caughtCount: Int = 0,
     val ratePromptDone: Boolean = true,
 ) {
     /**
@@ -25,7 +24,7 @@ data class SettingsState(
      */
     val showRatePrompt: Boolean
         get() = !ratePromptDone &&
-            catches.messages >= RATE_PROMPT_MIN_CATCHES &&
+            caughtCount >= RATE_PROMPT_MIN_CATCHES &&
             listenerIssue == ListenerIssue.None &&
             test == SetupTest.Idle
 

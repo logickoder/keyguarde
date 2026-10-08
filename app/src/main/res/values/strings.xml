@@ -208,13 +208,9 @@
     <string name="status_listening">Listening</string>
     <string name="status_body">Keyguarde checks new messages in your watched apps.</string>
     <string name="status_body_no_alerts">Turn on alerts to run a test.</string>
-    <plurals name="status_catches_one_app">
-        <item quantity="one">Caught 1 message in 1 app.</item>
-        <item quantity="other">Caught %1$d messages in 1 app.</item>
-    </plurals>
-    <plurals name="status_catches">
-        <item quantity="one">Caught %1$d message across %2$d apps.</item>
-        <item quantity="other">Caught %1$d messages across %2$d apps.</item>
+    <plurals name="status_caught">
+        <item quantity="one">Caught 1 message so far.</item>
+        <item quantity="other">Caught %1$d messages so far.</item>
     </plurals>
     <string name="rate_prompt">Finding Keyguarde useful?</string>
     <string name="rate_prompt_action">Rate it</string>

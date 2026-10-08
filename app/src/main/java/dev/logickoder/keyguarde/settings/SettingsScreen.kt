@@ -286,7 +286,7 @@ private fun Status(
                         test = state.test,
                         keyword = state.testKeyword,
                         canSendTest = state.notificationsAllowed,
-                        catches = state.catches,
+                        caughtCount = state.caughtCount,
                         showRatePrompt = state.showRatePrompt,
                         onRunTest = onRunTest,
                         onResetTest = { onAction(SettingsAction.ResetTest) },

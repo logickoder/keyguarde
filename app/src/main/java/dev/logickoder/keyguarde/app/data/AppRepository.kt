@@ -11,7 +11,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import dev.logickoder.keyguarde.app.data.model.CatchStats
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
@@ -91,37 +90,22 @@ class AppRepository(
     }
 
     /**
-     * Lifetime catches. Until the first catch after this shipped, it starts from the matches saved,
-     * so existing users don't see zero.
+     * Every message caught since install; deleting matches doesn't lower it. Until the first catch
+     * after this shipped, it starts from the matches saved, so existing users don't see zero.
      */
-    val catchStats: Flow<CatchStats> = combine(
-        localStore.get(CAUGHT_COUNT),
-        localStore.get(CAUGHT_APPS),
-        matchCountsByApp,
-    ) { count, apps, saved ->
-        when (count) {
-            null -> CatchStats(messages = saved.values.sum(), apps = saved.size)
-            else -> CatchStats(messages = count, apps = apps.orEmpty().size)
-        }
+    val caughtCount: Flow<Int> = combine(localStore.get(CAUGHT_COUNT), matchCountsByApp) { count, saved ->
+        count ?: saved.values.sum()
     }
 
     /**
      * Counts a match the listener just saved. Call after the insert, so a first-time seed from the
      * database already includes it.
      */
-    suspend fun recordCatch(packageName: String) {
+    suspend fun recordCatch() {
         localStore.edit { preferences ->
-            when (val count = preferences[CAUGHT_COUNT]) {
-                null -> {
-                    val saved = database.keywordMatchDao().countByApp().first()
-                    preferences[CAUGHT_COUNT] = saved.sumOf { it.count }
-                    preferences[CAUGHT_APPS] = saved.mapTo(mutableSetOf()) { it.app } + packageName
-                }
-
-                else -> {
-                    preferences[CAUGHT_COUNT] = count + 1
-                    preferences[CAUGHT_APPS] = preferences[CAUGHT_APPS].orEmpty() + packageName
-                }
+            preferences[CAUGHT_COUNT] = when (val count = preferences[CAUGHT_COUNT]) {
+                null -> database.keywordMatchDao().countByApp().first().sumOf { it.count }
+                else -> count + 1
             }
         }
     }
@@ -342,8 +326,6 @@ class AppRepository(
         private val MATCHES_FILTER = stringSetPreferencesKey("matches_filter_apps")
 
         private val CAUGHT_COUNT = intPreferencesKey("caught_count")
-
-        private val CAUGHT_APPS = stringSetPreferencesKey("caught_apps")
 
         // Package names of priority apps
         const val WHATSAPP_PACKAGE_NAME = "com.whatsapp"

@@ -248,7 +248,7 @@ class AppListenerService : NotificationListenerService() {
                 return@launch
             }
 
-            repository.recordCatch(notification.packageName)
+            repository.recordCatch()
             cacheChatAvatar(notification, title)
 
             // Create a pending intent for the notification

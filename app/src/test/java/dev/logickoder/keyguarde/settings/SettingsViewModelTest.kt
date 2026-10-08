@@ -1,7 +1,6 @@
 package dev.logickoder.keyguarde.settings
 
 import dev.logickoder.keyguarde.app.data.AppRepository
-import dev.logickoder.keyguarde.app.data.model.CatchStats
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
@@ -38,12 +37,12 @@ class SettingsViewModelTest {
     private val keywords = MutableStateFlow(listOf(Keyword("invoice")))
     private val testReceived = MutableSharedFlow<String>(extraBufferCapacity = 1)
     private val listenerConnected = MutableStateFlow(true)
-    private val catches = MutableStateFlow(CatchStats())
+    private val caughtCount = MutableStateFlow(0)
     private val ratePromptDone = MutableStateFlow(false)
 
     private val appRepository = mockk<AppRepository> {
         every { keywords } returns this@SettingsViewModelTest.keywords
-        every { catchStats } returns this@SettingsViewModelTest.catches
+        every { caughtCount } returns this@SettingsViewModelTest.caughtCount
         every { watchedApps } returns flowOf(
             listOf(WatchedApp("com.whatsapp", "WhatsApp", ""), WatchedApp("org.telegram.messenger", "Telegram", ""))
         )
@@ -147,18 +146,18 @@ class SettingsViewModelTest {
     fun `the rate prompt waits for ten catches`() = runTest(dispatcher) {
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
-        catches.value = CatchStats(messages = 9, apps = 2)
+        caughtCount.value = 9
         advanceUntilIdle()
         assertFalse(viewModel.state.value.showRatePrompt)
 
-        catches.value = CatchStats(messages = 10, apps = 2)
+        caughtCount.value = 10
         advanceUntilIdle()
         assertTrue(viewModel.state.value.showRatePrompt)
     }
 
     @Test
     fun `the rate prompt never returns once rated or dismissed`() = runTest(dispatcher) {
-        catches.value = CatchStats(messages = 50, apps = 2)
+        caughtCount.value = 50
         ratePromptDone.value = true
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
@@ -169,7 +168,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `the rate prompt hides while a listener problem shows`() = runTest(dispatcher) {
-        catches.value = CatchStats(messages = 50, apps = 2)
+        caughtCount.value = 50
         val viewModel = viewModel()
         backgroundScope.launch { viewModel.state.collect {} }
         viewModel.onAction(SettingsAction.SystemChecked(false, notificationsAllowed = true, isBatteryUnrestricted = true))
