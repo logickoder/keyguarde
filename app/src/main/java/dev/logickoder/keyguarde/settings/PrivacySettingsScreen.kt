@@ -1,5 +1,6 @@
 package dev.logickoder.keyguarde.settings
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -18,11 +20,13 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.analytics.Events
 import dev.logickoder.keyguarde.analytics.LocalAnalytics
 import dev.logickoder.keyguarde.analytics.TrackScreen
 import dev.logickoder.keyguarde.analytics.log
+import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.domain.openUrl
 import dev.logickoder.keyguarde.app.theme.AppTheme
@@ -49,9 +53,19 @@ fun PrivacySettingsScreen(
     val toastManager = LocalToastManager.current
     val linkMissing = stringResource(R.string.link_app_missing)
     val analytics = LocalAnalytics.current
+    val activity = LocalActivity.current
+    val consent = AppContainer.from(context).adsConsent
+    val privacyOptionsRequired by consent.privacyOptionsRequired.collectAsStateWithLifecycle()
     TrackScreen("settings_privacy")
     PrivacyContent(
         onBack = onBack,
+        // Only where the law gives users a way to change their ad consent answer.
+        onAdChoices = when {
+            privacyOptionsRequired && activity != null -> {
+                { consent.showPrivacyOptions(activity) }
+            }
+            else -> null
+        },
         onOpenPolicy = {
             analytics.log(Events.privacyPolicyOpened)
             if (!context.openUrl(PRIVACY_POLICY_URL)) toastManager.show(linkMissing)
@@ -63,6 +77,7 @@ fun PrivacySettingsScreen(
 @Composable
 private fun PrivacyContent(
     onBack: () -> Unit,
+    onAdChoices: (() -> Unit)?,
     onOpenPolicy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -91,6 +106,9 @@ private fun PrivacyContent(
                     )
                     Services.forEach { (title, body) ->
                         Fact(title = stringResource(title), body = stringResource(body))
+                    }
+                    if (onAdChoices != null) {
+                        LinkButton(text = stringResource(R.string.privacy_ad_choices), onClick = onAdChoices)
                     }
                     LinkButton(
                         text = stringResource(R.string.privacy_policy),
@@ -144,5 +162,5 @@ private fun Fact(title: String, body: String) {
 @PreviewLightDark
 @Composable
 private fun PrivacyContentPreview() = AppTheme {
-    PrivacyContent(onBack = {}, onOpenPolicy = {})
+    PrivacyContent(onBack = {}, onAdChoices = {}, onOpenPolicy = {})
 }

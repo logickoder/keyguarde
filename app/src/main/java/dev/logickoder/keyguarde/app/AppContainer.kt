@@ -2,6 +2,7 @@ package dev.logickoder.keyguarde.app
 
 import android.content.Context
 import dev.logickoder.keyguarde.App
+import dev.logickoder.keyguarde.ads.AdsConsent
 import dev.logickoder.keyguarde.analytics.Analytics
 import dev.logickoder.keyguarde.analytics.FirebaseAppAnalytics
 import dev.logickoder.keyguarde.app.data.AppDatabase
@@ -33,6 +34,8 @@ class AppContainer(context: Context) {
     val systemStatus by lazy { SystemStatus(appContext) }
 
     val analytics: Analytics by lazy { FirebaseAppAnalytics(appContext) }
+
+    val adsConsent by lazy { AdsConsent(appContext) }
 
     companion object {
         // Compose previews don't run App, so they get a throwaway container.

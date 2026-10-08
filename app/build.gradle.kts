@@ -151,6 +151,7 @@ dependencies {
 
     // Play Services
     implementation(libs.play.services.ads)
+    implementation(libs.user.messaging.platform)
 
     // Room 3
     ksp(libs.room3.compiler)
