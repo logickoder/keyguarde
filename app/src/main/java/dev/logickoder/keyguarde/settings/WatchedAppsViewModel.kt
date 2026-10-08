@@ -34,9 +34,11 @@ class WatchedAppsViewModel(
         installedApps,
         repository.watchedApps,
     ) { apps, watchedApps ->
+        val installed = apps.mapTo(mutableSetOf()) { it.packageName }
         WatchedAppsState(
             apps = apps.toImmutableList(),
             watchedPackages = watchedApps.map { it.packageName }.toImmutableSet(),
+            missingApps = watchedApps.filter { it.packageName !in installed }.toImmutableList(),
         )
     }.stateIn(
         scope = viewModelScope,
@@ -44,7 +46,19 @@ class WatchedAppsViewModel(
         initialValue = WatchedAppsState(),
     )
 
-    fun addApp(context: Context, app: AppInfo) {
+    /**
+     * Watches the app if it isn't watched yet, otherwise stops watching it. Takes a context to save
+     * the app's icon, which the Matches list shows.
+     */
+    fun toggleApp(context: Context, packageName: String) {
+        val state = state.value
+        when (packageName in state.watchedPackages) {
+            true -> removeApp(packageName)
+            else -> state.apps.firstOrNull { it.packageName == packageName }?.let { addApp(context, it) }
+        }
+    }
+
+    private fun addApp(context: Context, app: AppInfo) {
         val appContext = context.applicationContext
         viewModelScope.launch {
             repository.addWatchedApp(
@@ -61,7 +75,7 @@ class WatchedAppsViewModel(
         }
     }
 
-    fun removeApp(packageName: String) {
+    private fun removeApp(packageName: String) {
         viewModelScope.launch {
             repository.deleteWatchedApp(packageName)
         }

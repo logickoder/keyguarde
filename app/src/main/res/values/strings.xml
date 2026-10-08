@@ -21,7 +21,6 @@
     <string name="unknown_error">Unknown error</string>
     <string name="keyword">Keyword</string>
     <string name="add_keyword">Add Keyword</string>
-    <string name="coming_soon">Coming Soon</string>
 
     <!-- Onboarding -->
     <string name="onboarding_step">Step %1$d of %2$d</string>
@@ -187,6 +186,8 @@
     <string name="section_appearance">Appearance</string>
     <string name="section_about">About</string>
     <string name="settings_apps">Apps</string>
+    <string name="settings_apps_missing">Not on this phone</string>
+    <string name="settings_apps_body">Keyguarde only reads notifications from the apps you tick.</string>
     <plurals name="settings_app_count">
         <item quantity="one">%1$d app</item>
         <item quantity="other">%1$d apps</item>
@@ -219,19 +220,12 @@
     <string name="status_body_caught">Keyguarde caught “%1$s” in a test message.</string>
     <string name="status_run_test">Run a test</string>
     <string name="status_done">Done</string>
-    <string name="watched_apps">Watched Apps</string>
-    <string name="watched_apps_desc">Select which apps to monitor for keywords</string>
     <string name="battery_background">Battery &amp; Background</string>
     <string name="privacy">Privacy</string>
 
     <!-- Keyword filters -->
     <string name="no_keywords_added">No keywords added yet</string>
     <string name="no_keywords_added_desc">Add keywords to get alerts when they appear in messages</string>
-
-    <!-- Watched apps -->
-    <string name="search_apps">Search apps…</string>
-    <string name="no_apps_found">No apps found matching \"%1$s\"</string>
-    <string name="coming_soon_desc">Support for more messaging apps will be added in future updates.</string>
 
     <!-- Battery settings -->
     <string name="battery_optimization">Battery Optimization</string>

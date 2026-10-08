@@ -1,13 +1,8 @@
 package dev.logickoder.keyguarde.settings
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Update
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,17 +16,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.logickoder.keyguarde.R
+import dev.logickoder.keyguarde.app.components.AppPicker
+import dev.logickoder.keyguarde.app.components.AppPickerRow
+import dev.logickoder.keyguarde.app.components.AppPickerSectionLabel
 import dev.logickoder.keyguarde.app.theme.AppTheme
-import dev.logickoder.keyguarde.settings.components.AppList
-import dev.logickoder.keyguarde.settings.components.InfoCard
+import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.home.components.AppIcon
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
-import dev.logickoder.keyguarde.onboarding.domain.AppInfo
 import dev.logickoder.keyguarde.settings.domain.WatchedAppsState
 
 @Composable
 fun WatchedAppsScreen(
-    modifier: Modifier = Modifier,
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val viewModel = viewModel<WatchedAppsViewModel>(
@@ -43,56 +40,57 @@ fun WatchedAppsScreen(
         modifier = modifier,
         state = state,
         onBack = onBack,
-        onAddApp = { viewModel.addApp(context, it) },
-        onRemoveApp = viewModel::removeApp,
+        onToggle = { viewModel.toggleApp(context, it) },
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WatchedAppsContent(
     state: WatchedAppsState,
     onBack: () -> Unit,
-    onAddApp: (AppInfo) -> Unit,
-    onRemoveApp: (String) -> Unit,
+    onToggle: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar(stringResource(R.string.watched_apps), onBack)
+            SettingsTopBar(stringResource(R.string.settings_apps), onBack)
         },
         content = { scaffoldPadding ->
-            Column(
+            AppPicker(
+                apps = state.apps,
+                selected = state.watchedPackages,
+                onToggle = onToggle,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(scaffoldPadding)
-                    .padding(16.dp),
-                content = {
+                    .padding(scaffoldPadding),
+                header = {
                     Text(
-                        text = stringResource(R.string.watched_apps_desc),
+                        text = stringResource(R.string.settings_apps_body),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.s),
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    AppList(
-                        modifier = Modifier.weight(1f),
-                        apps = state.apps,
-                        isSelected = { packageName -> packageName in state.watchedPackages },
-                        addItem = onAddApp,
-                        removeItem = onRemoveApp
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    InfoCard(
-                        title = stringResource(R.string.coming_soon),
-                        body = stringResource(R.string.coming_soon_desc),
-                        icon = Icons.Outlined.Update
-                    )
-                }
+                },
+                footer = {
+                    if (state.missingApps.isNotEmpty()) {
+                        item(key = "missing-label") {
+                            AppPickerSectionLabel(
+                                text = stringResource(R.string.settings_apps_missing),
+                                modifier = Modifier.padding(top = Spacing.m),
+                            )
+                        }
+                        items(state.missingApps, key = { "missing-${it.packageName}" }) { app ->
+                            AppPickerRow(
+                                name = app.name,
+                                checked = true,
+                                onToggle = { onToggle(app.packageName) },
+                                modifier = Modifier.animateItem(),
+                                icon = { AppIcon(app = app, contentDescription = null, size = 32.dp) },
+                            )
+                        }
+                    }
+                },
             )
         }
     )
@@ -104,7 +102,6 @@ private fun WatchedAppsContentPreview() = AppTheme {
     WatchedAppsContent(
         state = WatchedAppsState(),
         onBack = {},
-        onAddApp = {},
-        onRemoveApp = {},
+        onToggle = {},
     )
 }
