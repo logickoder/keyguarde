@@ -14,8 +14,6 @@
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
     <string name="navigate">Navigate</string>
-    <string name="collapse">Collapse</string>
-    <string name="expand">Expand</string>
     <string name="expanded">Expanded</string>
     <string name="collapsed">Collapsed</string>
     <string name="unknown_error">Unknown error</string>
@@ -204,7 +202,6 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_help">Help</string>
-    <string name="settings_contact">Contact</string>
     <string name="settings_version">Version %1$s</string>
     <string name="status_listening">Listening</string>
     <string name="status_body">Keyguarde checks new messages in your watched apps.</string>
@@ -240,48 +237,48 @@
     <string name="autostart_body">Xiaomi, Huawei, Oppo, Vivo and some Samsung phones also stop apps that can\'t start on their own. In Keyguarde\'s app settings, turn on Autostart or Background activity.</string>
     <string name="autostart_open">Open app settings</string>
 
-    <!-- Privacy settings -->
-    <string name="local_processing_only">Local Processing Only</string>
-    <string name="local_processing_only_desc">Keyguarde processes all notifications locally on your device. No message data is ever stored externally or transmitted to any server.</string>
-    <string name="what_we_access">What We Access</string>
-    <string name="what_we_access_desc">Keyguarde only reads notification content to check for keywords. We never access your messages, contacts, or other personal data directly.</string>
-    <string name="privacy_policy">Privacy Policy</string>
+    <!-- Privacy -->
+    <string name="privacy_stays_title">Stays on this phone</string>
+    <string name="privacy_stays_body">Your messages, matches and keywords. Keyguarde reads notifications on the phone and never uploads them.</string>
+    <string name="privacy_leaves_title">Leaves this phone</string>
+    <string name="privacy_leaves_body">Keyguarde uses Google services that send some data. None of it includes your messages or keywords.</string>
+    <string name="privacy_analytics_title">Usage stats</string>
+    <string name="privacy_analytics_body">Firebase Analytics records app opens, screens viewed, device model and country.</string>
+    <string name="privacy_crashes_title">Crash reports</string>
+    <string name="privacy_crashes_body">Firebase Crashlytics records what broke, with device model and Android version.</string>
+    <string name="privacy_performance_title">Performance</string>
+    <string name="privacy_performance_body">Firebase Performance records how long the app takes to start and load.</string>
+    <string name="privacy_ads_title">Ads</string>
+    <string name="privacy_ads_body">Google AdMob shows the banner and uses your advertising ID to pick ads. Reset or delete the ID in Android settings, under Privacy, then Ads.</string>
+    <string name="privacy_policy">Read the privacy policy</string>
 
-    <!-- FAQ -->
-    <string name="faq_title">Frequently Asked Questions</string>
-    <string name="faq_desc">Find answers to common questions about Keyguarde</string>
+    <!-- Help -->
+    <string name="help_questions">Questions</string>
+    <string name="help_contact">Get in touch</string>
     <string name="faq_notification_access_q">Why does Keyguarde need notification access?</string>
-    <string name="faq_notification_access_a">Keyguarde needs notification access to read the content of your notifications and match them against your keywords. This permission is essential for the app to function, but all processing happens locally on your device.</string>
+    <string name="faq_notification_access_a">It checks each new notification for your keywords. Without access, Android doesn\'t show it any.</string>
     <string name="faq_reads_messages_q">Does it read my messages?</string>
-    <string name="faq_reads_messages_a">Keyguarde only reads the text content of notifications as they appear. It does not access your message history, media, or any other data within your messaging apps. All processing is done locally on your device.</string>
+    <string name="faq_reads_messages_a">Only the text of notifications from the apps you pick, as they arrive. It can\'t open your chats, see older messages or read media.</string>
     <string name="faq_battery_q">Will it drain my battery?</string>
-    <string name="faq_battery_a">Keyguarde is designed to be lightweight and battery-efficient. It only activates when new notifications arrive, and uses minimal resources while running in the background. The app has been optimized to have negligible impact on your device\'s battery life.</string>
-    <string name="faq_no_matches_q">I\'m not getting matches after installing. What should I do?</string>
-    <string name="faq_no_matches_a">If you\'re not receiving keyword matches after setup, try restarting your device. This ensures the notification listener service starts properly and can monitor your notifications. Also make sure you\'ve granted notification access permission and selected the apps you want to monitor.</string>
+    <string name="faq_battery_a">No. It does nothing between notifications, and each check is a short text search.</string>
+    <string name="faq_no_matches_q">Why am I not getting matches?</string>
+    <string name="faq_no_matches_a">Open Settings and run a test. If the test fails, turn Keyguarde\'s notification access off, then on. Also check the app is ticked under Apps, and Battery use says Unrestricted.</string>
     <string name="faq_manage_keywords_q">How do I add or remove keywords?</string>
-    <string name="faq_manage_keywords_a">You can manage your keywords from the home screen by tapping the \'+\' button to add new keywords. To remove keywords, go to Settings > Keyword Filters where you can view and delete existing keywords.</string>
-    <string name="faq_select_apps_q">Can I select which apps to monitor?</string>
-    <string name="faq_select_apps_a">Yes! Go to Settings > Watched Apps to choose which messaging apps Keyguarde should monitor. By default, WhatsApp and Telegram are selected, but you can add or remove apps as needed.</string>
-    <string name="faq_privacy_q">Is my data private and secure?</string>
-    <string name="faq_privacy_a">Absolutely. All notification processing happens locally on your device. No messages, notification data, or personal information is stored externally or transmitted to any servers. Your privacy is our top priority.</string>
-    <string name="faq_matching_q">How do keyword matches work?</string>
-    <string name="faq_matching_a">Keyguarde matches whole words only and is case-insensitive. For example, \'react\' will match \'React\' but not \'reacted\'. Multiple keywords can be matched in the same message, and you\'ll be notified when any of your keywords appear.</string>
-
-    <!-- Contact -->
-    <string name="contact_feedback">Contact &amp; Feedback</string>
-    <string name="contact_feedback_desc">We\'d love to hear from you! Your feedback helps us improve Keyguarde.</string>
-    <string name="send_feedback">Send Feedback</string>
-    <string name="send_feedback_desc">Share your thoughts, suggestions, or report issues</string>
-    <string name="feedback_email_subject">Keyguarde Feedback</string>
-    <string name="feedback_email_body">Hi Keyguarde team,\n\nApp Version: %1$s\nAndroid Version: %2$s\nDevice: %3$s\n\nFeedback:\n</string>
-    <string name="rate_app">Rate the App</string>
-    <string name="rate_app_desc">Help others discover Keyguarde by leaving a review</string>
-    <string name="visit_website">Visit Website</string>
-    <string name="visit_website_desc">Learn more about Keyguarde and privacy policy</string>
-    <string name="open_source">Open Source</string>
-    <string name="open_source_desc">View the source code and contribute on GitHub</string>
-    <string name="privacy_first">Privacy First</string>
-    <string name="privacy_first_desc">Your feedback emails won\'t include any notification data or personal information. We only collect what you choose to share.</string>
+    <string name="faq_manage_keywords_a">Open the Keywords tab. Tap + to add one. Each keyword has its own edit and delete buttons.</string>
+    <string name="faq_select_apps_q">Can I pick which apps it watches?</string>
+    <string name="faq_select_apps_a">Yes. Open Settings, then Apps. Chat apps on your phone are listed first.</string>
+    <string name="faq_privacy_q">Where does my data go?</string>
+    <string name="faq_privacy_a">Messages, matches and keywords stay on this phone. Keyguarde sends usage stats, crash reports and performance data to Google Firebase, and shows Google AdMob ads. Settings, then Privacy, lists exactly what.</string>
+    <string name="faq_matching_q">How do matches work?</string>
+    <string name="faq_matching_a">Whole words, any case. “rent” matches “Rent due” but not “current”. One message can match several keywords.</string>
+    <string name="send_feedback">Email feedback</string>
+    <string name="send_feedback_desc">Adds the app version, Android version and phone model, so bugs are easier to find.</string>
+    <string name="feedback_email_subject">Keyguarde feedback</string>
+    <string name="feedback_email_body">App version: %1$s\nAndroid version: %2$s\nDevice: %3$s\n\n</string>
+    <string name="rate_app">Rate Keyguarde</string>
+    <string name="visit_website">Website</string>
+    <string name="open_source">Source code</string>
+    <string name="email_app_missing">Can\'t open email. No email app is installed. Write to %1$s instead.</string>
 
     <!-- Notification channel names -->
     <string name="channel_background_name">Background Notifications</string>

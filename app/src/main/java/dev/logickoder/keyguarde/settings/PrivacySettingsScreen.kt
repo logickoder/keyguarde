@@ -1,43 +1,62 @@
 package dev.logickoder.keyguarde.settings
 
 import android.content.Intent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Article
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.settings.components.SettingsCard
-import dev.logickoder.keyguarde.settings.components.SettingsIconText
+import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
+private const val PRIVACY_POLICY_URL = "https://logickoder.dev/keyguarde/#/privacy-policy"
+
+// Each service that sends data off the phone, named, with what it sends.
+private val Services = listOf(
+    R.string.privacy_analytics_title to R.string.privacy_analytics_body,
+    R.string.privacy_crashes_title to R.string.privacy_crashes_body,
+    R.string.privacy_performance_title to R.string.privacy_performance_body,
+    R.string.privacy_ads_title to R.string.privacy_ads_body,
+)
+
 @Composable
 fun PrivacySettingsScreen(
-    modifier: Modifier = Modifier,
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val openPrivacyPolicy = remember {
-        {
-            val intent = Intent(
-                Intent.ACTION_VIEW,
-                "https://logickoder.dev/keyguarde/privacy-policy".toUri()
-            )
-            if (intent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(intent)
-            }
-        }
-    }
+    PrivacyContent(
+        onBack = onBack,
+        onOpenPolicy = { context.startActivity(Intent(Intent.ACTION_VIEW, PRIVACY_POLICY_URL.toUri())) },
+        modifier = modifier,
+    )
+}
 
+@Composable
+private fun PrivacyContent(
+    onBack: () -> Unit,
+    onOpenPolicy: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -48,65 +67,81 @@ fun PrivacySettingsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding)
-                    .padding(16.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
                 content = {
-                    SettingsCard(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        content = {
-                            SettingsIconText(
-                                icon = Icons.Rounded.Security,
-                                text = stringResource(R.string.local_processing_only),
-                                iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                textColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text = stringResource(R.string.local_processing_only_desc),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
+                    Block(
+                        title = stringResource(R.string.privacy_stays_title),
+                        body = stringResource(R.string.privacy_stays_body),
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-
-                    SettingsCard(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        content = {
-                            SettingsIconText(
-                                icon = Icons.Outlined.Visibility,
-                                text = stringResource(R.string.what_we_access),
-                                iconTint = MaterialTheme.colorScheme.primary,
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text = stringResource(R.string.what_we_access_desc),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Block(
+                        title = stringResource(R.string.privacy_leaves_title),
+                        body = stringResource(R.string.privacy_leaves_body),
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = openPrivacyPolicy,
-                        modifier = Modifier.fillMaxWidth(),
+                    Services.forEach { (title, body) ->
+                        Fact(title = stringResource(title), body = stringResource(body))
+                    }
+                    TextButton(
+                        onClick = onOpenPolicy,
+                        // Flush with the text above instead of indented by the button's padding.
+                        contentPadding = PaddingValues(0.dp),
                         content = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.Article,
-                                contentDescription = null
+                            Text(
+                                text = stringResource(R.string.privacy_policy),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold,
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.privacy_policy))
                         }
                     )
                 }
             )
         }
     )
+}
+
+@Composable
+private fun Block(title: String, body: String) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+        content = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    )
+}
+
+@Composable
+private fun Fact(title: String, body: String) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+        content = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun PrivacyContentPreview() = AppTheme {
+    PrivacyContent(onBack = {}, onOpenPolicy = {})
 }

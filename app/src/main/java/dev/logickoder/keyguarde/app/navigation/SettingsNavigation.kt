@@ -12,8 +12,7 @@ import androidx.navigation3.ui.NavDisplay
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsPopTransition
 import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsTransition
 import dev.logickoder.keyguarde.settings.BatterySettingsScreen
-import dev.logickoder.keyguarde.settings.ContactScreen
-import dev.logickoder.keyguarde.settings.FaqScreen
+import dev.logickoder.keyguarde.settings.HelpScreen
 import dev.logickoder.keyguarde.settings.PrivacySettingsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
 import dev.logickoder.keyguarde.settings.WatchedAppsScreen
@@ -68,14 +67,8 @@ fun SettingsNavigation(
                 )
             }
 
-            entry<SettingsRoute.Faqs> {
-                FaqScreen(
-                    onBack = goBack,
-                )
-            }
-
-            entry<SettingsRoute.Contact> {
-                ContactScreen(
+            entry<SettingsRoute.Help> {
+                HelpScreen(
                     onBack = goBack,
                 )
             }
@@ -97,8 +90,5 @@ sealed interface SettingsRoute : NavKey {
     data object Privacy : SettingsRoute
 
     @Serializable
-    data object Faqs : SettingsRoute
-
-    @Serializable
-    data object Contact : SettingsRoute
+    data object Help : SettingsRoute
 }

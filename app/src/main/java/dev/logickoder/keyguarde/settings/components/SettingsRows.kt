@@ -72,6 +72,7 @@ fun SettingsRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     value: String? = null,
+    description: String? = null,
     enabled: Boolean = true,
     showChevron: Boolean = true,
 ) {
@@ -88,11 +89,25 @@ fun SettingsRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         content = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = contentColor,
-                modifier = Modifier.weight(1f),
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = if (description != null) Spacing.m else 0.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                content = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = contentColor,
+                    )
+                    if (description != null) {
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             )
             if (value != null) {
                 Text(

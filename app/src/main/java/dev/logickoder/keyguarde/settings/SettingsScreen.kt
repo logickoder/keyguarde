@@ -222,12 +222,7 @@ private fun SettingsContent(
                         content = {
                             SettingsRow(
                                 title = stringResource(R.string.settings_help),
-                                onClick = { onNavigate(SettingsRoute.Faqs) },
-                            )
-                            SettingsDivider()
-                            SettingsRow(
-                                title = stringResource(R.string.settings_contact),
-                                onClick = { onNavigate(SettingsRoute.Contact) },
+                                onClick = { onNavigate(SettingsRoute.Help) },
                             )
                             SettingsDivider()
                             SettingsRow(
