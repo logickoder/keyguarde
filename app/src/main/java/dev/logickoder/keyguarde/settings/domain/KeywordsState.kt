@@ -10,6 +10,6 @@ data class KeywordsState(
     val keywords: ImmutableList<Keyword> = persistentListOf(),
     /** Matches per keyword, keyed by the lowercased word. Missing means none yet. */
     val matchCounts: ImmutableMap<String, Int> = persistentMapOf(),
-    val isDialogVisible: Boolean = false,
+    /** The keyword open in the edit sheet; null when the sheet is closed. */
     val editing: Keyword? = null,
 )

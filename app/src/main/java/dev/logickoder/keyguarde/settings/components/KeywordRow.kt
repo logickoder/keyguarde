@@ -1,19 +1,32 @@
 package dev.logickoder.keyguarde.settings.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,39 +37,90 @@ import dev.logickoder.keyguarde.app.theme.Spacing
 
 /**
  * One keyword, in teal like everywhere a keyword shows, with how many matches it has caught, so a
- * keyword that never fires stands out. Tapping opens it for editing.
+ * keyword that never fires stands out. Tap to edit; swipe left to delete. TalkBack gets both as
+ * actions, since a swipe is hard to find and harder to perform with a screen reader.
  */
 @Composable
 fun KeywordRow(
     word: String,
     matchCount: Int,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val deleteLabel = stringResource(R.string.keyword_delete)
+    // Not saveable on purpose: after Undo the keyword returns under the same list key, and a
+    // restored "swiped away" state would delete it again.
+    val swipeState = remember {
+        SwipeToDismissBoxState(SwipeToDismissBoxValue.Settled, positionalThreshold = { distance -> distance / 2 })
+    }
+
+    SwipeToDismissBox(
+        state = swipeState,
+        modifier = modifier.semantics {
+            customActions = listOf(CustomAccessibilityAction(deleteLabel) { onDelete(); true })
+        },
+        enableDismissFromStartToEnd = false,
+        onDismiss = { value -> if (value == SwipeToDismissBoxValue.EndToStart) onDelete() },
+        backgroundContent = { DeleteBackground(label = stringResource(R.string.delete)) },
+        content = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clickable(
+                        onClickLabel = stringResource(R.string.keyword_edit_label),
+                        role = Role.Button,
+                        onClick = onClick,
+                    )
+                    .padding(horizontal = Spacing.l),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                content = {
+                    Text(
+                        text = word,
+                        style = KeywordPillStyle.copy(fontSize = MaterialTheme.typography.titleMedium.fontSize),
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = when (matchCount) {
+                            0 -> stringResource(R.string.keyword_no_matches)
+                            else -> pluralStringResource(R.plurals.keyword_match_count, matchCount, matchCount)
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            )
+        },
+    )
+}
+
+/** Neutral, not red: the undo snackbar is the safety net, and the icon and word say what it does. */
+@Composable
+private fun DeleteBackground(label: String) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .clickable(onClickLabel = stringResource(R.string.keyword_edit_label), role = Role.Button, onClick = onClick)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.inverseSurface)
             .padding(horizontal = Spacing.l),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.End),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         content = {
             Text(
-                text = word,
-                style = KeywordPillStyle.copy(fontSize = MaterialTheme.typography.titleMedium.fontSize),
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
             )
-            Text(
-                text = when (matchCount) {
-                    0 -> stringResource(R.string.keyword_no_matches)
-                    else -> pluralStringResource(R.plurals.keyword_match_count, matchCount, matchCount)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.inverseOnSurface,
             )
         }
     )
@@ -65,5 +129,5 @@ fun KeywordRow(
 @Preview(showBackground = true)
 @Composable
 private fun KeywordRowPreview() = AppTheme {
-    KeywordRow(word = "invoice", matchCount = 12, onClick = {})
+    KeywordRow(word = "invoice", matchCount = 12, onClick = {}, onDelete = {})
 }

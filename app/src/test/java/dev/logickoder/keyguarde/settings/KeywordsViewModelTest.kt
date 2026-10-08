@@ -3,6 +3,7 @@ package dev.logickoder.keyguarde.settings
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
+import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -17,6 +18,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
@@ -58,5 +60,50 @@ class KeywordsViewModelTest {
         advanceUntilIdle()
 
         coVerify { repository.addKeyword(*varargAll { it.word == "payment" }) }
+    }
+
+    @Test
+    fun `deleting shows an undo that puts the keyword back in its place`() = runTest(dispatcher) {
+        val viewModel = KeywordsViewModel(repository)
+        val effects = mutableListOf<KeywordsEffect>()
+        backgroundScope.launch { viewModel.effects.collect { effects += it } }
+        val rent = Keyword("rent", createdAt = 42L)
+
+        viewModel.onAction(KeywordsAction.Delete(rent))
+        advanceUntilIdle()
+        coVerify { repository.deleteKeyword(rent) }
+        assertEquals(listOf(KeywordsEffect.Deleted("rent")), effects)
+
+        viewModel.onAction(KeywordsAction.UndoDelete)
+        advanceUntilIdle()
+        coVerify { repository.addKeyword(rent) }
+    }
+
+    @Test
+    fun `saving an edit renames the keyword and closes the sheet`() = runTest(dispatcher) {
+        val viewModel = KeywordsViewModel(repository)
+        backgroundScope.launch { viewModel.state.collect {} }
+        val invoice = Keyword("invoice", createdAt = 1L)
+
+        viewModel.onAction(KeywordsAction.Edit(invoice))
+        advanceUntilIdle()
+        assertEquals(invoice, viewModel.state.value.editing)
+
+        viewModel.onAction(KeywordsAction.Save("invoices"))
+        advanceUntilIdle()
+        coVerify { repository.updateKeyword(invoice, match { it.word == "invoices" }) }
+        assertNull(viewModel.state.value.editing)
+    }
+
+    @Test
+    fun `saving an unchanged keyword writes nothing`() = runTest(dispatcher) {
+        val viewModel = KeywordsViewModel(repository)
+        val invoice = Keyword("invoice")
+
+        viewModel.onAction(KeywordsAction.Edit(invoice))
+        viewModel.onAction(KeywordsAction.Save("invoice"))
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { repository.updateKeyword(any(), any()) }
     }
 }

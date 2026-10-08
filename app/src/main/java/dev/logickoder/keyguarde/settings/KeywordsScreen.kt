@@ -9,12 +9,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -26,11 +33,12 @@ import dev.logickoder.keyguarde.app.components.KeywordField
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
-import dev.logickoder.keyguarde.home.components.KeywordDialog
+import dev.logickoder.keyguarde.settings.components.KeywordEditSheet
 import dev.logickoder.keyguarde.settings.components.KeywordRow
 import dev.logickoder.keyguarde.settings.components.SettingsDivider
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
+import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import dev.logickoder.keyguarde.settings.domain.KeywordsState
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
@@ -43,10 +51,28 @@ fun KeywordsScreen(
         factory = KeywordsViewModel.factory(LocalContext.current)
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is KeywordsEffect.Deleted -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = resources.getString(R.string.keyword_deleted, effect.word),
+                        actionLabel = resources.getString(R.string.undo),
+                        duration = SnackbarDuration.Short,
+                    )
+                    if (result == SnackbarResult.ActionPerformed) viewModel.onAction(KeywordsAction.UndoDelete)
+                }
+            }
+        }
+    }
 
     KeywordsContent(
         modifier = modifier,
         state = state,
+        snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
     )
 }
@@ -58,6 +84,7 @@ fun KeywordsScreen(
 @Composable
 private fun KeywordsContent(
     state: KeywordsState,
+    snackbarHostState: SnackbarHostState,
     onAction: (KeywordsAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -67,6 +94,15 @@ private fun KeywordsContent(
         modifier = modifier,
         topBar = {
             SettingsTopBar(stringResource(R.string.tab_keywords))
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { data ->
+                    // The default action colour is teal (inversePrimary); keep it neutral.
+                    Snackbar(snackbarData = data, actionColor = MaterialTheme.colorScheme.inverseOnSurface)
+                }
+            )
         },
         content = { paddingValues ->
             LazyColumn(
@@ -96,7 +132,8 @@ private fun KeywordsContent(
                                         KeywordRow(
                                             word = keyword.word,
                                             matchCount = state.matchCounts[keyword.word.lowercase()] ?: 0,
-                                            onClick = { onAction(KeywordsAction.OpenDialog(keyword)) },
+                                            onClick = { onAction(KeywordsAction.Edit(keyword)) },
+                                            onDelete = { onAction(KeywordsAction.Delete(keyword)) },
                                         )
                                     }
                                 )
@@ -108,11 +145,13 @@ private fun KeywordsContent(
         },
     )
 
-    if (state.isDialogVisible) {
-        KeywordDialog(
-            initialKeyword = state.editing,
-            onDismiss = { onAction(KeywordsAction.DismissDialog) },
-            onSave = { onAction(KeywordsAction.Save(it)) }
+    state.editing?.let { keyword ->
+        KeywordEditSheet(
+            word = keyword.word,
+            others = existing - keyword.word,
+            onSave = { onAction(KeywordsAction.Save(it)) },
+            onDelete = { onAction(KeywordsAction.Delete(keyword)) },
+            onDismiss = { onAction(KeywordsAction.DismissEdit) },
         )
     }
 }
@@ -156,6 +195,7 @@ private fun KeywordsContentPreview() = AppTheme {
             keywords = persistentListOf(Keyword(word = "urgent"), Keyword(word = "meeting")),
             matchCounts = persistentMapOf("urgent" to 12),
         ),
+        snackbarHostState = remember { SnackbarHostState() },
         onAction = {},
     )
 }

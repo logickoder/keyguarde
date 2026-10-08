@@ -3,14 +3,18 @@ package dev.logickoder.keyguarde.settings.domain
 import dev.logickoder.keyguarde.app.data.model.Keyword
 
 sealed interface KeywordsAction {
-    data class OpenDialog(val keyword: Keyword? = null) : KeywordsAction
-
-    data object DismissDialog : KeywordsAction
-
     /** A new keyword from the field at the top; already checked by the field. */
     data class Add(val word: String) : KeywordsAction
 
+    data class Edit(val keyword: Keyword) : KeywordsAction
+
+    data object DismissEdit : KeywordsAction
+
+    /** The edited word from the sheet; already checked by the sheet. */
     data class Save(val word: String) : KeywordsAction
 
+    /** From a swipe, the edit sheet, or TalkBack's Delete action. Undoable from the snackbar. */
     data class Delete(val keyword: Keyword) : KeywordsAction
+
+    data object UndoDelete : KeywordsAction
 }

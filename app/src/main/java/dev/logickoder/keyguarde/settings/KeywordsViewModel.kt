@@ -10,13 +10,17 @@ import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
+import dev.logickoder.keyguarde.settings.domain.KeywordsEffect
 import dev.logickoder.keyguarde.settings.domain.KeywordsState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,18 +28,23 @@ import kotlinx.coroutines.launch
 class KeywordsViewModel(
     private val repository: AppRepository,
 ) : ViewModel() {
-    private val dialog = MutableStateFlow(DialogState())
+    private val editing = MutableStateFlow<Keyword?>(null)
+
+    // The last deleted keyword, kept so the snackbar's Undo can put it back in its old place.
+    private var lastDeleted: Keyword? = null
+
+    private val _effects = Channel<KeywordsEffect>(Channel.BUFFERED)
+    val effects: Flow<KeywordsEffect> = _effects.receiveAsFlow()
 
     val state: StateFlow<KeywordsState> = combine(
         repository.keywords,
         repository.matchCountsByKeyword,
-        dialog,
-    ) { keywords, counts, dialog ->
+        editing,
+    ) { keywords, counts, editing ->
         KeywordsState(
             keywords = keywords.toImmutableList(),
             matchCounts = counts.toImmutableMap(),
-            isDialogVisible = dialog.isVisible,
-            editing = dialog.editing,
+            editing = editing,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -45,44 +54,43 @@ class KeywordsViewModel(
 
     fun onAction(action: KeywordsAction) {
         when (action) {
-            is KeywordsAction.OpenDialog -> dialog.update {
-                DialogState(isVisible = true, editing = action.keyword)
-            }
-
-            KeywordsAction.DismissDialog -> dialog.update { DialogState() }
-
-            is KeywordsAction.Save -> save(action.word)
-
             is KeywordsAction.Add -> viewModelScope.launch {
                 repository.addKeyword(Keyword(word = action.word))
             }
 
-            is KeywordsAction.Delete -> viewModelScope.launch {
-                repository.deleteKeyword(action.keyword)
+            is KeywordsAction.Edit -> editing.update { action.keyword }
+
+            KeywordsAction.DismissEdit -> editing.update { null }
+
+            is KeywordsAction.Save -> save(action.word)
+
+            is KeywordsAction.Delete -> delete(action.keyword)
+
+            KeywordsAction.UndoDelete -> {
+                val keyword = lastDeleted ?: return
+                lastDeleted = null
+                viewModelScope.launch { repository.addKeyword(keyword) }
             }
         }
     }
 
     private fun save(word: String) {
-        if (word.isBlank()) {
-            return
-        }
-        val editing = dialog.value.editing
+        val original = editing.value ?: return
+        editing.update { null }
+        if (word == original.word) return
         viewModelScope.launch {
-            val keyword = Keyword(word = word)
-            when (editing) {
-                null -> repository.addKeyword(keyword)
-                else -> repository.updateKeyword(editing, keyword)
-            }
-        }.invokeOnCompletion {
-            dialog.update { DialogState() }
+            repository.updateKeyword(original, Keyword(word = word))
         }
     }
 
-    private data class DialogState(
-        val isVisible: Boolean = false,
-        val editing: Keyword? = null,
-    )
+    private fun delete(keyword: Keyword) {
+        editing.update { null }
+        lastDeleted = keyword
+        viewModelScope.launch {
+            repository.deleteKeyword(keyword)
+            _effects.send(KeywordsEffect.Deleted(keyword.word))
+        }
+    }
 
     companion object {
         fun factory(context: Context): ViewModelProvider.Factory {
