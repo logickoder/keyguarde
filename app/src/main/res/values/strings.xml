@@ -220,7 +220,6 @@
     <string name="status_body_caught">Keyguarde caught “%1$s” in a test message.</string>
     <string name="status_run_test">Run a test</string>
     <string name="status_done">Done</string>
-    <string name="battery_background">Battery &amp; Background</string>
     <string name="privacy">Privacy</string>
 
     <!-- Keyword filters -->
@@ -228,13 +227,18 @@
     <string name="no_keywords_added_desc">Add keywords to get alerts when they appear in messages</string>
 
     <!-- Battery settings -->
-    <string name="battery_optimization">Battery Optimization</string>
-    <string name="battery_optimization_desc">For Keyguarde to work reliably, you need to disable battery optimization for this app. This ensures notifications are monitored even when your device is idle.</string>
-    <string name="open_battery_settings">Open Battery Settings</string>
-    <string name="why_this_matters">Why This Matters</string>
-    <string name="why_this_matters_desc">Modern Android systems can restrict background apps to save battery. For Keyguarde to monitor notifications reliably, it needs to be exempt from these restrictions.</string>
-    <string name="auto_start_settings">Auto-start Settings</string>
-    <string name="auto_start_settings_desc">Some devices (especially Xiaomi, Huawei, Samsung) have additional restrictions for auto-starting apps. You may need to enable auto-start permission for Keyguarde in your device settings.</string>
+    <string name="battery_title_restricted">Android can pause Keyguarde</string>
+    <string name="battery_body_restricted">Battery saving can stop Keyguarde while your phone sits idle. Messages that arrive then won\'t be caught.</string>
+    <string name="battery_allow">Open battery settings</string>
+    <string name="battery_steps">Tap App battery usage, then Unrestricted.</string>
+    <string name="battery_steps_background_usage">Tap App battery usage, then Allow background usage, then Unrestricted.</string>
+    <string name="battery_steps_legacy">Pick All apps, find Keyguarde, then pick Don\'t optimize.</string>
+    <string name="battery_title_unrestricted">Keyguarde can run in the background</string>
+    <string name="battery_body_unrestricted">Android won\'t pause it to save battery.</string>
+    <string name="battery_open_settings">Battery settings</string>
+    <string name="autostart_title">Some phones need one more step</string>
+    <string name="autostart_body">Xiaomi, Huawei, Oppo, Vivo and some Samsung phones also stop apps that can\'t start on their own. In Keyguarde\'s app settings, turn on Autostart or Background activity.</string>
+    <string name="autostart_open">Open app settings</string>
 
     <!-- Privacy settings -->
     <string name="local_processing_only">Local Processing Only</string>

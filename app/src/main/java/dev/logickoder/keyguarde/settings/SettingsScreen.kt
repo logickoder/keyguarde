@@ -31,7 +31,7 @@ import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.appNotificationSettings
-import dev.logickoder.keyguarde.app.domain.batteryOptimizationSettings
+import dev.logickoder.keyguarde.app.domain.appBatterySettings
 import dev.logickoder.keyguarde.app.domain.isBatteryUnrestricted
 import dev.logickoder.keyguarde.app.domain.openStoreListing
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
@@ -107,7 +107,7 @@ fun SettingsScreen(
             NotificationHelper.requestListenerServiceRebind(context)
             viewModel.onAction(SettingsAction.ListenerRestartRequested)
         },
-        onOpenBatterySettings = { context.startActivitySafely(batteryOptimizationSettings()) },
+        onOpenBatterySettings = { context.startActivitySafely(appBatterySettings(context)) },
         onEnableNotifications = {
             if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
                 notificationPermission.launch(NotificationHelper.PERMISSION)

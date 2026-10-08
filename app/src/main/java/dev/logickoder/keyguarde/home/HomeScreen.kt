@@ -53,7 +53,7 @@ import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.components.ToastType
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
 import dev.logickoder.keyguarde.app.domain.appNotificationSettings
-import dev.logickoder.keyguarde.app.domain.batteryOptimizationSettings
+import dev.logickoder.keyguarde.app.domain.appBatterySettings
 import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
@@ -177,7 +177,7 @@ fun HomeScreen(onOpenKeywords: () -> Unit, modifier: Modifier = Modifier) {
             viewModel.onAction(HomeAction.ListenerRestartRequested)
         },
         onOpenBatterySettings = {
-            context.startActivitySafely(batteryOptimizationSettings())
+            context.startActivitySafely(appBatterySettings(context))
         },
         onEnableNotifications = {
             if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {

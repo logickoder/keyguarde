@@ -1,121 +1,237 @@
 package dev.logickoder.keyguarde.settings
 
-import android.content.Intent
-import android.provider.Settings
-import androidx.compose.foundation.layout.*
+import android.os.Build
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.BatteryChargingFull
-import androidx.compose.material3.*
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import dev.logickoder.keyguarde.R
-import dev.logickoder.keyguarde.settings.components.InfoCard
-import dev.logickoder.keyguarde.settings.components.SettingsCard
-import dev.logickoder.keyguarde.settings.components.SettingsIconText
+import dev.logickoder.keyguarde.app.domain.appBatterySettings
+import dev.logickoder.keyguarde.app.domain.appDetailsSettings
+import dev.logickoder.keyguarde.app.domain.isBatteryUnrestricted
+import dev.logickoder.keyguarde.app.domain.startActivitySafely
+import dev.logickoder.keyguarde.app.theme.AppTheme
+import dev.logickoder.keyguarde.app.theme.Radius
+import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BatterySettingsScreen(
-    modifier: Modifier = Modifier,
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val openBatterySettings = remember {
-        {
-            val action = Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
-            val intent = Intent()
-            intent.action = action
-            intent.data = "package:${context.packageName}".toUri()
-            if (intent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(intent)
-            } else {
-                // Fallback to general battery optimization settings
-                context.startActivity(Intent(action))
-            }
-        }
+    val inPreview = LocalInspectionMode.current
+    var unrestricted by remember { mutableStateOf(!inPreview && isBatteryUnrestricted(context)) }
+    // The user changes this in system settings, then comes back here.
+    LifecycleResumeEffect(Unit) {
+        if (!inPreview) unrestricted = isBatteryUnrestricted(context)
+        onPauseOrDispose {}
     }
 
+    BatterySettingsContent(
+        unrestricted = unrestricted,
+        onBack = onBack,
+        onOpenBatterySettings = { context.startActivitySafely(appBatterySettings(context)) },
+        onOpenAppSettings = { context.startActivitySafely(appDetailsSettings(context)) },
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun BatterySettingsContent(
+    unrestricted: Boolean,
+    onBack: () -> Unit,
+    onOpenBatterySettings: () -> Unit,
+    onOpenAppSettings: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            SettingsTopBar(stringResource(R.string.battery_background), onBack)
+            SettingsTopBar(stringResource(R.string.settings_battery), onBack)
         },
         content = { scaffoldPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding)
-                    .padding(16.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
                 content = {
-                    SettingsCard(
+                    BatteryStatus(unrestricted = unrestricted, onOpenBatterySettings = onOpenBatterySettings)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    AutostartNote(onOpenAppSettings = onOpenAppSettings)
+                }
+            )
+        }
+    )
+}
+
+/**
+ * Restricted gets the one primary action on the screen. Unrestricted only needs to say so, with a
+ * quiet way back into settings.
+ */
+@Composable
+private fun BatteryStatus(unrestricted: Boolean, onOpenBatterySettings: () -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Spacing.m),
+        content = {
+            Row(
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                content = {
+                    Icon(
+                        imageVector = if (unrestricted) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
                         content = {
-                            SettingsIconText(
-                                icon = Icons.Rounded.BatteryChargingFull,
-                                text = stringResource(R.string.battery_optimization),
-                                iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                textColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
                             Text(
-                                text = stringResource(R.string.battery_optimization_desc),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Button(
-                                onClick = openBatterySettings,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.primaryContainer
+                                text = stringResource(
+                                    if (unrestricted) R.string.battery_title_unrestricted
+                                    else R.string.battery_title_restricted
                                 ),
-                                content = {
-                                    Text(stringResource(R.string.open_battery_settings))
-                                }
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.semantics { heading() },
                             )
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    InfoCard(
-                        title = stringResource(R.string.why_this_matters),
-                        body = stringResource(R.string.why_this_matters_desc),
-                        icon = Icons.Outlined.Info
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SettingsCard(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        content = {
-                            SettingsIconText(
-                                icon = Icons.Outlined.AutoAwesome,
-                                text = stringResource(R.string.auto_start_settings),
-                                iconTint = MaterialTheme.colorScheme.primary,
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
                             Text(
-                                text = stringResource(R.string.auto_start_settings_desc),
-                                style = MaterialTheme.typography.bodyMedium
+                                text = stringResource(
+                                    if (unrestricted) R.string.battery_body_unrestricted
+                                    else R.string.battery_body_restricted
+                                ),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     )
                 }
             )
+            when (unrestricted) {
+                true -> TextButton(
+                    onClick = onOpenBatterySettings,
+                    // Flush with the text above instead of indented by the button's padding.
+                    contentPadding = PaddingValues(0.dp),
+                    content = {
+                        Text(
+                            text = stringResource(R.string.battery_open_settings),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                )
+
+                else -> {
+                    Button(
+                        onClick = onOpenBatterySettings,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp),
+                        shape = RoundedCornerShape(Radius.l),
+                        // Dark neutral like every primary button: teal is reserved for matched keywords.
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = MaterialTheme.colorScheme.surface,
+                        ),
+                        content = { Text(stringResource(R.string.battery_allow)) },
+                    )
+                    Text(
+                        text = stringResource(batterySteps()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
+    )
+}
+
+// Android 15 moved Unrestricted one level down, behind Allow background usage.
+@StringRes
+private fun batterySteps(): Int = when {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM -> R.string.battery_steps_background_usage
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> R.string.battery_steps
+    else -> R.string.battery_steps_legacy
+}
+
+@Composable
+private fun AutostartNote(onOpenAppSettings: () -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+        content = {
+            Text(
+                text = stringResource(R.string.autostart_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                text = stringResource(R.string.autostart_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(
+                onClick = onOpenAppSettings,
+                contentPadding = PaddingValues(0.dp),
+                content = {
+                    Text(
+                        text = stringResource(R.string.autostart_open),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            )
+        }
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun BatterySettingsContentPreview() = AppTheme {
+    BatterySettingsContent(
+        unrestricted = false,
+        onBack = {},
+        onOpenBatterySettings = {},
+        onOpenAppSettings = {},
     )
 }
