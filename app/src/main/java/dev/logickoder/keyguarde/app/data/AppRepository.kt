@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 /**
  * Repository for managing Keyguarde data.
@@ -82,7 +81,7 @@ class AppRepository(
      * When the user last left the app, or null before the first visit ends.
      */
     val lastVisitAt = localStore.get(LAST_VISIT_AT).map { seconds ->
-        seconds?.let { LocalDateTime.ofEpochSecond(it, 0, ZoneOffset.UTC) }
+        seconds?.let(::localDateTimeOfEpochSecond)
     }
 
     /**
@@ -90,7 +89,7 @@ class AppRepository(
      */
     suspend fun markVisited() {
         // Same encoding as the timestamp column (Converters), so comparisons line up.
-        localStore.save(LAST_VISIT_AT, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+        localStore.save(LAST_VISIT_AT, LocalDateTime.now().toEpochSecond())
     }
 
     /**

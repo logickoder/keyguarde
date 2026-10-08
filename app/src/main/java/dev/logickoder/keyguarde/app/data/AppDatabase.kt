@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
         KeywordMatch::class,
         KeywordMatchFts::class,
     ],
-    version = 2,
+    version = 3,
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -65,7 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
                 "${BuildConfig.APPLICATION_ID}.db"
             ).setDriver(BundledSQLiteDriver())
                 .setQueryCoroutineContext(Dispatchers.IO)
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .addCallback(callback)
                 .build()
             return database

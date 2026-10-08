@@ -264,10 +264,9 @@ class AppListenerService : NotificationListenerService() {
                     app = notification.packageName,
                     chat = title,
                     message = text,
-                    timestamp = LocalDateTime.ofEpochSecond(
-                        notification.notification.`when` / 1000,
-                        0,
-                        ZoneId.systemDefault().rules.getOffset(Instant.now())
+                    timestamp = LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(notification.notification.`when`),
+                        ZoneId.systemDefault(),
                     ),
                 )
             )
