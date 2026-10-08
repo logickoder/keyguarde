@@ -472,54 +472,55 @@ private fun StatusBanners(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FilterChips(state: HomeState, onAction: (HomeAction) -> Unit) {
-    if (state.keywordFilter == null && state.filter.isEmpty()) return
-    FlowRow(
-        modifier = Modifier.padding(horizontal = Spacing.l),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-        content = {
-            state.keywordFilter?.let { word ->
-                InputChip(
-                    selected = true,
-                    onClick = { onAction(HomeAction.ClearKeywordFilter) },
-                    label = {
-                        Text(
-                            text = word,
-                            style = KeywordPillStyle,
-                            color = MaterialTheme.colorScheme.primary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.clear_keyword_filter, word),
-                        )
-                    },
-                )
+    if (state.keywordFilter != null || state.filter.isNotEmpty()) {
+        FlowRow(
+            modifier = Modifier.padding(horizontal = Spacing.l),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            content = {
+                state.keywordFilter?.let { word ->
+                    InputChip(
+                        selected = true,
+                        onClick = { onAction(HomeAction.ClearKeywordFilter) },
+                        label = {
+                            Text(
+                                text = word,
+                                style = KeywordPillStyle,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.clear_keyword_filter, word),
+                            )
+                        },
+                    )
+                }
+                if (state.filter.isNotEmpty()) {
+                    val names = remember(state.filter) { state.filter.joinToString { it.name } }
+                    InputChip(
+                        selected = true,
+                        onClick = { onAction(HomeAction.ClearFilter) },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.filtered_by, names),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.clear_filter),
+                            )
+                        },
+                    )
+                }
             }
-            if (state.filter.isNotEmpty()) {
-                val names = remember(state.filter) { state.filter.joinToString { it.name } }
-                InputChip(
-                    selected = true,
-                    onClick = { onAction(HomeAction.ClearFilter) },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.filtered_by, names),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.clear_filter),
-                        )
-                    },
-                )
-            }
-        }
-    )
+        )
+    }
 }
 
 // How long Undo waits for its restored row to reload before giving up on scrolling to it.

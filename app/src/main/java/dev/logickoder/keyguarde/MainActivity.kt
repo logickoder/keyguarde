@@ -12,7 +12,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.gms.ads.MobileAds
 import dev.logickoder.keyguarde.analytics.LocalAnalytics
 import dev.logickoder.keyguarde.app.AppContainer
 import dev.logickoder.keyguarde.app.components.LocalToastManager
@@ -24,10 +23,7 @@ import dev.logickoder.keyguarde.app.navigation.AppNavigation
 import dev.logickoder.keyguarde.app.navigation.AppRoute
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.settings.domain.ThemeMode
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
@@ -44,10 +40,6 @@ class MainActivity : ComponentActivity() {
         val (isOnboardingComplete, savedThemeMode) = runBlocking {
             AppContainer.from(this@MainActivity).appRepository.onboardingComplete.first() to
                 settings.themeMode.first()
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
-            MobileAds.initialize(this@MainActivity) {}
         }
 
         NotificationHelper.requestListenerServiceRebind(this)

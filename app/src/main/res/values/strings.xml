@@ -273,7 +273,8 @@
     <string name="privacy_performance_title">Performance</string>
     <string name="privacy_performance_body">Firebase Performance records how long the app takes to start and load.</string>
     <string name="privacy_ads_title">Ads</string>
-    <string name="privacy_ads_body">Google AdMob shows the banner and uses your advertising ID to pick ads. Reset or delete the ID in Android settings, under Privacy, then Ads.</string>
+    <string name="privacy_ads_body">Google AdMob shows the banner and uses your advertising ID to pick ads. Where the law needs it, Keyguarde asks first. Reset or delete the ID in Android settings, under Privacy, then Ads.</string>
+    <string name="privacy_ad_choices">Ad privacy choices</string>
     <string name="privacy_policy">Read the privacy policy</string>
 
     <!-- Help -->
