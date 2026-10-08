@@ -43,7 +43,7 @@ class CaughtCountTest {
         context = mockk<Context>(),
         localStore = store,
         database = mockk(relaxed = true) {
-            every { keywordMatchDao() } returns mockk<KeywordMatchDao> {
+            every { keywordMatchDao() } returns mockk<KeywordMatchDao>(relaxed = true) {
                 every { countByApp() } returns flowOf(saved)
             }
         },

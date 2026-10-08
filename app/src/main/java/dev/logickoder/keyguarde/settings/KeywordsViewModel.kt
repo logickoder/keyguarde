@@ -12,6 +12,7 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.settings.domain.KeywordsAction
 import dev.logickoder.keyguarde.settings.domain.KeywordsState
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,10 +28,12 @@ class KeywordsViewModel(
 
     val state: StateFlow<KeywordsState> = combine(
         repository.keywords,
+        repository.matchCountsByKeyword,
         dialog,
-    ) { keywords, dialog ->
+    ) { keywords, counts, dialog ->
         KeywordsState(
             keywords = keywords.toImmutableList(),
+            matchCounts = counts.toImmutableMap(),
             isDialogVisible = dialog.isVisible,
             editing = dialog.editing,
         )
@@ -49,6 +52,10 @@ class KeywordsViewModel(
             KeywordsAction.DismissDialog -> dialog.update { DialogState() }
 
             is KeywordsAction.Save -> save(action.word)
+
+            is KeywordsAction.Add -> viewModelScope.launch {
+                repository.addKeyword(Keyword(word = action.word))
+            }
 
             is KeywordsAction.Delete -> viewModelScope.launch {
                 repository.deleteKeyword(action.keyword)

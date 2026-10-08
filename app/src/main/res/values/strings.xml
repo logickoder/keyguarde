@@ -9,7 +9,6 @@
     <string name="settings">Settings</string>
     <string name="search">Search</string>
     <string name="delete">Delete</string>
-    <string name="edit">Edit</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
@@ -228,6 +227,13 @@
     <string name="privacy">Privacy</string>
 
     <!-- Keyword filters -->
+    <string name="keywords_list_label">Your keywords</string>
+    <string name="keyword_edit_label">edit</string>
+    <string name="keyword_no_matches">No matches yet</string>
+    <plurals name="keyword_match_count">
+        <item quantity="one">%1$d match</item>
+        <item quantity="other">%1$d matches</item>
+    </plurals>
     <string name="no_keywords_added">No keywords added yet</string>
     <string name="no_keywords_added_desc">Add keywords to get alerts when they appear in messages</string>
 

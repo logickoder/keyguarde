@@ -128,6 +128,13 @@ class AppRepository(
     }
 
     /**
+     * How many matches each keyword has, keyed by the lowercased word.
+     */
+    val matchCountsByKeyword: Flow<Map<String, Int>> = database.keywordMatchDao().countByKeyword().map { counts ->
+        counts.associate { it.word to it.count }
+    }
+
+    /**
      * Copies of matches, taken before a delete so it can be undone.
      */
     suspend fun getMatchesByIds(ids: List<Long>): List<KeywordMatch> =
