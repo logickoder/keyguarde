@@ -193,7 +193,7 @@
     <string name="alerts_heads_up">Pop-up alerts</string>
     <string name="alerts_persistent">Match count in notification bar</string>
     <string name="alerts_reset_on_open">Reset count when I open Keyguarde</string>
-    <string name="alerts_preview">Preview alerts</string>
+    <string name="alerts_preview">Send a sample alert</string>
     <string name="settings_battery">Battery use</string>
     <string name="battery_unrestricted">Unrestricted</string>
     <string name="battery_restricted">Restricted</string>
@@ -216,6 +216,8 @@
     <string name="status_no_keywords">Add a keyword in the Keywords tab to start catching messages.</string>
     <string name="status_body_caught">Keyguarde caught “%1$s” in a test message.</string>
     <string name="status_run_test">Run a test</string>
+    <string name="status_battery_restricted">Battery saving can pause it while your phone sits idle.</string>
+    <string name="status_fix_battery">Fix</string>
     <string name="status_done">Done</string>
     <string name="privacy">Privacy</string>
 
@@ -224,14 +226,14 @@
     <string name="no_keywords_added_desc">Add keywords to get alerts when they appear in messages</string>
 
     <!-- Battery settings -->
-    <string name="battery_title_restricted">Android can pause Keyguarde</string>
-    <string name="battery_body_restricted">Battery saving can stop Keyguarde while your phone sits idle. Messages that arrive then won\'t be caught.</string>
+    <string name="battery_title_restricted">Battery use is restricted</string>
+    <string name="battery_body_restricted">Android can pause Keyguarde to save battery while your phone sits idle. Messages that arrive then won\'t be caught.</string>
     <string name="battery_allow">Open battery settings</string>
     <string name="battery_steps">Tap App battery usage, then Unrestricted.</string>
     <string name="battery_steps_background_usage">Tap App battery usage, then Allow background usage, then Unrestricted.</string>
     <string name="battery_steps_legacy">Pick All apps, find Keyguarde, then pick Don\'t optimize.</string>
-    <string name="battery_title_unrestricted">Keyguarde can run in the background</string>
-    <string name="battery_body_unrestricted">Android won\'t pause it to save battery.</string>
+    <string name="battery_title_unrestricted">Battery use is unrestricted</string>
+    <string name="battery_body_unrestricted">Android won\'t pause Keyguarde to save battery.</string>
     <string name="battery_open_settings">Battery settings</string>
     <string name="autostart_title">Some phones need one more step</string>
     <string name="autostart_body">Xiaomi, Huawei, Oppo, Vivo and some Samsung phones also stop apps that can\'t start on their own. In Keyguarde\'s app settings, turn on Autostart or Background activity.</string>
@@ -262,7 +264,7 @@
     <string name="faq_battery_q">Will it drain my battery?</string>
     <string name="faq_battery_a">No. It does nothing between notifications, and each check is a short text search.</string>
     <string name="faq_no_matches_q">Why am I not getting matches?</string>
-    <string name="faq_no_matches_a">Open Settings and run a test. If the test fails, turn Keyguarde\'s notification access off, then on. Also check the app is ticked under Apps, and Battery use says Unrestricted.</string>
+    <string name="faq_no_matches_a">Go back to Settings and tap Run a test. If the test fails, turn Keyguarde\'s notification access off, then on. Also check the app is ticked under Apps, and Battery use says Unrestricted.</string>
     <string name="faq_manage_keywords_q">How do I add or remove keywords?</string>
     <string name="faq_manage_keywords_a">Open the Keywords tab. Tap + to add one. Each keyword has its own edit and delete buttons.</string>
     <string name="faq_select_apps_q">Can I pick which apps it watches?</string>

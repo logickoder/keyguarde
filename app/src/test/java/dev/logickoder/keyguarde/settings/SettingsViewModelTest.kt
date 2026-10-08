@@ -2,7 +2,6 @@ package dev.logickoder.keyguarde.settings
 
 import dev.logickoder.keyguarde.app.data.AppRepository
 import dev.logickoder.keyguarde.app.data.model.Keyword
-import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.home.domain.ListenerIssue
 import dev.logickoder.keyguarde.onboarding.domain.SetupTest
 import dev.logickoder.keyguarde.settings.domain.SettingsAction
@@ -43,9 +42,7 @@ class SettingsViewModelTest {
     private val appRepository = mockk<AppRepository> {
         every { keywords } returns this@SettingsViewModelTest.keywords
         every { caughtCount } returns this@SettingsViewModelTest.caughtCount
-        every { watchedApps } returns flowOf(
-            listOf(WatchedApp("com.whatsapp", "WhatsApp", ""), WatchedApp("org.telegram.messenger", "Telegram", ""))
-        )
+        every { installedWatchedAppCount } returns flowOf(2)
     }
     private val settingsRepository = mockk<SettingsRepository>(relaxed = true) {
         every { showHeadsUpAlert } returns flowOf(true)
@@ -184,5 +181,16 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         coVerify { settingsRepository.markRatePromptDone() }
+    }
+
+    @Test
+    fun `the rate prompt hides while battery saving can pause Keyguarde`() = runTest(dispatcher) {
+        caughtCount.value = 50
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.state.collect {} }
+        viewModel.onAction(SettingsAction.SystemChecked(true, notificationsAllowed = true, isBatteryUnrestricted = false))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.state.value.showRatePrompt)
     }
 }

@@ -4,7 +4,6 @@ import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,12 +22,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -49,6 +48,7 @@ import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Radius
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.settings.components.LinkButton
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 
 @Composable
@@ -93,7 +93,7 @@ private fun BatterySettingsContent(
                     .fillMaxSize()
                     .padding(scaffoldPadding)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                    .padding(horizontal = Spacing.l, vertical = Spacing.l),
                 verticalArrangement = Arrangement.spacedBy(Spacing.xl),
                 content = {
                     BatteryStatus(unrestricted = unrestricted, onOpenBatterySettings = onOpenBatterySettings)
@@ -114,19 +114,19 @@ private fun BatteryStatus(unrestricted: Boolean, onOpenBatterySettings: () -> Un
     Column(
         verticalArrangement = Arrangement.spacedBy(Spacing.m),
         content = {
-            Row(
+            Column(
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                verticalArrangement = Arrangement.spacedBy(Spacing.s),
                 content = {
-                    Icon(
-                        imageVector = if (unrestricted) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                        verticalAlignment = Alignment.CenterVertically,
                         content = {
+                            Icon(
+                                imageVector = if (unrestricted) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
                             Text(
                                 text = stringResource(
                                     if (unrestricted) R.string.battery_title_unrestricted
@@ -136,30 +136,23 @@ private fun BatteryStatus(unrestricted: Boolean, onOpenBatterySettings: () -> Un
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.semantics { heading() },
                             )
-                            Text(
-                                text = stringResource(
-                                    if (unrestricted) R.string.battery_body_unrestricted
-                                    else R.string.battery_body_restricted
-                                ),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
                         }
+                    )
+                    // Full width under the title, so the screen keeps one left edge.
+                    Text(
+                        text = stringResource(
+                            if (unrestricted) R.string.battery_body_unrestricted
+                            else R.string.battery_body_restricted
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             )
             when (unrestricted) {
-                true -> TextButton(
+                true -> LinkButton(
+                    text = stringResource(R.string.battery_open_settings),
                     onClick = onOpenBatterySettings,
-                    // Flush with the text above instead of indented by the button's padding.
-                    contentPadding = PaddingValues(0.dp),
-                    content = {
-                        Text(
-                            text = stringResource(R.string.battery_open_settings),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
                 )
 
                 else -> {
@@ -210,16 +203,9 @@ private fun AutostartNote(onOpenAppSettings: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            TextButton(
+            LinkButton(
+                text = stringResource(R.string.autostart_open),
                 onClick = onOpenAppSettings,
-                contentPadding = PaddingValues(0.dp),
-                content = {
-                    Text(
-                        text = stringResource(R.string.autostart_open),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
             )
         }
     )

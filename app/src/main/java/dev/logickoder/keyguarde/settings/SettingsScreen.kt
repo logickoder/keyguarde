@@ -166,6 +166,7 @@ private fun SettingsContent(
                         onOpenListenerSettings = onOpenListenerSettings,
                         onRestartListener = onRestartListener,
                         onOpenBatterySettings = onOpenBatterySettings,
+                        onOpenBatteryScreen = { onNavigate(SettingsRoute.Battery) },
                         onRate = onRate,
                     )
 
@@ -261,6 +262,7 @@ private fun Status(
     onOpenListenerSettings: () -> Unit,
     onRestartListener: () -> Unit,
     onOpenBatterySettings: () -> Unit,
+    onOpenBatteryScreen: () -> Unit,
     onRate: () -> Unit,
 ) {
     Column(
@@ -283,7 +285,9 @@ private fun Status(
                         canSendTest = state.notificationsAllowed,
                         caughtCount = state.caughtCount,
                         showRatePrompt = state.showRatePrompt,
+                        batteryRestricted = state.isBatteryUnrestricted == false,
                         onRunTest = onRunTest,
+                        onFixBattery = onOpenBatteryScreen,
                         onResetTest = { onAction(SettingsAction.ResetTest) },
                         onOpenListenerSettings = {
                             onAction(SettingsAction.ResetTest)

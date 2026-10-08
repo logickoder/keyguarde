@@ -49,6 +49,7 @@ import dev.logickoder.keyguarde.onboarding.domain.SetupTest
  * @param keyword the word the test message carries; null when the user has no keywords yet.
  * @param canSendTest false when Keyguarde can't post notifications, so a test can't be sent.
  * @param showRatePrompt whether to ask for a rating under the status, once it has proved itself.
+ * @param batteryRestricted Android may pause the listener while idle; the card says so, with a fix.
  */
 @Composable
 fun ListenerStatusCard(
@@ -57,7 +58,9 @@ fun ListenerStatusCard(
     canSendTest: Boolean,
     caughtCount: Int,
     showRatePrompt: Boolean,
+    batteryRestricted: Boolean,
     onRunTest: () -> Unit,
+    onFixBattery: () -> Unit,
     onResetTest: () -> Unit,
     onOpenListenerSettings: () -> Unit,
     onRate: () -> Unit,
@@ -69,6 +72,7 @@ fun ListenerStatusCard(
             null -> stringResource(R.string.status_no_keywords)
             else -> listOfNotNull(
                 caughtText(caughtCount),
+                stringResource(R.string.status_battery_restricted).takeIf { batteryRestricted },
                 stringResource(R.string.status_body_no_alerts).takeIf { !canSendTest },
             ).joinToString(" ")
         }
@@ -79,10 +83,10 @@ fun ListenerStatusCard(
         SetupTest.Missed -> stringResource(R.string.test_title_missed) to stringResource(R.string.test_body_missed)
     }
     val actions = when (test) {
-        SetupTest.Idle -> when (keyword != null && canSendTest) {
-            true -> listOf(stringResource(R.string.status_run_test) to onRunTest)
-            else -> emptyList()
-        }
+        SetupTest.Idle -> listOfNotNull(
+            (stringResource(R.string.status_fix_battery) to onFixBattery).takeIf { batteryRestricted },
+            (stringResource(R.string.status_run_test) to onRunTest).takeIf { keyword != null && canSendTest },
+        )
         SetupTest.Waiting -> emptyList()
         is SetupTest.Caught -> listOf(stringResource(R.string.status_done) to onResetTest)
         SetupTest.Missed -> listOf(
@@ -93,7 +97,8 @@ fun ListenerStatusCard(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        // One step darker than the page's other greys, so the status leads the screen.
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(Radius.m),
         content = {
             Column(
@@ -240,7 +245,9 @@ private fun ListenerStatusCardPreview() = AppTheme {
         canSendTest = true,
         caughtCount = 128,
         showRatePrompt = true,
+        batteryRestricted = false,
         onRunTest = {},
+        onFixBattery = {},
         onResetTest = {},
         onOpenListenerSettings = {},
         onRate = {},

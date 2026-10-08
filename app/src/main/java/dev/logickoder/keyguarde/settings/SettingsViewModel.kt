@@ -49,7 +49,7 @@ class SettingsViewModel(
         inputs,
         listenerHealth.issue,
         appRepository.keywords,
-        combine(appRepository.watchedApps, alerts, ::Pair),
+        combine(appRepository.installedWatchedAppCount, alerts, ::Pair),
         combine(settingsRepository.themeMode, appRepository.caughtCount, settingsRepository.ratePromptDone, ::Triple),
     ) { inputs, issue, keywords, (apps, alerts), (themeMode, caughtCount, ratePromptDone) ->
         SettingsState(
@@ -57,7 +57,7 @@ class SettingsViewModel(
             notificationsAllowed = inputs.notificationsAllowed,
             test = inputs.test,
             testKeyword = keywords.firstOrNull()?.word,
-            watchedAppCount = apps.size,
+            watchedAppCount = apps,
             showHeadsUpAlert = alerts.showHeadsUp,
             usePersistentNotification = alerts.usePersistent,
             resetCountOnOpen = alerts.resetOnOpen,

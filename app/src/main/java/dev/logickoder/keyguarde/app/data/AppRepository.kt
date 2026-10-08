@@ -15,9 +15,11 @@ import dev.logickoder.keyguarde.app.data.model.Keyword
 import dev.logickoder.keyguarde.app.data.model.KeywordMatch
 import dev.logickoder.keyguarde.app.data.model.WatchedApp
 import dev.logickoder.keyguarde.onboarding.domain.AppInfo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -47,6 +49,21 @@ class AppRepository(
      * Get all watched apps stored in the database.
      */
     val watchedApps = database.watchedAppDao().getAll()
+
+    /**
+     * How many watched apps are installed now. An uninstalled app stays watched, in case it comes
+     * back, but can't send anything, so it isn't counted.
+     */
+    val installedWatchedAppCount: Flow<Int> = watchedApps.map { apps ->
+        apps.count { app ->
+            try {
+                context.packageManager.getApplicationInfo(app.packageName, 0)
+                true
+            } catch (_: PackageManager.NameNotFoundException) {
+                false
+            }
+        }
+    }.flowOn(Dispatchers.IO)
 
     /**
      * Get the count of recent matches from the local store.

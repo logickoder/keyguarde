@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.logickoder.keyguarde.R
@@ -63,6 +64,7 @@ private val Monochrome = ColorFilter.colorMatrix(ColorMatrix().apply { setToSatu
  *
  * @param header scrolls with the list, above the apps.
  * @param footer extra rows after the apps, such as watched apps that are no longer installed.
+ * @param gutter side margin, to line up with the screen around the picker.
  */
 @Composable
 fun AppPicker(
@@ -72,6 +74,7 @@ fun AppPicker(
     modifier: Modifier = Modifier,
     header: @Composable () -> Unit = {},
     footer: LazyListScope.() -> Unit = {},
+    gutter: Dp = Spacing.xl,
 ) {
     val (suggested, others) = remember(apps) { splitMessagingApps(apps) { it.packageName } }
     // No chat apps to suggest means the full list is the only place to look, so it starts open.
@@ -87,11 +90,11 @@ fun AppPicker(
             item(key = "header") { header() }
 
             when {
-                apps.isEmpty() -> item(key = "loading") { Loading() }
+                apps.isEmpty() -> item(key = "loading") { Loading(gutter) }
 
                 else -> {
                     item(key = "suggested-label") {
-                        AppPickerSectionLabel(stringResource(R.string.apps_suggested))
+                        AppPickerSectionLabel(stringResource(R.string.apps_suggested), gutter = gutter)
                     }
                     when (suggested.isEmpty()) {
                         true -> item(key = "no-suggested") {
@@ -99,23 +102,24 @@ fun AppPicker(
                                 text = stringResource(R.string.apps_no_suggested),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = Spacing.xl, vertical = Spacing.s),
+                                modifier = Modifier.padding(horizontal = gutter, vertical = Spacing.s),
                             )
                         }
 
-                        else -> appRows(suggested, selected, onToggle)
+                        else -> appRows(suggested, selected, onToggle, gutter)
                     }
 
                     item(key = "all-toggle") {
                         AllAppsToggle(
+                            gutter = gutter,
                             count = others.size,
                             expanded = showAll,
                             onToggle = { showAll = !showAll },
                         )
                     }
                     if (showAll) {
-                        item(key = "search") { SearchField(query = query, onQueryChange = { query = it }) }
-                        appRows(filtered, selected, onToggle)
+                        item(key = "search") { SearchField(query = query, onQueryChange = { query = it }, gutter = gutter) }
+                        appRows(filtered, selected, onToggle, gutter)
                     }
                     footer()
                 }
@@ -124,13 +128,19 @@ fun AppPicker(
     )
 }
 
-private fun LazyListScope.appRows(apps: List<AppInfo>, selected: Set<String>, onToggle: (String) -> Unit) {
+private fun LazyListScope.appRows(
+    apps: List<AppInfo>,
+    selected: Set<String>,
+    onToggle: (String) -> Unit,
+    gutter: Dp,
+) {
     items(apps, key = { it.packageName }) { app ->
         AppPickerRow(
             name = app.name,
             checked = app.packageName in selected,
             onToggle = { onToggle(app.packageName) },
             modifier = Modifier.animateItem(),
+            gutter = gutter,
             icon = {
                 AsyncImage(
                     model = app.icon,
@@ -146,23 +156,23 @@ private fun LazyListScope.appRows(apps: List<AppInfo>, selected: Set<String>, on
 }
 
 @Composable
-fun AppPickerSectionLabel(text: String, modifier: Modifier = Modifier) {
+fun AppPickerSectionLabel(text: String, modifier: Modifier = Modifier, gutter: Dp = Spacing.xl) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
-            .padding(horizontal = Spacing.xl, vertical = Spacing.s)
+            .padding(horizontal = gutter, vertical = Spacing.s)
             .semantics { heading() },
     )
 }
 
 @Composable
-private fun Loading() {
+private fun Loading(gutter: Dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(Spacing.xl),
+            .padding(gutter),
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
         verticalAlignment = Alignment.CenterVertically,
         content = {
@@ -187,6 +197,7 @@ fun AppPickerRow(
     checked: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    gutter: Dp = Spacing.xl,
     icon: @Composable () -> Unit,
 ) {
     Row(
@@ -194,7 +205,7 @@ fun AppPickerRow(
             .fillMaxWidth()
             .heightIn(min = 56.dp)
             .toggleable(value = checked, onValueChange = { onToggle() }, role = Role.Checkbox)
-            .padding(horizontal = Spacing.xl),
+            .padding(horizontal = gutter),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.l),
         content = {
@@ -220,7 +231,7 @@ fun AppPickerRow(
 }
 
 @Composable
-private fun AllAppsToggle(count: Int, expanded: Boolean, onToggle: () -> Unit) {
+private fun AllAppsToggle(count: Int, expanded: Boolean, onToggle: () -> Unit, gutter: Dp) {
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "ExpandArrow")
     val state = stringResource(if (expanded) R.string.expanded else R.string.collapsed)
     Row(
@@ -230,7 +241,7 @@ private fun AllAppsToggle(count: Int, expanded: Boolean, onToggle: () -> Unit) {
             .clickable(onClick = onToggle, role = Role.Button)
             .semantics { stateDescription = state }
             .heightIn(min = 56.dp)
-            .padding(horizontal = Spacing.xl),
+            .padding(horizontal = gutter),
         verticalAlignment = Alignment.CenterVertically,
         content = {
             Text(
@@ -249,13 +260,13 @@ private fun AllAppsToggle(count: Int, expanded: Boolean, onToggle: () -> Unit) {
 }
 
 @Composable
-private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
+private fun SearchField(query: String, onQueryChange: (String) -> Unit, gutter: Dp) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.xl, vertical = Spacing.s),
+            .padding(horizontal = gutter, vertical = Spacing.s),
         placeholder = { Text(stringResource(R.string.apps_search)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         singleLine = true,

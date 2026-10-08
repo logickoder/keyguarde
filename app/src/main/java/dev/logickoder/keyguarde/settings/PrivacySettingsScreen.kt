@@ -3,7 +3,6 @@ package dev.logickoder.keyguarde.settings
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -12,7 +11,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,11 +19,11 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import dev.logickoder.keyguarde.R
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
+import dev.logickoder.keyguarde.settings.components.LinkButton
 import dev.logickoder.keyguarde.settings.components.SettingsTopBar
 
 private const val PRIVACY_POLICY_URL = "https://logickoder.dev/keyguarde/#/privacy-policy"
@@ -68,7 +66,7 @@ private fun PrivacyContent(
                     .fillMaxSize()
                     .padding(scaffoldPadding)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                    .padding(horizontal = Spacing.l, vertical = Spacing.l),
                 verticalArrangement = Arrangement.spacedBy(Spacing.xl),
                 content = {
                     Block(
@@ -83,17 +81,9 @@ private fun PrivacyContent(
                     Services.forEach { (title, body) ->
                         Fact(title = stringResource(title), body = stringResource(body))
                     }
-                    TextButton(
+                    LinkButton(
+                        text = stringResource(R.string.privacy_policy),
                         onClick = onOpenPolicy,
-                        // Flush with the text above instead of indented by the button's padding.
-                        contentPadding = PaddingValues(0.dp),
-                        content = {
-                            Text(
-                                text = stringResource(R.string.privacy_policy),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
                     )
                 }
             )

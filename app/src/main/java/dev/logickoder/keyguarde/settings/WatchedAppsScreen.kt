@@ -69,15 +69,17 @@ private fun WatchedAppsContent(
                         text = stringResource(R.string.settings_apps_body),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.s),
+                        modifier = Modifier.padding(start = Spacing.l, end = Spacing.l, bottom = Spacing.s),
                     )
                 },
+                gutter = Spacing.l,
                 footer = {
                     if (state.missingApps.isNotEmpty()) {
                         item(key = "missing-label") {
                             AppPickerSectionLabel(
                                 text = stringResource(R.string.settings_apps_missing),
                                 modifier = Modifier.padding(top = Spacing.m),
+                                gutter = Spacing.l,
                             )
                         }
                         items(state.missingApps, key = { "missing-${it.packageName}" }) { app ->
@@ -86,6 +88,7 @@ private fun WatchedAppsContent(
                                 checked = true,
                                 onToggle = { onToggle(app.packageName) },
                                 modifier = Modifier.animateItem(),
+                                gutter = Spacing.l,
                                 icon = { AppIcon(app = app, contentDescription = null, size = 32.dp) },
                             )
                         }

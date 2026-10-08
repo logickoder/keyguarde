@@ -26,6 +26,7 @@ data class SettingsState(
         get() = !ratePromptDone &&
             caughtCount >= RATE_PROMPT_MIN_CATCHES &&
             listenerIssue == ListenerIssue.None &&
+            isBatteryUnrestricted != false &&
             test == SetupTest.Idle
 
     val canPreviewAlerts: Boolean
