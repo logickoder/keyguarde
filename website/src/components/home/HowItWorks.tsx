@@ -45,7 +45,7 @@ export default function HowItWorks() {
             className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface"
           >
             <div className="p-6">
-              <p className="font-label text-sm text-ink-muted">
+              <p className="text-sm font-semibold text-ink-muted tabular-nums">
                 {String(index + 1).padStart(2, '0')}
               </p>
               <h3 className="mt-2 text-xl font-semibold text-ink">{step.title}</h3>

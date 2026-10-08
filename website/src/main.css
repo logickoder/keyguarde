@@ -45,7 +45,8 @@ layer(base);
     --on-inverse: #27272a;
     --danger: #f97066;
     --device: #27272a;
-    --band: #1c1c1f;
+    /* Lifted well clear of the page, so the one band still reads as a band at night. */
+    --band: #232327;
   }
 }
 

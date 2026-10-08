@@ -1,32 +1,9 @@
 import { ChevronDown } from 'lucide-react';
 import SectionLabel from './SectionLabel';
 
-// The same answers as Help in the app, so the two never disagree.
+// The same answers as Help in the app, so the two never disagree. Ordered for someone deciding
+// whether to install: trust first, troubleshooting last.
 const faqs = [
-  {
-    question: 'Why am I not getting matches?',
-    answer:
-      'Open Settings and tap Run a test. If the test fails, turn Keyguarde’s notification access off, then on. Also check the app is ticked under Apps, and Battery use says Unrestricted.'
-  },
-  {
-    question: 'How do matches work?',
-    answer:
-      'Whole words, any case. “rent” matches “Rent due” but not “current”. One message can match several keywords.'
-  },
-  {
-    question: 'How do I add or remove keywords?',
-    answer:
-      'Open the Keywords tab. Type a word at the top to add it. Tap a keyword to edit it, or swipe it left to delete it.'
-  },
-  {
-    question: 'Can I pick which apps it watches?',
-    answer: 'Yes. Open Settings, then Apps. Chat apps on your phone are listed first.'
-  },
-  {
-    question: 'Why does Keyguarde need notification access?',
-    answer:
-      'It checks each new notification for your keywords. Without access, Android doesn’t show it any.'
-  },
   {
     question: 'Does it read my messages?',
     answer:
@@ -40,6 +17,30 @@ const faqs = [
   {
     question: 'Will it drain my battery?',
     answer: 'No. It does nothing between notifications, and each check is a short text search.'
+  },
+  {
+    question: 'Why does Keyguarde need notification access?',
+    answer:
+      'It checks each new notification for your keywords. Without access, Android doesn’t show it any.'
+  },
+  {
+    question: 'How do matches work?',
+    answer:
+      'Whole words, any case. “rent” matches “Rent due” but not “current”. One message can match several keywords.'
+  },
+  {
+    question: 'Can I pick which apps it watches?',
+    answer: 'Yes. Open Settings, then Apps. Chat apps on your phone are listed first.'
+  },
+  {
+    question: 'How do I add or remove keywords?',
+    answer:
+      'Open the Keywords tab. Type a word at the top to add it. Tap a keyword to edit it, or swipe it left to delete it.'
+  },
+  {
+    question: 'Why am I not getting matches?',
+    answer:
+      'Open Settings and tap Run a test. If the test fails, turn Keyguarde’s notification access off, then on. Also check the app is ticked under Apps, and Battery use says Unrestricted.'
   }
 ];
 

@@ -5,11 +5,14 @@ interface SectionLabelProps {
   onBand?: boolean;
 }
 
-/** The numbered small-caps label above each section, in the app's keyword-pill face. */
+/**
+ * The numbered label above each section. Body face on purpose: the condensed face means "a word
+ * you picked" everywhere else, so it stays on keywords only.
+ */
 export default function SectionLabel({ number, children, onBand = false }: SectionLabelProps) {
   return (
     <p
-      className={`font-label text-sm font-medium tracking-[0.12em] uppercase ${onBand ? 'text-on-band-muted' : 'text-ink-muted'}`}
+      className={`text-xs font-semibold tracking-[0.14em] uppercase ${onBand ? 'text-on-band-muted' : 'text-ink-muted'}`}
     >
       {number ? `${number} · ${children}` : children}
     </p>

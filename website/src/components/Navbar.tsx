@@ -25,7 +25,7 @@ export default function Navbar() {
               key={section.id}
               type="button"
               onClick={() => scrollTo(section.id)}
-              className="text-sm text-ink-muted transition-colors hover:text-ink"
+              className="inline-flex min-h-11 items-center text-sm text-ink-muted transition-colors hover:text-ink"
             >
               {section.label}
             </button>
@@ -35,7 +35,7 @@ export default function Navbar() {
           href={playStoreUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper transition-opacity hover:opacity-90"
+          className="inline-flex min-h-11 items-center rounded-full border border-ink px-4 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-paper"
         >
           Get the app
         </a>

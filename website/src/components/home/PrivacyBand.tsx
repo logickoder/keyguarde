@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom';
 import SectionLabel from './SectionLabel';
 
-const stays = ['The messages it catches', 'Your keywords', 'The apps you watch', 'Your settings'];
+const stays = [
+  'The messages it catches',
+  'Chat pictures from those notifications',
+  'Your keywords',
+  'The apps you watch',
+  'Your settings'
+];
 const leaves = [
   'Usage stats and crash reports, to Google Firebase',
   'App start and load times, to Google Firebase',
@@ -21,7 +27,8 @@ export default function PrivacyBand() {
         </h2>
         <p className="mt-4 max-w-2xl leading-relaxed text-on-band-muted">
           Keyguarde reads notifications on the phone and keeps matches there. No server, no account,
-          and matches are left out of Android backups. Here’s the full list.
+          and matches are left out of Android backups. The short version is below; the policy has
+          every detail.
         </p>
         <div className="mt-12 grid gap-10 md:grid-cols-2">
           <PrivacyList title="Stays on your phone" items={stays} />
@@ -29,7 +36,7 @@ export default function PrivacyBand() {
         </div>
         <Link
           to="/privacy-policy"
-          className="mt-10 inline-block font-semibold underline decoration-on-band-muted underline-offset-4 hover:decoration-on-band"
+          className="mt-10 inline-flex min-h-11 items-center font-semibold underline decoration-on-band-muted underline-offset-4 hover:decoration-on-band"
         >
           Read the privacy policy
         </Link>

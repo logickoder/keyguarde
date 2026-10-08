@@ -13,7 +13,8 @@ const socials = [
 ];
 
 export default function Footer() {
-  const linkClass = 'text-sm text-ink-muted transition-colors hover:text-ink';
+  const linkClass =
+    'inline-flex min-h-11 items-center text-sm text-ink-muted transition-colors hover:text-ink';
 
   return (
     <footer className="border-t border-line bg-paper">
@@ -33,7 +34,7 @@ export default function Footer() {
             Contact
           </a>
         </div>
-        <div className="flex items-center gap-4 text-ink-muted">
+        <div className="-mx-3 flex items-center text-ink-muted">
           {socials.map((social) => (
             <a
               key={social.href}
@@ -41,7 +42,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={social.label}
-              className="transition-colors hover:text-ink"
+              className="inline-flex h-11 w-11 items-center justify-center transition-colors hover:text-ink"
             >
               <ReactSVG src={social.icon} className="h-5 w-5" />
             </a>
@@ -49,7 +50,7 @@ export default function Footer() {
           <a
             href="mailto:jeffery@logickoder.dev"
             aria-label="Email jeffery@logickoder.dev"
-            className="transition-colors hover:text-ink"
+            className="inline-flex h-11 w-11 items-center justify-center transition-colors hover:text-ink"
           >
             <Mail size={20} aria-hidden="true" />
           </a>

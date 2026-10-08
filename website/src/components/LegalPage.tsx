@@ -11,7 +11,7 @@ interface LegalPageProps {
 export default function LegalPage({ title, summary, updated, children }: LegalPageProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 md:px-6">
-      <p className="font-label text-sm font-medium tracking-[0.12em] text-ink-muted uppercase">
+      <p className="text-xs font-semibold tracking-[0.14em] text-ink-muted uppercase">
         Last updated · {updated}
       </p>
       <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink md:text-5xl">{title}</h1>
