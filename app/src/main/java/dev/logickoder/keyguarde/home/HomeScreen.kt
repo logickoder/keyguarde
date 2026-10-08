@@ -1,10 +1,5 @@
 package dev.logickoder.keyguarde.home
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -57,6 +52,9 @@ import dev.logickoder.keyguarde.app.components.LocalToastManager
 import dev.logickoder.keyguarde.app.components.StatusBanner
 import dev.logickoder.keyguarde.app.components.ToastType
 import dev.logickoder.keyguarde.app.domain.NotificationHelper
+import dev.logickoder.keyguarde.app.domain.appNotificationSettings
+import dev.logickoder.keyguarde.app.domain.batteryOptimizationSettings
+import dev.logickoder.keyguarde.app.domain.startActivitySafely
 import dev.logickoder.keyguarde.app.theme.AppTheme
 import dev.logickoder.keyguarde.app.theme.Spacing
 import dev.logickoder.keyguarde.home.components.ClearAllDialog
@@ -179,7 +177,7 @@ fun HomeScreen(onOpenKeywords: () -> Unit, modifier: Modifier = Modifier) {
             viewModel.onAction(HomeAction.ListenerRestartRequested)
         },
         onOpenBatterySettings = {
-            context.startActivitySafely(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+            context.startActivitySafely(batteryOptimizationSettings())
         },
         onEnableNotifications = {
             if (NotificationHelper.REQUIRES_NOTIFICATION_PERMISSION) {
@@ -471,18 +469,4 @@ private fun StatusBanners(
             )
         }
     )
-}
-
-private fun appNotificationSettings(context: Context) =
-    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-
-// Some OEM builds drop settings screens; fall back to the app's own details page.
-private fun Context.startActivitySafely(intent: Intent) {
-    try {
-        startActivity(intent)
-    } catch (_: ActivityNotFoundException) {
-        startActivity(
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
-        )
-    }
 }

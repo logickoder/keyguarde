@@ -14,7 +14,6 @@ import dev.logickoder.keyguarde.app.navigation.NavigationAnimations.settingsTran
 import dev.logickoder.keyguarde.settings.BatterySettingsScreen
 import dev.logickoder.keyguarde.settings.ContactScreen
 import dev.logickoder.keyguarde.settings.FaqScreen
-import dev.logickoder.keyguarde.settings.NotificationSettingsScreen
 import dev.logickoder.keyguarde.settings.PrivacySettingsScreen
 import dev.logickoder.keyguarde.settings.SettingsScreen
 import dev.logickoder.keyguarde.settings.WatchedAppsScreen
@@ -57,12 +56,6 @@ fun SettingsNavigation(
                 )
             }
 
-            entry<SettingsRoute.Notifications> {
-                NotificationSettingsScreen(
-                    onBack = goBack,
-                )
-            }
-
             entry<SettingsRoute.Battery> {
                 BatterySettingsScreen(
                     onBack = goBack,
@@ -96,9 +89,6 @@ sealed interface SettingsRoute : NavKey {
 
     @Serializable
     data object Apps : SettingsRoute
-
-    @Serializable
-    data object Notifications : SettingsRoute
 
     @Serializable
     data object Battery : SettingsRoute
