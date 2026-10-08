@@ -23,6 +23,12 @@ layer(base);
   --inverse: #27272a;
   --on-inverse: #f4f4f5;
   --danger: #b42318;
+  /* The phone outline: near-black like real hardware, lifted to grey on dark pages to stay visible. */
+  --device: #0b0b0d;
+  /* The one dark band on the page, for privacy. Dark in both modes; white would glare at night. */
+  --band: #18181b;
+  --on-band: #f4f4f5;
+  --on-band-muted: #a1a1aa;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +44,8 @@ layer(base);
     --inverse: #f4f4f5;
     --on-inverse: #27272a;
     --danger: #f97066;
+    --device: #27272a;
+    --band: #1c1c1f;
   }
 }
 
@@ -54,6 +62,10 @@ layer(base);
   --color-inverse: var(--inverse);
   --color-on-inverse: var(--on-inverse);
   --color-danger: var(--danger);
+  --color-device: var(--device);
+  --color-band: var(--band);
+  --color-on-band: var(--on-band);
+  --color-on-band-muted: var(--on-band-muted);
 
   /* Old names, mapped onto the greys until each page moves to the names above. */
   --color-primary: var(--ink);

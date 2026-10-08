@@ -6,52 +6,58 @@ import Github from '../assets/github.svg';
 import Twitter from '../assets/x.svg';
 import Linkedin from '../assets/linkedin.svg';
 
+const socials = [
+  { href: 'https://github.com/logickoder/keyguarde', label: 'Keyguarde on GitHub', icon: Github },
+  { href: 'https://x.com/logickoder', label: 'logickoder on X', icon: Twitter },
+  { href: 'https://linkedin.com/in/logickoder', label: 'logickoder on LinkedIn', icon: Linkedin }
+];
+
 export default function Footer() {
-  const itemClass = 'text-white hover:text-secondary transition-colors duration-300 ease-in-out';
-  const iconClass = itemClass + ' w-5 h-5';
+  const linkClass = 'text-sm text-ink-muted transition-colors hover:text-ink';
 
   return (
-    <footer className="bg-primary text-white py-8">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <Link to="/" className="flex items-center mb-4 md:mb-0">
-            <ReactSVG src={Logo} className="text-white h-6 w-6 mr-2" />
-            <span className="text-xl font-bold">Keyguarde</span>
+    <footer className="border-t border-line bg-paper">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-6">
+        <Link to="/" className="flex items-center gap-2 text-ink">
+          <ReactSVG src={Logo} className="h-5 w-5" />
+          <span className="font-bold">Keyguarde</span>
+        </Link>
+        <div className="flex flex-wrap gap-6">
+          <Link to="/privacy-policy" className={linkClass}>
+            Privacy policy
           </Link>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/contact" className={itemClass}>
-              Contact
-            </Link>
-            <Link to="/terms" className={itemClass}>
-              Terms
-            </Link>
-            <Link to="/privacy-policy" className={itemClass}>
-              Privacy Policy
-            </Link>
-          </div>
-          <div className="flex space-x-4 mt-4 md:mt-0">
-            <Link
-              to="https://github.com/logickoder/keyguarde"
-              className={itemClass}
-              target="_blank"
-            >
-              <ReactSVG src={Github} className={iconClass} />
-            </Link>
-            <Link to="https://x.com/logickoder" className={itemClass} target="_blank">
-              <ReactSVG src={Twitter} className={iconClass} />
-            </Link>
-            <Link to="https://linkedin.com/in/logickoder" className={itemClass} target="_blank">
-              <ReactSVG src={Linkedin} className={iconClass} />
-            </Link>
-            <Link to="mailto:jeffery@logickoder.dev" className={itemClass} target="_blank">
-              <Mail size={20} />
-            </Link>
-          </div>
+          <Link to="/terms" className={linkClass}>
+            Terms
+          </Link>
+          <Link to="/contact" className={linkClass}>
+            Contact
+          </Link>
         </div>
-        <div className="text-center mt-8 text-sm opacity-75">
-          © 2025 <Link to="https://logickoder.dev">Jeffery Orazulike</Link>. All rights reserved.
+        <div className="flex items-center gap-4 text-ink-muted">
+          {socials.map((social) => (
+            <a
+              key={social.href}
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={social.label}
+              className="transition-colors hover:text-ink"
+            >
+              <ReactSVG src={social.icon} className="h-5 w-5" />
+            </a>
+          ))}
+          <a
+            href="mailto:jeffery@logickoder.dev"
+            aria-label="Email jeffery@logickoder.dev"
+            className="transition-colors hover:text-ink"
+          >
+            <Mail size={20} aria-hidden="true" />
+          </a>
         </div>
       </div>
+      <p className="pb-8 text-center text-xs text-ink-muted">
+        © {new Date().getFullYear()} <a href="https://logickoder.dev">Jeffery Orazulike</a>
+      </p>
     </footer>
   );
 }
