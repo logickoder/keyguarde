@@ -276,6 +276,7 @@ class AppRepository(
     fun getMatches(
         packageNames: Set<String> = emptySet(),
         query: String = "",
+        keyword: String? = null,
     ): Flow<PagingData<KeywordMatch>> = Pager(
         config = PagingConfig(pageSize = 20),
         pagingSourceFactory = {
@@ -284,7 +285,7 @@ class AppRepository(
                     term.isNotBlank()
                 }.joinToString(" ") { term -> "$term*" }
             }
-            database.keywordMatchDao().getMatches(packageNames.isEmpty(), packageNames, queryFilter)
+            database.keywordMatchDao().getMatches(packageNames.isEmpty(), packageNames, queryFilter, keyword?.lowercase())
         }
     ).flow
 

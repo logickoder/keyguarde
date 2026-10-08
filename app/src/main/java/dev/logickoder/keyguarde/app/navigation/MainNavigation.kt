@@ -57,7 +57,7 @@ private fun MainTab.icon(selected: Boolean): Painter = when (this) {
 fun MainNavigation(modifier: Modifier = Modifier) {
     var tab by rememberSaveable { mutableStateOf(MainTab.Matches) }
     // A keyword's "See matches" hands its word to Matches through here.
-    var pendingSearch by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingKeyword by rememberSaveable { mutableStateOf<String?>(null) }
     val tabStates = rememberSaveableStateHolder()
 
     // Back from another tab returns to Matches before it leaves the app.
@@ -82,12 +82,12 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                                 when (current) {
                                     MainTab.Matches -> HomeScreen(
                                         onOpenKeywords = { tab = MainTab.Keywords },
-                                        search = pendingSearch,
-                                        onSearchHandled = { pendingSearch = null },
+                                        keyword = pendingKeyword,
+                                        onKeywordHandled = { pendingKeyword = null },
                                     )
                                     MainTab.Keywords -> KeywordsScreen(
                                         onSeeMatches = { word ->
-                                            pendingSearch = word
+                                            pendingKeyword = word
                                             tab = MainTab.Matches
                                         },
                                     )

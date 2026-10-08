@@ -25,6 +25,7 @@ import dev.logickoder.keyguarde.app.theme.Spacing
  *
  * @param query the active search, or blank.
  * @param filterNames the apps the list is limited to, joined for display, or null for every app.
+ * @param keyword the keyword the list is limited to, or null for every keyword.
  */
 @Composable
 fun EmptyMatchesState(
@@ -34,9 +35,12 @@ fun EmptyMatchesState(
     onClearSearch: () -> Unit,
     onClearFilter: () -> Unit,
     modifier: Modifier = Modifier,
+    keyword: String? = null,
+    onClearKeyword: () -> Unit = {},
 ) {
     val isSearching = query.isNotBlank()
     val isFiltered = filterNames != null
+    val isKeyword = keyword != null
 
     Column(
         modifier = modifier
@@ -47,13 +51,15 @@ fun EmptyMatchesState(
         content = {
             Text(
                 text = stringResource(
-                    if (isSearching || isFiltered) R.string.empty_filtered_title else R.string.empty_title
+                    if (isSearching || isFiltered || isKeyword) R.string.empty_filtered_title else R.string.empty_title
                 ),
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
             )
             Text(
                 text = when {
+                    // The keyword is the narrowest limit, so its message covers search and app too.
+                    keyword != null -> stringResource(R.string.empty_keyword_body, keyword)
                     isSearching && isFiltered -> stringResource(R.string.empty_search_filter_body, query, filterNames)
                     isSearching -> stringResource(R.string.empty_search_body, query)
                     isFiltered -> stringResource(R.string.empty_filter_body, filterNames)
@@ -69,15 +75,18 @@ fun EmptyMatchesState(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                 content = {
                     when {
-                        !isSearching && !isFiltered -> EmptyAction(
+                        !isSearching && !isFiltered && !isKeyword -> EmptyAction(
                             label = stringResource(R.string.empty_review_keywords),
                             onClick = onReviewKeywords,
                             prominent = true,
                         )
 
                         else -> {
-                            // One action alone is the way out, so it gets the outline; two share the weight.
-                            val prominent = isSearching != isFiltered
+                            // One action alone is the way out, so it gets the outline; more share the weight.
+                            val prominent = listOf(isSearching, isFiltered, isKeyword).count { it } == 1
+                            if (isKeyword) {
+                                EmptyAction(stringResource(R.string.clear_keyword), onClearKeyword, prominent)
+                            }
                             if (isSearching) {
                                 EmptyAction(stringResource(R.string.clear_search), onClearSearch, prominent)
                             }

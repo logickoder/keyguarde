@@ -57,7 +57,7 @@ class HomeViewModelTest {
         every { matchesFilter } returns flowOf(emptySet())
         every { matchCountsByApp } returns flowOf(mapOf(app1.packageName to 3, app2.packageName to 5))
         coEvery { saveMatchesFilter(any()) } just Runs
-        every { getMatches(any(), any()) } returns flowOf(PagingData.empty())
+        every { getMatches(any(), any(), any()) } returns flowOf(PagingData.empty())
     }
 
     private val listenerConnected = MutableStateFlow(false)
@@ -255,8 +255,8 @@ class HomeViewModelTest {
         backgroundScope.launch { viewModel.matches.collect {} }
         advanceUntilIdle()
 
-        verify(timeout = 2_000) { repository.getMatches(setOf(app2.packageName), "") }
-        verify(exactly = 0) { repository.getMatches(emptySet(), "") }
+        verify(timeout = 2_000) { repository.getMatches(setOf(app2.packageName), "", null) }
+        verify(exactly = 0) { repository.getMatches(emptySet(), "", null) }
     }
 
     @Test
@@ -269,7 +269,7 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         // The paging pipeline runs on Dispatchers.Default (flowOn), outside the test scheduler.
-        verify(timeout = 2_000) { repository.getMatches(setOf(app1.packageName), "") }
+        verify(timeout = 2_000) { repository.getMatches(setOf(app1.packageName), "", null) }
     }
 
     @Test
@@ -283,5 +283,20 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         coVerify { settings.setPaused(false) }
+    }
+
+    @Test
+    fun `see matches limits the list to that keyword until cleared`() = runTest {
+        backgroundScope.launch { viewModel.matches.collect {} }
+        backgroundScope.launch { viewModel.state.collect {} }
+        viewModel.onAction(HomeAction.FilterByKeyword("invoice"))
+        advanceUntilIdle()
+
+        verify(timeout = 2_000) { repository.getMatches(any(), "", "invoice") }
+        assertEquals("invoice", viewModel.state.value.keywordFilter)
+
+        viewModel.onAction(HomeAction.ClearKeywordFilter)
+        advanceUntilIdle()
+        assertNull(viewModel.state.value.keywordFilter)
     }
 }

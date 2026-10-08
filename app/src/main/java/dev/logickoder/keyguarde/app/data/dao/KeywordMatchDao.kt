@@ -73,23 +73,22 @@ interface KeywordMatchDao {
     suspend fun delete(ids: List<Long>)
 
     /**
-     * Fetch KeywordMatch entries filtered by a specific keyword.
-     */
-    @Query("SELECT * FROM keyword_matches WHERE :keyword IN (keywords) ORDER BY timestamp DESC")
-    fun getByKeyword(keyword: String): Flow<List<KeywordMatch>>
-
-    /**
-     * Fetch matches from [apps] (or every app when [allApps] is set), optionally searched by [query].
+     * Fetch matches from [apps] (or every app when [allApps] is set), optionally searched by [query]
+     * and limited to those [keyword] caught. The keyword check reads the keywords saved with each
+     * match, the same rule as [statsByKeyword], so a keyword's count and its list always agree.
+     *
+     * @param keyword lowercased, or null for every keyword.
      */
     @Query(
         """
         SELECT * FROM keyword_matches
         WHERE (:allApps OR app IN (:apps))
         AND (:query IS NULL OR rowid IN (SELECT rowid FROM keyword_matches_fts WHERE keyword_matches_fts MATCH :query))
+        AND (:keyword IS NULL OR EXISTS (SELECT 1 FROM json_each(keyword_matches.keywords) AS k WHERE lower(k.value) = :keyword))
         ORDER BY timestamp DESC
         """
     )
-    fun getMatches(allApps: Boolean, apps: Set<String>, query: String?): PagingSource<Int, KeywordMatch>
+    fun getMatches(allApps: Boolean, apps: Set<String>, query: String?, keyword: String?): PagingSource<Int, KeywordMatch>
 
     /**
      * Delete all KeywordMatch entries from the database.

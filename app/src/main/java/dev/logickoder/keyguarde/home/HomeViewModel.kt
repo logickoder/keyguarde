@@ -109,6 +109,7 @@ class HomeViewModel(
         HomeState(
             listenerIssue = issue,
             isPaused = isPaused,
+            keywordFilter = inputs.keywordFilter,
             notificationsAllowed = inputs.notificationsAllowed,
             filter = watchedApps.filter { it.packageName in inputs.filterPackages }.toImmutableList(),
             watchedApps = watchedApps.toImmutableList(),
@@ -132,17 +133,19 @@ class HomeViewModel(
     val matches: Flow<PagingData<MatchListItem>> = combine(
         effectiveFilter,
         snapshotFlow { query },
+        inputs.map { it.keywordFilter }.distinctUntilChanged(),
         lastVisit.filterNotNull().map { it.at },
-    ) { packageNames, query, since -> Triple(packageNames, query, since) }
+    ) { packageNames, query, keyword, since -> ListQuery(packageNames, query, keyword, since) }
         .distinctUntilChanged()
-        .flatMapLatest { (packageNames, query, since) ->
-            repository.getMatches(packageNames, query).map { page ->
+        .flatMapLatest { (packageNames, query, keyword, since) ->
+            repository.getMatches(packageNames, query, keyword).map { page ->
                 page.map { match ->
                     MatchListItem.Match(match, isNew = since != null && match.timestamp > since)
                 }.insertSeparators { before, after ->
-                    // The count ignores search, so the divider only shows on the unsearched list.
+                    // The count ignores search and keyword, so the divider only shows without them.
                     when {
-                        before == null && after?.isNew == true && query.isBlank() -> MatchListItem.NewDivider
+                        before == null && after?.isNew == true && query.isBlank() && keyword == null ->
+                            MatchListItem.NewDivider
                         else -> null
                     }
                 }
@@ -216,6 +219,10 @@ class HomeViewModel(
             HomeAction.ListenerRestartRequested -> listenerHealth.restartRequested()
 
             HomeAction.Resume -> viewModelScope.launch { settings.setPaused(false) }
+
+            is HomeAction.FilterByKeyword -> inputs.update { it.copy(keywordFilter = action.word) }
+
+            HomeAction.ClearKeywordFilter -> inputs.update { it.copy(keywordFilter = null) }
 
             HomeAction.StartSelection -> inputs.update {
                 it.copy(isSelectionMode = true, selectedMatches = persistentSetOf())
@@ -333,11 +340,20 @@ class HomeViewModel(
 
     private data class Visit(val at: LocalDateTime?)
 
+    private data class ListQuery(
+        val packageNames: Set<String>,
+        val query: String,
+        val keyword: String?,
+        val since: LocalDateTime?,
+    )
+
     private data class Inputs(
         val filterPackages: PersistentSet<String> = persistentSetOf(),
         val isFilterLoaded: Boolean = false,
         val notificationsAllowed: Boolean = true,
         val filterDraft: PersistentSet<String> = persistentSetOf(),
+        // Not saved: a keyword's "See matches" is a one-off look, not a setting.
+        val keywordFilter: String? = null,
         val isFilterSheetVisible: Boolean = false,
         val isClearAllConfirmVisible: Boolean = false,
         val isSelectionMode: Boolean = false,

@@ -107,6 +107,8 @@
         <item quantity="one">Filter, %1$d app selected</item>
         <item quantity="other">Filter, %1$d apps selected</item>
     </plurals>
+    <string name="clear_keyword_filter">Show all keywords, not only “%1$s”</string>
+    <string name="clear_keyword">Show all keywords</string>
     <string name="filtered_by">Filtered: %1$s</string>
     <string name="clear_filter">Clear filter</string>
     <string name="filter_sheet_title">Show matches from</string>
@@ -130,6 +132,7 @@
     <string name="empty_review_keywords">Review keywords</string>
     <string name="empty_filtered_title">No matches here</string>
     <string name="empty_search_body">Nothing matches “%1$s”.</string>
+    <string name="empty_keyword_body">Nothing caught by “%1$s” here.</string>
     <string name="empty_filter_body">Nothing from %1$s yet.</string>
     <string name="empty_search_filter_body">Nothing from %2$s matches “%1$s”.</string>
     <string name="loading_matches">Loading matches</string>

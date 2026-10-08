@@ -47,6 +47,11 @@ sealed interface HomeAction {
     /** The user asked to restart the listener; wait a moment for it to bind before warning again. */
     data object ListenerRestartRequested : HomeAction
 
+    /** Show only the matches [word] caught, from the Keywords tab's "See matches". */
+    data class FilterByKeyword(val word: String) : HomeAction
+
+    data object ClearKeywordFilter : HomeAction
+
     /** Undo a pause set in Settings, from the banner on Matches. */
     data object Resume : HomeAction
 

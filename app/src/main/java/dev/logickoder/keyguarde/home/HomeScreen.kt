@@ -12,6 +12,9 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import dev.logickoder.keyguarde.app.theme.KeywordPillStyle
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -78,15 +81,15 @@ import kotlinx.coroutines.flow.flowOf
 
 /**
  * @param onOpenKeywords switches to the Keywords tab, from the empty state.
- * @param search a search another tab asked for, such as a keyword's "See matches"; applied once,
- * then [onSearchHandled] clears it.
+ * @param keyword a keyword whose matches the Keywords tab asked to see; applied once, then
+ * [onKeywordHandled] clears it.
  */
 @Composable
 fun HomeScreen(
     onOpenKeywords: () -> Unit,
     modifier: Modifier = Modifier,
-    search: String? = null,
-    onSearchHandled: () -> Unit = {},
+    keyword: String? = null,
+    onKeywordHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -96,10 +99,10 @@ fun HomeScreen(
     val matches = viewModel.matches.collectAsLazyPagingItems()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(search) {
-        if (search != null) {
-            viewModel.onAction(HomeAction.SearchQueryChanged(search))
-            onSearchHandled()
+    LaunchedEffect(keyword) {
+        if (keyword != null) {
+            viewModel.onAction(HomeAction.FilterByKeyword(keyword))
+            onKeywordHandled()
         }
     }
 
@@ -264,27 +267,7 @@ private fun HomeContent(
                                 onResetCounter = { onAction(HomeAction.ResetCount) },
                                 onClearAll = { onAction(HomeAction.ShowClearAllConfirm) },
                             )
-                            if (state.filter.isNotEmpty()) {
-                                val names = remember(state.filter) { state.filter.joinToString { it.name } }
-                                InputChip(
-                                    selected = true,
-                                    onClick = { onAction(HomeAction.ClearFilter) },
-                                    label = {
-                                        Text(
-                                            text = stringResource(R.string.filtered_by, names),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    },
-                                    trailingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = stringResource(R.string.clear_filter),
-                                        )
-                                    },
-                                    modifier = Modifier.padding(horizontal = Spacing.l),
-                                )
-                            }
+                            FilterChips(state = state, onAction = onAction)
                         }
                     )
                 }
@@ -343,6 +326,8 @@ private fun HomeContent(
                                     EmptyMatchesState(
                                         query = query,
                                         filterNames = state.filter.takeIf { it.isNotEmpty() }?.joinToString { it.name },
+                                        keyword = state.keywordFilter,
+                                        onClearKeyword = { onAction(HomeAction.ClearKeywordFilter) },
                                         onReviewKeywords = onOpenKeywords,
                                         onClearSearch = { onAction(HomeAction.SearchQueryChanged("")) },
                                         onClearFilter = { onAction(HomeAction.ClearFilter) },
@@ -498,6 +483,63 @@ private fun StatusBanners(
                     )
                 }
             )
+        }
+    )
+}
+
+/**
+ * What the list is limited to, each with its own ×. The keyword chip shows the word in teal, the
+ * same way the matched word shows in each row.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FilterChips(state: HomeState, onAction: (HomeAction) -> Unit) {
+    if (state.keywordFilter == null && state.filter.isEmpty()) return
+    FlowRow(
+        modifier = Modifier.padding(horizontal = Spacing.l),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        content = {
+            state.keywordFilter?.let { word ->
+                InputChip(
+                    selected = true,
+                    onClick = { onAction(HomeAction.ClearKeywordFilter) },
+                    label = {
+                        Text(
+                            text = word,
+                            style = KeywordPillStyle,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.clear_keyword_filter, word),
+                        )
+                    },
+                )
+            }
+            if (state.filter.isNotEmpty()) {
+                val names = remember(state.filter) { state.filter.joinToString { it.name } }
+                InputChip(
+                    selected = true,
+                    onClick = { onAction(HomeAction.ClearFilter) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.filtered_by, names),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.clear_filter),
+                        )
+                    },
+                )
+            }
         }
     )
 }

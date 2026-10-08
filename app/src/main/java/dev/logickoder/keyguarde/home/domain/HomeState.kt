@@ -24,6 +24,8 @@ data class HomeState(
     val listenerIssue: ListenerIssue = ListenerIssue.None,
     /** The user paused Keyguarde in Settings; nothing new is caught until they resume. */
     val isPaused: Boolean = false,
+    /** Only matches this keyword caught, from a keyword's "See matches"; null for all. */
+    val keywordFilter: String? = null,
     /** False when Android blocks Keyguarde's own notifications, so match alerts can't show. */
     val notificationsAllowed: Boolean = true,
     val isFilterSheetVisible: Boolean = false,
