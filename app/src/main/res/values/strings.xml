@@ -264,7 +264,7 @@
 
     <!-- Privacy -->
     <string name="privacy_stays_title">Stays on this phone</string>
-    <string name="privacy_stays_body">Your messages, matches and keywords. Keyguarde reads notifications on the phone and never uploads them.</string>
+    <string name="privacy_stays_body">Your messages, matches and keywords. Keyguarde reads notifications on the phone and never uploads them. They\'re left out of Android backups too, so a new phone starts with a fresh setup.</string>
     <string name="privacy_leaves_title">Leaves this phone</string>
     <string name="privacy_leaves_body">Keyguarde uses Google services that send some data. None of it includes your messages or keywords.</string>
     <string name="privacy_analytics_title">Usage stats</string>
