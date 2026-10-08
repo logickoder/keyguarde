@@ -37,6 +37,14 @@ class SettingsRepository(private val localStore: AppStore) {
 
     suspend fun setPaused(paused: Boolean) = localStore.save(PAUSED, paused)
 
+    /**
+     * True once the user opened the Battery screen. Most phones restrict battery by default, so
+     * the card's warning would otherwise show forever; once seen, the Battery row keeps the state.
+     */
+    val batteryNoticeSeen = localStore.get(BATTERY_NOTICE_SEEN).map { it ?: false }
+
+    suspend fun markBatteryNoticeSeen() = localStore.save(BATTERY_NOTICE_SEEN, true)
+
     /** True once the user rated or dismissed the rate prompt; it never comes back after that. */
     val ratePromptDone = localStore.get(RATE_PROMPT_DONE).map { it ?: false }
 
@@ -64,5 +72,6 @@ class SettingsRepository(private val localStore: AppStore) {
         private val THEME_MODE = stringPreferencesKey("theme_mode")
         private val RATE_PROMPT_DONE = booleanPreferencesKey("rate_prompt_done")
         private val PAUSED = booleanPreferencesKey("paused")
+        private val BATTERY_NOTICE_SEEN = booleanPreferencesKey("battery_notice_seen")
     }
 }

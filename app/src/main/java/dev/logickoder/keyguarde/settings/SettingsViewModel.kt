@@ -56,6 +56,7 @@ class SettingsViewModel(
             appRepository.caughtCount,
             settingsRepository.ratePromptDone,
             settingsRepository.isPaused,
+            settingsRepository.batteryNoticeSeen,
             ::Extras,
         ),
     ) { inputs, issue, keywords, (apps, alerts), extras ->
@@ -73,6 +74,7 @@ class SettingsViewModel(
             caughtCount = extras.caughtCount,
             ratePromptDone = extras.ratePromptDone,
             isPaused = extras.isPaused,
+            batteryNoticeSeen = extras.batteryNoticeSeen,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -127,6 +129,10 @@ class SettingsViewModel(
                 settingsRepository.setPaused(action.paused)
             }
 
+            SettingsAction.BatteryScreenOpened -> viewModelScope.launch {
+                settingsRepository.markBatteryNoticeSeen()
+            }
+
             SettingsAction.RatePromptDone -> viewModelScope.launch {
                 settingsRepository.markRatePromptDone()
             }
@@ -161,6 +167,7 @@ class SettingsViewModel(
         val caughtCount: Int,
         val ratePromptDone: Boolean,
         val isPaused: Boolean,
+        val batteryNoticeSeen: Boolean,
     )
 
     private data class Alerts(

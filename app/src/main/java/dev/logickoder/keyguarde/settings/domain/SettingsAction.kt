@@ -21,6 +21,9 @@ sealed interface SettingsAction {
 
     data class SetPaused(val paused: Boolean) : SettingsAction
 
+    /** The user opened the Battery screen, from the card's Fix or the Battery use row. */
+    data object BatteryScreenOpened : SettingsAction
+
     /** The user rated or dismissed the prompt. */
     data object RatePromptDone : SettingsAction
 }

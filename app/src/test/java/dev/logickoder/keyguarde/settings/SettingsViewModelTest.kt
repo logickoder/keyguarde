@@ -39,6 +39,7 @@ class SettingsViewModelTest {
     private val caughtCount = MutableStateFlow(0)
     private val ratePromptDone = MutableStateFlow(false)
     private val paused = MutableStateFlow(false)
+    private val batteryNoticeSeen = MutableStateFlow(false)
 
     private val appRepository = mockk<AppRepository> {
         every { keywords } returns this@SettingsViewModelTest.keywords
@@ -52,6 +53,7 @@ class SettingsViewModelTest {
         every { themeMode } returns flowOf(ThemeMode.Dark)
         every { ratePromptDone } returns this@SettingsViewModelTest.ratePromptDone
         every { isPaused } returns this@SettingsViewModelTest.paused
+        every { batteryNoticeSeen } returns this@SettingsViewModelTest.batteryNoticeSeen
     }
 
     @Before
@@ -208,5 +210,21 @@ class SettingsViewModelTest {
         coVerify { settingsRepository.setPaused(true) }
         assertTrue(viewModel.state.value.isPaused)
         assertFalse(viewModel.state.value.showRatePrompt)
+    }
+
+    @Test
+    fun `the battery notice shows until the Battery screen is opened`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        backgroundScope.launch { viewModel.state.collect {} }
+        viewModel.onAction(SettingsAction.SystemChecked(true, notificationsAllowed = true, isBatteryUnrestricted = false))
+        advanceUntilIdle()
+        assertTrue(viewModel.state.value.showBatteryNotice)
+
+        viewModel.onAction(SettingsAction.BatteryScreenOpened)
+        batteryNoticeSeen.value = true
+        advanceUntilIdle()
+
+        coVerify { settingsRepository.markBatteryNoticeSeen() }
+        assertFalse(viewModel.state.value.showBatteryNotice)
     }
 }

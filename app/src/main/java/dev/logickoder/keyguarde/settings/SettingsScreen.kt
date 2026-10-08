@@ -166,7 +166,10 @@ private fun SettingsContent(
                         onOpenListenerSettings = onOpenListenerSettings,
                         onRestartListener = onRestartListener,
                         onOpenBatterySettings = onOpenBatterySettings,
-                        onOpenBatteryScreen = { onNavigate(SettingsRoute.Battery) },
+                        onOpenBatteryScreen = {
+                            onAction(SettingsAction.BatteryScreenOpened)
+                            onNavigate(SettingsRoute.Battery)
+                        },
                         onRate = onRate,
                     )
 
@@ -202,7 +205,10 @@ private fun SettingsContent(
                                     false -> stringResource(R.string.battery_restricted)
                                     null -> null
                                 },
-                                onClick = { onNavigate(SettingsRoute.Battery) },
+                                onClick = {
+                                    onAction(SettingsAction.BatteryScreenOpened)
+                                    onNavigate(SettingsRoute.Battery)
+                                },
                             )
                         }
                     )
@@ -286,7 +292,7 @@ private fun Status(
                         canSendTest = state.notificationsAllowed,
                         caughtCount = state.caughtCount,
                         showRatePrompt = state.showRatePrompt,
-                        batteryRestricted = state.isBatteryUnrestricted == false,
+                        batteryRestricted = state.showBatteryNotice,
                         isPaused = state.isPaused,
                         onRunTest = onRunTest,
                         onPause = { onAction(SettingsAction.SetPaused(true)) },

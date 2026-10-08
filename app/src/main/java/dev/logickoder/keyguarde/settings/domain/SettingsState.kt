@@ -19,7 +19,12 @@ data class SettingsState(
     val caughtCount: Int = 0,
     val ratePromptDone: Boolean = true,
     val isPaused: Boolean = false,
+    val batteryNoticeSeen: Boolean = false,
 ) {
+    /** The card warns about restricted battery until the user has looked at the Battery screen. */
+    val showBatteryNotice: Boolean
+        get() = isBatteryUnrestricted == false && !batteryNoticeSeen
+
     /**
      * Asks for a rating only once Keyguarde has proved itself, and never next to a problem.
      * Restricted battery doesn't block it: most phones restrict by default, so almost nobody
