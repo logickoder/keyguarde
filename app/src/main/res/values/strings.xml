@@ -225,7 +225,10 @@
     <string name="privacy">Privacy</string>
 
     <!-- Keyword filters -->
-    <string name="keywords_list_label">Your keywords</string>
+    <plurals name="keyword_count">
+        <item quantity="one">%1$d keyword</item>
+        <item quantity="other">%1$d keywords</item>
+    </plurals>
     <string name="keyword_edit_label">edit</string>
     <string name="keyword_edit_title">Edit keyword</string>
     <string name="keyword_delete">Delete keyword</string>

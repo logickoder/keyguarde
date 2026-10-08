@@ -34,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -123,6 +122,8 @@ fun KeywordEditSheet(
                     )
                     Button(
                         onClick = submit,
+                        // Nothing to save until the word changes.
+                        enabled = text.text.trim().lowercase() != word,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 56.dp),
@@ -131,6 +132,8 @@ fun KeywordEditSheet(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.onSurface,
                             contentColor = MaterialTheme.colorScheme.surface,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                         content = { Text(stringResource(R.string.save)) },
                     )
@@ -141,8 +144,7 @@ fun KeywordEditSheet(
                         content = {
                             Text(
                                 text = stringResource(R.string.keyword_delete),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     )

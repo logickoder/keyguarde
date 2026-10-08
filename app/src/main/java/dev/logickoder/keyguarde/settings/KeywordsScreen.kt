@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -132,7 +133,7 @@ private fun KeywordsContent(
                         true -> item(key = "empty") { EmptyKeywords(onAdd = { onAction(KeywordsAction.Add(it)) }) }
 
                         else -> {
-                            item(key = "label") { ListLabel() }
+                            item(key = "label") { ListLabel(count = state.keywords.size) }
                             itemsIndexed(state.keywords, key = { _, keyword -> keyword.word }) { index, keyword ->
                                 Column(
                                     modifier = Modifier.animateItem(),
@@ -166,9 +167,9 @@ private fun KeywordsContent(
 }
 
 @Composable
-private fun ListLabel() {
+private fun ListLabel(count: Int) {
     Text(
-        text = stringResource(R.string.keywords_list_label),
+        text = pluralStringResource(R.plurals.keyword_count, count, count),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
