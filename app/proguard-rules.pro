@@ -53,3 +53,10 @@
 # kept. Suspend functions are wrapped in continuations where the type argument
 # is used.
 -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+## ------------------------------- Firebase Performance -------------------------------
+# firebase-perf 23.0.0 lost the protobuf-lite consumer rule, so R8 renames message fields that
+# protobuf reads by name and the app crashes on launch.
+# https://github.com/firebase/firebase-android-sdk/issues/8691
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
+    <fields>;
+}
