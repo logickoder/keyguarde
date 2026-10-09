@@ -21,6 +21,11 @@ on:
           - beta
           - internal
           - production
+      changes_not_sent_for_review:
+        description: "Upload without sending for review (needed while another release is in review). Send it from Play Console after."
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -85,6 +90,7 @@ jobs:
           inAppUpdatePriority: 5
           track: ${{ github.event.inputs.distribution_track }}
           status: completed
+          changesNotSentForReview: ${{ github.event.inputs.changes_not_sent_for_review == 'true' }}
 
       - name: Create release notes
         if: success()
