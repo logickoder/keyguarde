@@ -5,3 +5,8 @@ allowBuilds:
   protobufjs: true
 minimumReleaseAgeExclude:
   - eslint@10.12.0
+# Parents pin vulnerable versions, so Dependabot security updates can't lift these.
+# firebase pins @grpc/grpc-js ~1.9.0, @tailwindcss/typography pins postcss-selector-parser 6.0.10.
+overrides:
+  '@grpc/grpc-js': ^1.13.6
+  postcss-selector-parser: ^7.1.6
